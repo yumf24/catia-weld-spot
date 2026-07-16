@@ -1,0 +1,4 @@
+# weld-core (Mac / cross-platform algorithm core, no CATIA dependency)
+numpy
+pydantic>=2
+pytest

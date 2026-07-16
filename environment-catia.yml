@@ -1,0 +1,12 @@
+name: weld-catia
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - numpy
+  - pydantic>=2
+  - pip
+  - pip:
+      - pycatia
+      - pywin32
+      - -e .

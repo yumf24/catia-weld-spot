@@ -1,0 +1,5 @@
+# weld-catia (Windows only, requires a running CATIA V5)
+# Includes the core requirements plus the CATIA COM bridge.
+-r requirements.txt
+pycatia
+pywin32
