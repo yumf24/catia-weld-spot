@@ -164,12 +164,13 @@ CATIA ──①extract(COM，面积/法向/零件号)──▶ faces.json ──
 | **P1 提取** | 导出全部平面几何 | 零件→faces.json | 面数=人工计数；抽样几何量误差<1% | 跑通，vertices 由 P1.5 补全 | 顶点不可靠→见上第 4 条，已用 STEP+OCP 解决 |
 | **P1.5 顶点补全** | 解决 vertices 缺失 | STEP 文件→精确顶点/边界 | 抽样与 CATIA 面积/法向交叉核对一致 | **完成**（`step_geometry.py`+`enrich_faces_with_step.py`，真实装配体验证：planar 面 manual_review 100%→1.7%，顶点与 COM 平面吻合误差<0.001mm） | 面→零件号映射：XCAF assembly tree 已解决；3 顶点面误判：2 个非对称 UV 采样点已解决 |
 | **P2 核心** | 离线实现筛选/布点/过滤 | faces.json→candidates.json | 合成夹具单测全绿 | **完成**（真实装配体验证：0.47s 跑通，产出 192 个候选/41 组零件配对，间距全部落在 20-70mm） | 三层板分类未做（留待后续，见 DEVLOG）；`body` 字段仍占位 |
-| **P3 回写** | 建 Weld_Candidates | candidates.json→CATIA 点集 | 位置一致；重复运行幂等 | 未开始 | 集合重名→先查后建 |
+| **P3 回写** | 建 Weld_Candidates | candidates.json→CATIA 点集 | 位置一致；重复运行幂等 | **完成**（真实会话验证：坐标/参数精确匹配，幂等性验证通过——不用删除类 API，改成按 id 原地更新点坐标，详见 DEVLOG） | `Selection.Delete`/`Products.remove`+`Document.close` 在这套环境里均不可靠，已避开，改用"找到则更新、找不到则新建、多余的标记 stale 不删除"策略 |
 | **P4 集成** | 端到端+调参+日志+文档 | 真实零件→全链路 | 无明显漏检；一键复现 | 未开始 | 漏检高→放宽阈值/加边采样 |
 
 ## 里程碑
 - **M0** 环境就绪（完成）· **M1** 提取可用（完成，附带顶点限制）· **M1.5** 顶点补全
-  （完成，见 P1.5）· **M2** 算法可用（完成，见 P2）· **M3** 回写可用 · **M4** 端到端交付
+  （完成，见 P1.5）· **M2** 算法可用（完成，见 P2）· **M3** 回写可用（完成，见 P3）·
+  **M4** 端到端交付
 
 ## 环境（不改动系统/全局 Python）
 - 单一环境：项目本地 `.venv`（Windows，Python 3.12，本机无 conda）：

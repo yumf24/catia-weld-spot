@@ -5,6 +5,78 @@
 
 ---
 
+## 2026-07-16 — Phase 3 完成：`catia/write_candidates.py` 回写 CATIA，真实会话验证通过（附带三个 COM 坑）
+
+**做了什么**
+- 新增 `catia/write_candidates.py`：在当前活动文档的根 Product 下建（或复用）一个 `Weld_Candidates`
+  Part 组件，内含同名 `HybridBody`，每个候选点建成一个 `HybridShapePointCoord`，点名即
+  `candidate.id`（如 `wc_001`），并挂一条同名 `_info` 字符串参数记录 `faces`/`layer_type`/
+  `spacing_mm`/`reason`（`PLAN.md`"输出"章节要求的字段里，坐标就是点本身，其余塞进这个参数）。
+
+**踩坑过程（这次做了大量真实 CATIA 会话调试，记录下来避免以后重复踩）**
+1. **`Selection.Delete()` 在这套 CATIA/pycatia 环境里不可靠**：无论是删整个 `HybridBody` 还是删
+   单个点，`selection.add(obj); selection.delete()` 都以一个无信息量的通用 COM 错误失败（连
+   `wc_doc.activate()` 之后也一样）。原计划"清空重建"的第一版设计（先删旧点再建新点）走不通。
+2. **`Products.remove()` 只解绑树上的引用，不会真正关闭底层文档**：换成"整组件删除重建"
+   （`Products.remove()` + 手动 `Document.close()` 旧文档）以为绕开了第 1 条，结果验证时发现
+   `Document.close()` 同样不生效——`add_new_component` 再次创建同名组件时，CATIA 会静默复用
+   还开着的旧 `Weld_Candidates.CATPart` 文档而不是真正给一个空文档，导致每跑一次
+   `hybrid_bodies` 数量 +1、参数数量翻倍地累积。**更意外的是**：让用户在 CATIA UI 里手动删除
+   同一个集合，底层文档一样没有被真正清空/关闭——说明这不是 pycatia 或某个 API 调用方式的问题，
+   而是这套 CATIA 环境里"删除"这件事本身，无论是编程调用还是手动操作，都无法让一个组件的底层
+   文档标识真正被回收复用。
+3. **最终方案：不删除，原地更新**——`Weld_Candidates` 组件/几何集在第一次运行后就固定复用，
+   之后每次运行按候选点 id 匹配已有点：存在则直接改该点的 `<body>\<point>\X`/`Y`/`Z` 参数值
+   （已用 `HybridShapePointCoord.x/y/z`—— 而不是参数缓存值——读回验证，确认改参数真的会移动几何
+   点本身）；不存在则新建；新一轮里消失的候选 id（比如调参后候选数变少）不删除，只在其 `_info`
+   参数前加 `STALE - not present in latest run:` 前缀标记，可见但不误导。
+   - 过程中还踩了一个自己代码的坑：判断"点是否已存在对应的 `_info` 参数"最初用了
+     `Parameters.get_item_by_name`，这个方法是按**全限定名**（如 `Weld_Candidates\wc_001_info`）
+     做精确比较，而我们一直用短名字 `wc_001_info` 去查，所以永远查不到、永远走"新建"分支——
+     实测导致每次重跑都会在已有的 `wc_001_info` 旁边再建一个 `wc_001_info.1`（CATIA 自动加后缀
+     去重），参数数量翻倍但没报错，不易察觉。改成包一层 `try: parameters.item(name) except:
+     None`（`.item()` 短名字能正确解析，只是没有"找不到返回 None"这个安全语义，需要自己包）后
+     解决，并用 `Parameters.remove(name)`（这个删除 API 反而是可靠的，和前面两个不同）清理掉了
+     调试过程中产生的 191 个重复参数。
+
+**真实会话验证结果**
+- 对着真实的 `component.CATProduct`（这次是从 `data/component.step` 重新导入的，因为原生
+  `.CATProduct` 文件在中途被误关闭，详见下方"环境插曲"）连续跑了三轮：
+  1. 首次运行：192 个点全部新建，坐标/`_info`参数抽查（`wc_001`/`wc_096`/`wc_192`）和
+     `candidates.json` 逐位精确匹配。
+  2. 第二次运行（真正的幂等性验证，用的是修复后的版本）：`0 created, 192 updated, 0 newly
+     marked stale`，参数总数前后都是 970，没有任何重复对象。
+  3. 抽查确认：`Weld_Candidates` 组件的放置矩阵是单位阵（`get_components()` 返回
+     `(1,0,0, 0,1,0, 0,0,1, 0,0,0)`），验证了"新 Part 局部坐标系 = Product 全局坐标系"这个
+     前提，候选点坐标不需要额外变换。
+
+**环境插曲（记录一下，不是这次改动本身，但解释了为什么最终对象是 STEP 导入而不是原生文件）**
+- 调试过程中一度把用户当时打开的 CATIA 会话搞乱（累积了多个孤立的 `Weld_Candidates` 残留文档/
+  参数），用户选择直接关闭重开 CATIA、重新导入 `data/component.step` 作为干净起点——这一步之后
+  就回不到最初那个原生 `component.CATProduct` 文件了（不知道它在磁盘上的路径，这次会话里也没找）。
+- `component.CATProduct`（STEP 导入产物）本身没有绑定磁盘文件路径，`Document.save()` 直接失败
+  （需要 Save As）。和用户确认后，改用 `Document.ExportData` 导出（`catia/extract_faces.py`
+  之前就验证过这条路径存在），产出 `data/component_with_weld_candidates.stp`
+  （214MB，`.stp` 扩展名——试过 `.step`/"step" 参数组合直接报同样的通用 COM 错误，换成
+  `.stp`/"stp" 才成功，和 `PLAN.md` 里"`ExportData` 支持 stp/step"这条对上了，但这次环境下
+  只有 `.stp` 这个具体组合真正跑通）。文本核对确认导出内容里包含 `Weld_Candidates`。
+
+**结论**
+- Phase 3 完成：候选焊点现在能以真实几何 + 可读参数的形式出现在 CATIA 里，工程师可以直接在三维
+  视图里检视，不需要再对着 JSON 坐标猜。
+- 幂等性验证通过（"原地更新"策略，不依赖任何在这套环境里被证明不可靠的删除类 API）。
+- 已知简化：`wc_test`（本次调试期间手滑留下的测试点）留在 `Weld_Candidates` 集合里，已标记
+  stale，无需清理；三层板分类、`body` 字段占位等 Phase 2 已知简化原样保留。
+
+**下一步**
+- Phase 4：端到端集成（如果用户后续能拿到真正的原生 `.CATProduct` 文件，用
+  `catia/extract_faces.py` → `scripts/enrich_faces_with_step.py` → `weld_core.pipeline` →
+  `catia/write_candidates.py` 走一遍完整链路，而不是像这次一样中途因为环境问题换了对象）、
+  调参、文档收尾。
+- 目前 27 个 pytest 用例仍全绿，本次改动没有触碰 `weld_core` 核心逻辑。
+
+---
+
 ## 2026-07-16 — Phase 2 完成：pairing/region/points/filtering 落地，真实装配体端到端跑通
 
 **做了什么**
