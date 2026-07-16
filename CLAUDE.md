@@ -16,14 +16,20 @@
 
 ## 环境
 - 项目本地 `.venv`（本机无 conda，不用 `environment*.yml`）：
-  `python -m venv .venv` → `pip install pycatia pywin32 numpy "pydantic>=2"` → `pip install -e .`。
+  `python -m venv .venv` → `pip install pycatia pywin32 numpy "pydantic>=2" cadquery` →
+  `pip install -e .`。
 - 装完 pywin32 需跑一次 `python .venv/Scripts/pywin32_postinstall.py -install` 注册 COM。
+- `cadquery`（含 `OCP`，OpenCASCADE 绑定）用于 `weld_core/step_geometry.py` 离线解析 STEP，
+  跨平台、不依赖 pycatia/CATIA，不违反下面"weld_core 严禁 import pycatia/pywin32"这条。
 - 不改动系统/全局 Python。
 
 ## 验证
 - 改动 `weld_core` 后跑 `pytest`（须全绿），不需要 CATIA 打开。
-- CATIA 侧改动先用 `scripts/check_env_catia.py`（需 CATIA 已打开）确认能连上，再用真实零件验证。
-- `catia/extract_faces.py` 每次运行会在 `logs/` 生成耗时/吞吐性能日志（已在 `.gitignore`）。
+- CATIA 侧改动（`catia/extract_faces.py`、`catia/write_candidates.py`）先用
+  `scripts/check_env_catia.py`（需 CATIA 已打开）确认能连上，再用真实零件/真实会话验证——
+  这两个脚本本质是 COM 副作用脚本，没有独立于 CATIA 的单测覆盖。
+- `catia/extract_faces.py`/`scripts/enrich_faces_with_step.py` 每次运行会在 `logs/` 生成
+  耗时/吞吐性能日志（已在 `.gitignore`）。
 
 ## Git
 - 仓库已 `git init` 并有提交历史。大体积 CAD 输入（`.step`/`.CATPart`/`.CATProduct`）和运行产物

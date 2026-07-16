@@ -33,7 +33,7 @@
 | `candidates[].id` | str | 如 `wc_001` |
 | `candidates[].position` | [x,y,z] | 建点坐标（中间厚度） |
 | `candidates[].faces` | str[] | 关联面 id |
-| `candidates[].layer_type` | `two_layer`/`three_layer` | 层数分类 |
+| `candidates[].layer_type` | `two_layer`/`three_layer` | 层数分类；V1 恒为 `two_layer`（按两张贴合面配对生成，三层板自动识别/合并未实现，见 DEVLOG） |
 | `candidates[].spacing_mm` | float | 点间距 |
 | `candidates[].region_bbox` | {min,max} | 候选区域包围盒 |
 | `candidates[].reason` | str | 生成原因 |
