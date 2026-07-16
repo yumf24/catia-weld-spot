@@ -1,0 +1,31 @@
+# Runtime artifacts
+data/*.json
+logs/
+*.log
+
+# Large binary CAD inputs (STEP / CATIA parts) — keep out of git
+data/*.step
+data/*.stp
+*.CATPart
+*.CATProduct
+*.stl
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+build/
+dist/
+
+# Local Claude Code settings
+.claude/settings.local.json
+
+# Environments
+.venv/
+venv/
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
