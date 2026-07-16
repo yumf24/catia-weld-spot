@@ -2,3 +2,4 @@
 numpy
 pydantic>=2
 pytest
+cadquery

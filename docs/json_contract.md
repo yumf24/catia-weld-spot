@@ -19,7 +19,7 @@
 | `faces[].normal` | [x,y,z] | 单位法向，**方向不保证**（比较忽略正负） |
 | `faces[].plane_origin` | [x,y,z] | 平面上一点 |
 | `faces[].centroid` | [x,y,z] | 重心 |
-| `faces[].vertices` | [[x,y,z]…] | 顶点，用于算投影 2D AABB，可能为空 |
+| `faces[].vertices` | [[x,y,z]…] | 顶点，用于算投影 2D AABB，可能为空；CATIA COM 逐面提取不可靠（见 DEVLOG），实际由 `scripts/enrich_faces_with_step.py` 离线解析同一文档的 STEP 导出补全，顶点顺序不保证、已按容差去重 |
 | `faces[].manual_review` | bool | 曲面/顶点不足等置 true |
 | `faces[].reason` | str | manual_review 原因 |
 

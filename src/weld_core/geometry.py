@@ -81,3 +81,26 @@ def aabb_overlap_2d(min_a, max_a, min_b, max_b):
     if np.any(lo > hi):
         return None
     return lo, hi
+
+
+def fit_plane_residual(points) -> tuple[np.ndarray, np.ndarray, float]:
+    """Least-squares plane fit via SVD → (unit normal, origin, max residual).
+
+    ``origin`` is the point centroid; ``normal`` is the smallest right
+    singular vector of the centered points; the residual is the largest
+    absolute distance of any input point to that plane. With only 3 points
+    the residual is always ~0 (three points are always coplanar) — callers
+    that need to catch curved triangular faces should append an extra
+    off-vertex sample point (e.g. a surface interior point) before calling
+    this.
+    """
+    pts = as_array(points).reshape(-1, 3)
+    if pts.shape[0] < 3:
+        raise ValueError("need at least 3 points to fit a plane")
+    origin = pts.mean(axis=0)
+    centered = pts - origin
+    _u, _s, vt = np.linalg.svd(centered, full_matrices=False)
+    normal = vt[-1]
+    normal = normal / np.linalg.norm(normal)
+    residual = float(np.max(np.abs(centered @ normal)))
+    return normal, origin, residual

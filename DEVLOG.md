@@ -5,6 +5,70 @@
 
 ---
 
+## 2026-07-16 — P1.5 落地为正式代码：`step_geometry.py` + `enrich_faces_with_step.py`，真实装配体验证通过
+
+**做了什么**
+- 把上一条记录里"验证通过但未写成代码"的 STEP+OCP 路线落地为正式模块，解决了当时列出的两个坑：
+  1. **面→零件号映射**：没有用会把装配体拍平的 `cq.importers.importStep`，改用
+     `STEPCAFControl_Reader` + XCAF（`XCAFDoc_ShapeTool`）遍历 assembly tree，从名字节点拿到
+     PartNumber。**过程中发现一个原计划没预见的坑**：assembly 里每个零件实例的位置由
+     `TopLoc_Location` 决定，如果直接对被引用的原始 shape 取顶点，坐标是零件本地坐标系的，
+     和 CATIA COM 测出来的全局坐标对不上——已解决：递归时用 `GetLocation_s` 累乘
+     `TopLoc_Location`，叶子 shape 调用 `.Moved(累乘location)`，验证坐标与"整个 free shape
+     一次性 GetShape_s"完全一致（同一顶点误差为 0）。
+  2. **3 顶点面误判平面**：最初只加了 1 个 UV 中点校验点，结果在 `SPOT.step`（这是纯"焊点标记球"
+     几何，不是真零件，上条记录已确认）上测出全部 572 个球面全部误判成 planar——排查发现：
+     球面这类周期性参数曲面（u 从 0 到 2π）的"中点"恰好和顶点落在同一条经线平面上，
+     属于对称退化，不能证伪弯曲。改成 2 个非对称 UV 采样点（`(0.35,0.65)` 和 `(0.7,0.3)`
+     两组分数），重跑后 `SPOT.step` 全部 572 面正确判定为非平面，问题解决。
+- 新增/改动文件：
+  - `src/weld_core/geometry.py`：新增纯 numpy 函数 `fit_plane_residual`（SVD 平面拟合 + 最大残差），
+    从 OCP 管道代码里剥离出来单独测试。
+  - `src/weld_core/step_geometry.py`（新模块，不 import pycatia/pywin32）：`parse_step_faces(path)`
+    解析 STEP，按 PartNumber 分组返回每个面的顶点（已去重）/面积/重心/法向/是否平面。
+  - `scripts/enrich_faces_with_step.py`（新脚本）：读 COM 提取的 `faces.json` + STEP 文件，
+    按 part 分组、按"重心距离(<1mm) + 法向夹角(<2°) + 面积相对误差(<5%)"做全局贪心一对一匹配，
+    给匹配上且 STEP 判定平面的 `FaceRecord` 填充 `vertices` 并清 `manual_review`；不匹配/
+    STEP 判非平面的保留 `manual_review=True` 并写明原因（区分"STEP 里找不到这个零件"/
+    "没有匹配到候选面"/"STEP 判非平面但 COM 判平面"三种 reason）。参考 `extract_faces.py` 的
+    `RunStats`/`write_run_log` 模式在 `logs/` 写运行日志。
+  - `tests/test_geometry.py` / `tests/test_step_geometry.py`：分别单测 `fit_plane_residual`
+    （含"3 点必共面"的已知缺陷、以及加第 4 个点后能正确识别弯曲）和 `step_geometry`
+    （`pytest.importorskip("OCP")` 保护；用 OCP 原生 `BRepPrimAPI_MakeBox`/`MakeSphere`
+    现场构造立方体/球面测试，不依赖 `data/` 下的大 STEP 文件；另有一个写 STEP 再解析的
+    round-trip 测试验证 `parse_step_faces` 全流程）。全部 13 个用例（含原有的）通过。
+  - `pyproject.toml`/`requirements.txt` 把 `cadquery` 加成正式依赖；`docs/json_contract.md`
+    补充 `vertices` 字段说明。
+
+**真实装配体验证结果**（`data/component.step`，226MB，STEP 解析约 55s）
+- **零件名映射交叉核对**：单独跑 `MDAU54VBV4`（`data/faces_MDAU54VBV4.json`），STEP 侧解析出
+  179 面、68 planar——和 DEVLOG 上上条记录里 pycatia COM 单独提取该零件的结果（179 面/68 planar）
+  **完全一致**，证明零件名映射和新的平面判定都是对的，不是巧合（如果映射错了不可能连平面数都对上）。
+  匹配后逐面核对：全部 68 个平面的 STEP 顶点到 COM 测出的 plane_origin/normal 定义的平面，
+  最大距离 0.00027mm，基本是浮点精度级别的吻合。
+- **全量装配体**（`data/faces_component_full.json`，10706 面，1925 planar/8781 non_planar）：
+  匹配结果 1892/1925 个 planar 面成功匹配（98.3%），**0 个"STEP 判非平面但 COM 判平面"的冲突**
+  （说明两套独立测量完全一致，没有发现矛盾），33 个未匹配（分散在各零件，量级和之前记录的
+  "STEP 面数比 COM 少 ~3%"的正常导出损耗吻合，不是新问题）。
+  - `manual_review=True` 比例：整体面从 100%（10706/10706，上条记录的状态）降到 82.3%
+    （8814/10706——这里面 8781 个是 V1 本来就跳过的 non_planar，不算真正阻塞）；
+    **在算法真正关心的 planar 面子集里，从 100% 降到 1.7%**（33/1925），达成了 DEVLOG
+    上条记录里定的验收标准（"vertices 不再恒为空，manual_review 比例明显下降"）。
+
+**结论**
+- P1.5 顶点补全阶段完成：`vertices` 字段现在对绝大多数平面（98.3%）有真实数据，且和 CATIA COM
+  独立测量的平面参数吻合到亚微米级，可以放心作为 Phase 2 投影包围盒计算的输入。
+- 遗留的 33 个未匹配面、8781 个 non_planar 面按设计走 `manual_review=True`，符合"不漏检为先，
+  人工复核兜底"的 V1 原则，不需要现在解决。
+
+**下一步**
+- 按 DEVLOG 既定顺序推进 Phase 2：实现 `src/weld_core/pairing.py`/`region.py`/`points.py`/
+  `filtering.py`（目前仍是占位），用 `data/faces_component_full.enriched.json` 这类真实、
+  已有 vertices 的数据做端到端验证，而不是只靠 `tests/fixtures/two_layer.json` 这个合成夹具。
+- `body` 字段仍是 `"unknown"` 占位，不阻塞，暂不处理。
+
+---
+
 ## 2026-07-16 — STEP+OCP 顶点提取方案验证通过，PLAN.md 更新为"可行"
 
 **做了什么**
