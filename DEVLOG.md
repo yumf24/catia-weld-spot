@@ -5,6 +5,186 @@
 
 ---
 
+## 2026-07-16 — STEP+OCP 顶点提取方案验证通过，PLAN.md 更新为"可行"
+
+**做了什么**
+- 用户说本地代理恢复了，重试 `pip install cadquery`——这次装成功了（`cadquery` 2.8.0，
+  内含 `OCP`）。
+- 用 `data/SPOT.step`（4.6MB）做第一次测试：发现全部 572 个面都被判定成 `GeomAbs_Sphere`
+  （半径恰好 3mm，面积约 56.57mm² 对应半球公式）。查了一下才反应过来 SPOT.step 不是零件
+  几何，是"焊点"本身的标记几何（半径 3mm 的小球），选错测试对象了，不是 bug。
+- 换成真正有代表性的 `data/component.step`（226MB，对应之前 pycatia COM 提取过的真实装配体）
+  重新验证：
+  - `cq.importers.importStep()` 解析耗时约 47~48s，得到 10366 个面（pycatia COM 之前数出
+    10706 个，~3% 差异，STEP 导出/三角化的正常损耗）。
+  - 用 OCCT 原生的 `BRepAdaptor_Surface(face).GetType()` 查曲面类型分布：**没有一个面被标记
+    为 `GeomAbs_Plane`**，全是 `GeomAbs_CN`/`Uniform`/`SurfaceOfExtrusion`/`Torus` 等通用
+    参数曲面——说明 CATIA 导出 STEP 时把平面也写成了通用曲面，不能指望 STEP 里的"曲面类型"
+    字段来判断平面性。
+  - 改用**顶点共面拟合**代替：对每个面的 `Face.Vertices()` 做 SVD 最小二乘平面拟合，取最大
+    残差 < 0.01mm 判定为 planar。结果：10366 个面里 **6348 个残差 ≈0.000000mm**，拟合本身
+    只花 3.66s（约 2830 faces/sec）。`Face.Vertices()` 本身完全可靠，不像 CATIA COM 那样
+    受 `Selection.Search` 的 `,sel` 作用域问题困扰。
+
+**结论**
+- **STEP + OCP（cadquery）这条路径验证通过，可以解决 Phase 1 发现的顶点提取阻塞问题**：
+  能拿到每个面真实的顶点，且比 pycatia COM 逐面调用快两个数量级（一次性 47s 导入 + 3.66s
+  拟合 vs COM 观测的 3~4 faces/sec、全量要 45~70 分钟）。
+- 已知要留给实现阶段解决的坑：
+  1. 恰好 3 个顶点的面用"共面拟合"必然通过（任意 3 点必共面），需要 ≥4 顶点或额外采样面内部
+     参数点二次校验，否则会把弯曲的小三角面片误判成平面。
+  2. STEP 解析出来是一个整体 compound，还没验证怎么把每个面映回 CATIA 侧的
+     PartNumber/Body（`faces.json` 契约需要 `part`/`body` 字段）。
+- 已把这些验证细节和结论写进 `PLAN.md`（第 4 条关键技术结论、架构图、分阶段计划表、
+  里程碑、环境章节），P1.5 状态从"待验证"改成"可行性已验证，未写成正式代码"。
+
+**清理**
+- 删掉了探测用的临时脚本（`scripts/_tmp_step_probe*.py`）和临时日志
+  （`data/step_probe*.log`），保留有意义的验证产出（`data/faces_component_full.json` 等）。
+
+**下一步**
+- 把 STEP+OCP 路线写成正式代码（可能是 `weld_core` 下新增 `step_geometry` 模块，或
+  `catia/` 下新增一个"导出 STEP + 解析"的脚本），解决 3 顶点面误判和 面→零件号映射这两个
+  已知缺口。
+- 落地后用真实装配体重新跑一遍 `extract_faces.py` 或新脚本，确认 `faces[].vertices` 不再
+  恒为空，`manual_review` 比例明显下降，再推进 Phase 2 的 `pairing/region/points/filtering`。
+
+---
+
+## 2026-07-16 — 更新 PLAN.md：调研顶点提取的解法，标注为待验证提案
+
+**做了什么**
+- 按当前进度和 Phase 1 发现的问题重写了 PLAN.md 的"工程实现计划"部分（业务算法思路部分未动）：
+  去掉 Mac/Windows 两地叙事和 conda 环境描述，改为单一 Windows `.venv`；补充真实验证过的
+  API 结论（`Selection.Search("Topology.CGMFace,all")` + `leaf_product` 定位零件、
+  `GetMeasurableInContext` 的单位陷阱等）；分阶段计划表加了"状态"列并新增 **P1.5 顶点补全**
+  阶段；里程碑加了 M1.5。
+- 上网查了顶点提取问题的可能解法：CATIA 侧 `Document.ExportData(path, "stp")` 确认可编程导出
+  STEP（本机 pycatia 源码里能看到该方法且支持 stp/step）；调研到 Python 的 OpenCASCADE 绑定
+  ——`OCP`（`cadquery-ocp`）对 Windows + Python 3.9–3.12 有官方 pip wheel，`pythonocc-core`
+  是另一个选项——理论上可以离线解析 STEP 的 B-rep，拿到精确的面顶点/边界，且不依赖 pycatia，
+  能放进 `weld_core` 而不破坏"核心不依赖 CATIA"的架构。
+- 尝试在本机装 `cadquery` 验证这条路线是否真能解决顶点问题，**没能装成**：
+  `pip install` 反复报 `SSLEOFError`，连体积很小的 `pytest` 都一样失败，查到本机配了
+  `HTTP_PROXY`/`HTTPS_PROXY=http://127.0.0.1:7897`，判断是这个本地代理的问题（不是包体积或
+  PyPI 连通性问题——`Test-NetConnection pypi.org -Port 443` 是通的）。
+
+**结论**
+- STEP+OCP/pythonocc-core 这条解法目前只是**调研出来、写进 PLAN.md 的提案**，没有在本机跑通验证，
+  PLAN.md 里已经如实标注"待验证"而不是当作已解决。
+- 真正验证（装上库、拿 `data/SPOT.step` 解析、和 CATIA COM 读到的面积/法向交叉核对、量一下耗时）
+  需要先解决本地代理问题，这是下一步的前置阻塞项，不是我能在这台机器上直接绕过的。
+
+**下一步**
+- 人工检查/绕开 `127.0.0.1:7897` 这个代理，或换一个能正常访问 PyPI 的网络环境。
+- 代理问题解决后：`pip install cadquery`（或 `pythonocc-core`），用 `data/SPOT.step` 做小规模
+  验证（顶点数量级、面积/法向和 pycatia 结果的交叉核对、耗时对比）。
+- 验证通过再决定：完全换成 STEP+OCP 路线，还是只用它补 `vertices` 字段、其余仍走 pycatia COM。
+
+---
+
+## 2026-07-16 — 更新 README.md / CLAUDE.md：单机 Windows 叙事 + git 说明
+
+**做了什么**
+- 和用户过了一遍 CLAUDE.md/README.md 该怎么改，确认几点：
+  1. 开发已完全迁移到这台 Windows+CATIA 机器，不再保留"Mac 离线核心 / Windows 集成"两地叙事，
+     "开发机"相关表述改为阶段无关的固定描述，避免再过时。
+  2. Windows 侧环境正式方案是项目本地 `.venv`（本机无 conda），`environment*.yml`/conda 不再作为
+     Windows 侧的文档主线。
+  3. 顶点提取不可靠这条硬限制只留在 DEVLOG，不写进 CLAUDE.md（CLAUDE.md 保持流程/约定性质）。
+  4. 加了一条简短的 git 说明（仓库已 `git init`，大文件/运行产物已在 `.gitignore`）。
+- 更新了 `CLAUDE.md`（现 30 行，远低于 200 行上限）和 `README.md`（现 55 行）：
+  去掉 Mac/Windows 双机叙事与 conda 指令，改为单一 `.venv` 环境说明；架构图去掉 `(Win)`/`(Mac)`
+  机器标注；补充 `catia/extract_faces.py` 的用法和 `logs/` 性能日志说明；状态清单里 Phase 1
+  标记为已跑通但附带顶点提取限制的说明。
+
+**遗留（未改动，仅记录）**
+- `PLAN.md` 里"工程实现计划"部分仍写着"开发机为 Mac；两套 conda 环境"等旧叙事，本次未动
+  （用户只要求改 README/CLAUDE.md）；如果之后要统一，需要单独确认。
+- `environment.yml`/`environment-catia.yml`/`requirements*.txt` 文件本身没有删除或改写，
+  仍是历史遗留的 conda 描述，目前没有文档在指向它们作为主路径。
+
+---
+
+## 2026-07-16 — 全装配体验证 + 性能日志
+
+**全装配体导出结果**
+- `component.CATProduct` 全量导出：10706 个面，1925 个 planar，其余 non_planar。
+- 个别面读取 `GetCOG` 报 `com_error`（如 `C9VWLI50MK/face_359` 等 8 处），已按设计降级为
+  `centroid=plane_origin` 并记入 `meta.warnings`，不中断整体导出——符合"不漏检为先，异常不阻断"的思路。
+- 用 `--part-number` 过滤单个零件时，仍会遍历全装配体的 10706 个面逐个取 `leaf_product`/`PartNumber`
+  来判断是否匹配，被跳过的面也有 COM 调用开销，所以"过滤到 1 个零件"并不比全量快很多，
+  这是当前实现的已知性能特征，不是 bug。
+
+**新增：性能日志（`catia/extract_faces.py`）**
+- 每次运行会在 `logs/` 目录生成一份人类可读的 `.log` 文件（纯文本，仓库 `.gitignore` 已忽略
+  `logs/`/`*.log`，不会误入库），命名精确到"文档 + 零件过滤范围 + 运行时间戳"：
+  `extract_faces_{document}_{part_number_or_ALL}_{YYYYMMDD-HHMMSS}.log`。
+- 内容包含：搜索耗时、逐面提取耗时、总耗时、吞吐（faces/sec）、
+  找到的总面数/被过滤跳过数/实际处理数、planar/non_planar 计数、读取失败计数、输出路径。
+- 单零件（MDAU54VBV4，179 面）验证：搜索 1.2s，逐面提取 52.6s，约 3.4 faces/sec，0 读取错误。
+
+**下一步**
+- 顶点/边界提取仍是 open item（见上一条记录），需要产品侧决定是否投入 STEP 离线解析或 CAA 插件方案。
+- 如果后续要跑更大规模或多次运行，可以考虑给 `--part-number` 之外加一个"先按 Product 结构过滤再
+  搜面"的路径来避免全量扫描，但这属于性能优化，非 V1 必须项。
+
+---
+
+## 2026-07-16 — Phase 1 进行中：Windows+CATIA 环境就绪，extract_faces.py 首版
+
+**环境**
+- 装有 CATIA 的 Windows 机上没有 conda，只有系统 Python 3.12.8（约定要 3.11 但暂无 conda 可用）。
+- 按"不改动系统/全局 Python"原则，改用项目本地 `.venv`（`python -m venv .venv`）代替 conda env，
+  装了 `pycatia`/`pywin32`/`numpy`/`pydantic`，跑了 `pywin32_postinstall.py -install` 注册 COM，
+  `pip install -e .` 使 `weld_core` 可导入。`scripts/check_env_catia.py` 通过，成功连上运行中的 CNEXT。
+- **遗留**：`environment-catia.yml`/`requirements-catia.txt` 仍假设 conda；此机器实际用 `.venv`，
+  后续如需固化建议在 README/环境文档里补一条"无 conda 时用 venv"的说明。
+- pytest 一度因网络问题装不上（SSL EOF），未强行重试；本次没有改动 `weld_core`，用已装好的
+  pydantic 直接跑 `load_faces()` 校验代替，后续需要时再补装 pytest 跑全量测试。
+
+**CATIA 中的真实测试对象**
+- 会话开始时 CATIA 里是简单测试件（cube_30mm 等），后来变成了真实装配体
+  `SPOT.CATProduct`/`component.CATProduct`（对应 `data/SPOT.step`/`data/component.step`），
+  含约 55 个真实钣金件（`04021210-R60_WP.CATPart` 等命名）。用户确认直接用这个真实装配体验证。
+- 装配体内的子零件不是独立窗口（`app.windows` 只有 3 个：`SPOT.step`/`component.step`/`Part56`），
+  必须在 Product 文档层面用 `Selection.Search("Topology.CGMFace,all")` 搜索全装配体的面，
+  再用 `SelectedElement.leaf_product` 定位每个面所属的零件实例。
+
+**关键 API 结论（写入 `catia/extract_faces.py` 注释）**
+- 面积/平面/重心：`SPAWorkbench.GetMeasurableInContext(face_ref, leaf_product)`
+  （Part 直接打开时用 `GetMeasurable`）。`area` 单位是 **m²**，需 ×1e6 转 mm²。
+  `GetPlane()` 对非平面面会抛 `com_error` → 平面判定可靠（曲面/平面靠 try/except 区分）。
+  `GetCOG()` 直接是 mm。
+- 零件号：`leaf_product` 是 pycatia 的通用 `AnyObject`（`.name` 恒为空字符串），
+  必须绕过 pycatia 走底层 COM 对象拿 `PartNumber`：`leaf_product.com_object.PartNumber`。
+- **顶点提取不可靠（重要风险，已验证坐实）**：`Selection.Search` 用 `,sel` 把选择范围限定到单个面后
+  再搜 `Topology.CGMVertex`/`CGMEdge` 恒返回 0；试过 `,(sel)`/`,under.sel`/`,in.sel` 等多种写法，
+  返回的计数（如 2162/2818）远超单面应有的顶点/边数，且抽样一条"边"长度达 25000mm，
+  证明这些写法根本没有正确限定范围（很可能退化成了不受控的更大范围），不可信。
+  `HybridShapeFactory.AddNewBoundary` 需要具体 PartDocument 的 `part`/`hybrid_shape_factory`，
+  但 Product 层面选中的子零件不是独立可 activate 的文档（见上），此路也不通。
+  **结论**：V1 阶段 `faces[].vertices` 恒为空，`manual_review=True`（原因含 "vertices unavailable"），
+  与 `docs/json_contract.md`/`PLAN.md` 里早就写好的兜底策略（"顶点缺失→标 manual_review"）一致，
+  不是新问题而是被验证坐实的已知风险。这意味着 Phase 2 的投影包围盒重叠判定在这套真实装配体上
+  暂时拿不到任何一个"非人工复核"的候选——如果要恢复自动初筛能力，需要另找顶点/边界提取路径
+  （例如导出单个零件为 STEP 再离线解析，或找 CAA RADE 插件），这是需要产品侧决策的开放问题。
+- `body`（Body 名）在 Product 层面也拿不到可靠的每面 Body 归属，`extract_faces.py` 里设为常量
+  `"unknown"` 占位，并在 `meta.warnings` 里注明，不影响算法（`body` 只是信息字段）。
+
+**产出**
+- 新建 `catia/extract_faces.py`：连接 CATIA、按 `--part-number` 过滤/`--limit` 限量，导出 `faces.json`。
+- 单零件试跑（`--part-number MDAU54VBV4`）：179 个面，68 个 planar，`load_faces()` 校验通过。
+- 全装配体（约 10706 个面）导出正在后台跑，用于确认整机规模下的耗时与稳定性。
+
+**下一步**
+- 看全装配体导出结果（耗时、有无异常/告警堆积），把结论也补进本文件。
+- 和用户/产品侧确认：vertices 恒为空、因此 Phase 2 自动初筛在真实件上基本失效，是否要投入解决
+  （STEP 离线解析 / CAA 插件），还是 V1 先接受"全量人工复核"这个降级结果。
+- Phase 2：`src/weld_core/pairing.py`/`region.py`/`points.py`/`filtering.py` 仍是占位，待实现。
+
+---
+
 ## 2026-07-16 — 仓库 git 初始化
 
 **做了什么**
