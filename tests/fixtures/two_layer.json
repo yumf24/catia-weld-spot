@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "part": "two_layer_sample",
+    "unit": "mm",
+    "extractor_version": "0.1",
+    "context": "part",
+    "warnings": []
+  },
+  "faces": [
+    {
+      "id": "PartA/Body1/face_top",
+      "part": "PartA",
+      "body": "Body1",
+      "surface_type": "planar",
+      "area": 5000.0,
+      "normal": [0.0, 0.0, 1.0],
+      "plane_origin": [0.0, 0.0, 1.0],
+      "centroid": [50.0, 25.0, 1.0],
+      "vertices": [
+        [0.0, 0.0, 1.0],
+        [100.0, 0.0, 1.0],
+        [100.0, 50.0, 1.0],
+        [0.0, 50.0, 1.0]
+      ],
+      "manual_review": false,
+      "reason": ""
+    },
+    {
+      "id": "PartB/Body1/face_bottom",
+      "part": "PartB",
+      "body": "Body1",
+      "surface_type": "planar",
+      "area": 5000.0,
+      "normal": [0.0, 0.0, -1.0],
+      "plane_origin": [0.0, 0.0, 1.05],
+      "centroid": [50.0, 25.0, 1.05],
+      "vertices": [
+        [10.0, 5.0, 1.05],
+        [110.0, 5.0, 1.05],
+        [110.0, 55.0, 1.05],
+        [10.0, 55.0, 1.05]
+      ],
+      "manual_review": false,
+      "reason": ""
+    }
+  ]
+}
