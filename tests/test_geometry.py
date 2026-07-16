@@ -36,6 +36,22 @@ def test_no_overlap_returns_none():
     assert g.aabb_overlap_2d([0, 0], [1, 1], [5, 5], [6, 6]) is None
 
 
+def test_project_unproject_round_trip():
+    origin, normal = [1.0, 2.0, 3.0], [0.0, 1.0, 1.0]
+    pts_3d = [[5.0, 5.0, 5.0], [-3.0, 1.0, 7.0], [0.0, 0.0, 0.0]]
+    pts_2d = g.project_to_plane(pts_3d, origin, normal)
+    # These points aren't on the plane, so round-tripping only reproduces
+    # their in-plane component -- project the originals onto the plane
+    # first to get the expected result.
+    n = g.normalize(normal)
+    onto_plane = [
+        p - float(np.dot(np.asarray(p) - np.asarray(origin), n)) * n for p in pts_3d
+    ]
+    restored = g.unproject_from_plane(pts_2d, origin, normal)
+    assert np.allclose(restored, onto_plane, atol=1e-9)
+
+
+
 def test_fit_plane_residual_coplanar_quad():
     pts = [[0, 0, 5], [10, 0, 5], [10, 10, 5], [0, 10, 5]]
     normal, origin, residual = g.fit_plane_residual(pts)

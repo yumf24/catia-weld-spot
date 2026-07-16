@@ -50,20 +50,37 @@ def gap_between_planes(origin_a, normal_a, origin_b) -> float:
     return abs(point_to_plane_distance(origin_b, origin_a, normal_a))
 
 
-def project_to_plane(points, plane_origin, plane_normal) -> np.ndarray:
-    """Project 3D points onto a plane, returning 2D coords in an in-plane basis.
-
-    Returns an (N, 2) array of (u, v) coordinates.
-    """
+def plane_basis(plane_normal) -> tuple[np.ndarray, np.ndarray]:
+    """Build an orthonormal in-plane basis (u, v) for a plane with the given normal."""
     n = normalize(plane_normal)
-    # Build an in-plane orthonormal basis (u, v).
     ref = np.array([1.0, 0.0, 0.0])
     if abs(float(np.dot(n, ref))) > 0.9:
         ref = np.array([0.0, 1.0, 0.0])
     u = normalize(np.cross(n, ref))
     v = np.cross(n, u)
+    return u, v
+
+
+def project_to_plane(points, plane_origin, plane_normal) -> np.ndarray:
+    """Project 3D points onto a plane, returning 2D coords in an in-plane basis.
+
+    Returns an (N, 2) array of (u, v) coordinates.
+    """
+    u, v = plane_basis(plane_normal)
     pts = as_array(points).reshape(-1, 3) - as_array(plane_origin)
     return np.column_stack([pts @ u, pts @ v])
+
+
+def unproject_from_plane(points_2d, plane_origin, plane_normal) -> np.ndarray:
+    """Inverse of ``project_to_plane``: (u, v) plane coords -> 3D world points.
+
+    Uses the same (u, v) basis convention as ``project_to_plane`` for the
+    given normal, so a point round-tripped through project -> unproject
+    returns to its original 3D location (up to its out-of-plane component).
+    """
+    u, v = plane_basis(plane_normal)
+    pts = as_array(points_2d).reshape(-1, 2)
+    return as_array(plane_origin) + pts[:, 0:1] * u + pts[:, 1:2] * v
 
 
 def aabb_2d(points_2d) -> tuple[np.ndarray, np.ndarray]:

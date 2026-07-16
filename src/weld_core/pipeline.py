@@ -1,9 +1,5 @@
 """Pipeline orchestration: faces.json -> candidates.json.
 
-Phase 0 provides a runnable skeleton: it loads and validates the input,
-threads the tunable params through, and writes a well-formed (currently
-empty) candidates document. Phase 2 fills in pairing/region/points/filter.
-
 Usage:
     python -m weld_core.pipeline <faces.json> [candidates.json]
 """
@@ -14,6 +10,10 @@ import sys
 from pathlib import Path
 
 from .config import WeldParams
+from .filtering import filter_candidates
+from .pairing import find_mating_pairs
+from .points import layout_points
+from .region import build_region
 from .schema import (
     CandidatesDocument,
     CandidatesMeta,
@@ -25,15 +25,24 @@ from .schema import (
 
 def run(faces_doc: FacesDocument, params: WeldParams | None = None) -> CandidatesDocument:
     params = params or WeldParams()
-    candidates: list = []
 
-    # TODO(Phase 2): wire up the algorithm.
-    #   planar = [f for f in faces_doc.faces if f.surface_type == "planar"
-    #             and not f.manual_review]
-    #   pairs = find_mating_pairs(planar, params)
-    #   for a, b in pairs:
-    #       region = build_region(a, b)
-    #       candidates += filter_candidates(layout_points(region, params), params)
+    eligible = [
+        f
+        for f in faces_doc.faces
+        if f.surface_type == "planar" and not f.manual_review and f.vertices
+    ]
+    pairs = find_mating_pairs(eligible, params)
+
+    candidates = []
+    for face_a, face_b in pairs:
+        region = build_region(face_a, face_b, params)
+        if region is None:
+            continue
+        candidates.extend(layout_points(region, params))
+
+    candidates = filter_candidates(candidates, params)
+    for i, c in enumerate(candidates, start=1):
+        c.id = f"wc_{i:03d}"
 
     return CandidatesDocument(
         meta=CandidatesMeta(source=faces_doc.meta.part, params=params.as_dict()),

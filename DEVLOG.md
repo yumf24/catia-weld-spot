@@ -5,6 +5,59 @@
 
 ---
 
+## 2026-07-16 — Phase 2 完成：pairing/region/points/filtering 落地，真实装配体端到端跑通
+
+**做了什么**
+- 把 `src/weld_core/pairing.py`/`region.py`/`points.py`/`filtering.py` 从占位（`NotImplementedError`）
+  实现为可跑的算法，按 `PLAN.md` 最上面"算法流程"章节逐条对应：
+  - `pairing.find_mating_pairs`：不同零件 + 法向夹角 ≤5°（忽略正负）+ 面间距 ≤0.1mm + 投影 2D AABB
+    重叠。法向夹角这一层先用 `normals @ normals.T` 一次性向量化算出全部两两夹角做预过滤，再对通过的
+    候选对做逐对的 gap/AABB 检查——真实数据里参与配对的面约 1892 个，朴素双重循环预计要 1-2 分钟，
+    向量化预过滤后整体跑下来只要 0.47 秒。
+  - `region.build_region`：两张贴合面之间沿法向的中点作为焊点厚度方向位置（"参与板层整体厚度的
+    中间位置"，V1 只有两张贴合面数据，取中点是最直接的对应）；重叠区域短边 < `min_face_width_mm`
+    时判定区域无效，返回 `None`（对应"焊接面宽度明显不足"的基础过滤规则，放在区域构建阶段而不是
+    生成点之后再过滤，因为宽度不足这个区域根本不成立）。
+  - `points.layout_points`：区域长边 <20mm 时中心生成 1 点；否则按 20-70mm 间距沿长边均匀布点
+    （`N = max(2, ceil(long_dim/70)+1)`），2D 坐标通过新增的 `geometry.unproject_from_plane`
+    （`project_to_plane` 的逆操作）转回 3D。
+  - `filtering.filter_candidates`：法向偏差和面宽已经在上游 pairing/region 处理，这里只做两件
+    "全局"的事——候选点是否落在自己的 `region_bbox` 内（防御性检查，按当前构造方式恒成立，但对应
+    PLAN 明确列出的规则）、以及跨"不同面对"生成的候选点之间距离 <20mm 时去重（同一区域内部的点
+    本来就按 20-70mm 布的，这个去重专门处理不同面对意外挨得太近的情况）。
+  - `pipeline.run` 按已有的 TODO 注释接线，最后统一把候选点编号成 `wc_001`、`wc_002`...。
+- **明确不做的事（scope 取舍）**：`layer_type` 目前全部标 `"two_layer"`，不做三层板自动识别/合并——
+  PLAN 的算法流程章节全程按"两张面配对"描述，没有给三层板判定的具体规则；真实场景里三层板会自然
+  表现为两组相邻的两层配对，人工复核能看出来，这个简化留到以后需要时再定规则实现。
+- 新增测试：`tests/test_pairing.py`、`test_region.py`、`test_points.py`、`test_filtering.py`
+  （构造简单几何直接测每个模块），`geometry.py` 加 `unproject_from_plane` 和往返测试，
+  更新 `tests/test_pipeline.py`（原来 Phase 0 阶段断言"空列表"，现在断言 `two_layer.json` 夹具
+  应该产出 3 个点、间距 45mm、z=1.025）。全部 27 个用例通过。
+
+**真实装配体验证结果**（`data/faces_component_full.enriched.json`，P1.5 产出，1892 个已补全
+vertices 的 planar 面）
+- 端到端跑通：加载 0.24s + 算法 0.47s，总共不到 1 秒。
+- 产出 **192 个候选焊点**，涉及 **41 组不同零件配对**（前几名如
+  `(2JVB4T5BI0, JPG81WS6QG)` 27 个点、`(1EAVWXKUA9, 84CK99UPEH)` 20 个点，量级和真实钣金装配体
+  "多处法兰贴合"的直觉吻合）。
+- 其中 14 个是小区域单点候选（`spacing_mm=0`），其余 178 个的间距全部落在 [20.04, 69.65]mm，
+  符合"20~70mm"的设计约束。
+- 抽样候选的 `reason` 显示 `gap≈0.000mm, normal_angle≈0.00°`——真实钣金件贴合面通常是精确重合的
+  平面，符合预期。
+
+**结论**
+- Phase 2 算法核心完成，且已经用真实数据（而不仅是 `tests/fixtures/two_layer.json` 合成夹具）
+  跑通验证，产出的候选数量级、间距分布、涉及的零件对都看起来合理。
+- 三层板分类、`body` 字段仍是已知的简化/占位，不阻塞当前阶段。
+
+**下一步**
+- Phase 3：`catia/write_candidates.py`（读 `candidates.json`，在 CATIA 里建 `Weld_Candidates`
+  集合并建点，尚未开始）。
+- 如果需要，可以把这次全量跑出的 192 个候选导出看看，请工程师/产品侧对结果做一次人工复核，
+  反馈阈值（`WeldParams`）是否需要调整，再决定要不要在 Phase 3 之前先调参。
+
+---
+
 ## 2026-07-16 — P1.5 落地为正式代码：`step_geometry.py` + `enrich_faces_with_step.py`，真实装配体验证通过
 
 **做了什么**
