@@ -1,0 +1,278 @@
+# CLI.md — 命令行工具一览
+
+本文件列出项目当前提供的全部命令行入口：代码路径、输入/输出、用途。按 pipeline 顺序排列
+（环境检查 → 提取 → 核心算法 → 回写 → 一键编排 → 评测）。业务背景见 `PLAN.md`，
+数据格式定义见 `docs/json_contract.md`，踩坑记录见 `DEVLOG.md`。
+
+所有命令均在项目根目录、激活 `.venv` 后运行（Windows：`.venv\Scripts\python.exe ...`）。
+标注 **[需 CATIA]** 的命令必须在 Windows、CATIA V5 已打开且目标文档处于激活状态时运行；
+其余命令纯离线（Python + numpy / OCP），不需要 CATIA。
+
+| 命令 | 代码路径 | 需 CATIA | 输入 | 输出 |
+|---|---|:---:|---|---|
+| [环境检查（核心）](#环境检查核心) | `scripts/check_env_core.py` | 否 | 无 | 终端提示 |
+| [环境检查（CATIA）](#环境检查catia) | `scripts/check_env_catia.py` | 是 | 无 | 终端提示 |
+| [提取面数据](#提取面数据) | `catia/extract_faces.py` | 是 | 激活的 CATIA 文档 | `faces.json` |
+| [导出 STEP](#导出-step) | `catia/export_step.py` | 是 | 激活的 CATIA 文档 | `*.stp` |
+| [用 STEP 补全顶点](#用-step-补全顶点) | `scripts/enrich_faces_with_step.py` | 否 | `faces.json` + `*.stp` | `faces.enriched.json` |
+| [运行核心算法](#运行核心算法) | `python -m weld_core.pipeline` | 否 | `faces.enriched.json` | `candidates.json` |
+| [回写候选点到 CATIA](#回写候选点到-catia) | `catia/write_candidates.py` | 是 | `candidates.json` | CATIA 文档内 `Weld_Candidates` 点集 |
+| [一键端到端](#一键端到端) | `scripts/run_full_pipeline.py` | 是 | 激活的 CATIA 文档 | 上述 `.stp`/`faces*.json`/`candidates.json`（可选回写） |
+| [提取真实焊点](#提取真实焊点) | `scripts/extract_ground_truth.py` | 否 | 焊点标记 STEP（如 `data/SPOT.step`） | `ground_truth.json` |
+| [评测候选点](#评测候选点) | `python -m weld_core.evaluate` | 否 | `ground_truth.json` + `candidates.json` | `evaluation.json` |
+
+---
+
+## 环境检查（核心）
+
+**代码路径**：`scripts/check_env_core.py`
+
+**用途**：验证 `weld_core` 相关的纯 Python 依赖（numpy/pydantic）装好了，且 schema
+可以正常序列化/反序列化。跨平台，不需要 CATIA、不需要 Windows——用于确认"核心算法层
+可以脱离 CATIA 独立跑"这条架构约束（见 `CLAUDE.md`）。
+
+**输入**：无。
+
+**输出**：终端打印 `[OK]`/`[FAIL]`，退出码 0/1。不产生文件。
+
+```bash
+python scripts/check_env_core.py
+```
+
+---
+
+## 环境检查（CATIA）
+
+**代码路径**：`scripts/check_env_catia.py`
+
+**用途**：验证 `pycatia`/`pywin32` 装好了，且能连接到一个正在运行的 CATIA V5 会话。
+在改动任何 `catia/` 下的脚本后，先跑这个确认环境可用，再用真实零件验证（见 `CLAUDE.md`
+"验证"章节）。
+
+**输入**：无（隐式依赖：一个已打开的 CATIA V5 进程）。
+
+**输出**：终端打印 `[OK]`/`[FAIL]`，退出码 0/1。不产生文件。
+
+```bash
+python scripts/check_env_catia.py
+```
+
+---
+
+## 提取面数据
+
+**代码路径**：`catia/extract_faces.py`
+
+**用途**：Phase 1 提取层。通过 pycatia COM 遍历当前激活文档（Part 或 Product）的全部面，
+读取每个面的所属零件号、面积、法向、平面判定、重心，写成 `faces.json`。**顶点字段恒为空**
+（`Selection.Search` 按面作用域枚举顶点在这套环境里不可靠，已验证坐实，见 DEVLOG）——
+顶点由下一步"用 STEP 补全顶点"单独解决，不在这一步。
+
+**输入**：一个已在 CATIA 里打开并激活的 Part/Product 文档（隐式，通过 COM 读取当前
+`active_document`）。
+
+**输出**：`faces.json`（`weld_core.schema.FacesDocument`，字段见 `docs/json_contract.md`）
++ 一份运行性能日志（`logs/extract_faces_*.log`，含耗时/吞吐/告警计数，已 gitignore）。
+
+```bash
+python catia/extract_faces.py data/faces.json [--part-number NAME] [--limit N]
+```
+- `--part-number`：只提取指定零件号的面（Product 语境下有效）。
+- `--limit`：处理到达该数量后提前停止（用于快速试跑）。
+
+---
+
+## 导出 STEP
+
+**代码路径**：`catia/export_step.py`
+
+**用途**：把当前激活文档通过 `Document.ExportData` 导出成中性交换格式 STEP，供离线的
+`enrich_faces_with_step.py`/`step_geometry.py` 解析真实顶点用。**注意**：STEP 是中性交换
+格式，不携带 CATIA 原生 feature 树/对象名字/参数——只用它做几何解析，不要用它做"保存工作
+成果给同事看"（那种场景要用原生 `Document.SaveAs` 存 `.CATProduct`/`.CATPart`，见 DEVLOG
+2026-07-16）。硬编码 `.stp` 扩展名+`"stp"`格式字符串（`.step`/`"step"`组合在这套环境里
+验证会报错，见脚本内注释）。
+
+**输入**：一个已在 CATIA 里打开并激活的文档（隐式，通过 COM 读取当前 `active_document`）。
+
+**输出**：`<output>.stp`（体积随装配体大小，真实装配体约 200MB 量级，已在 `.gitignore`）
++ 一份运行日志（`logs/export_step_*.log`，含导出耗时）。
+
+```bash
+python catia/export_step.py data/component.stp
+```
+
+---
+
+## 用 STEP 补全顶点
+
+**代码路径**：`scripts/enrich_faces_with_step.py`（核心解析逻辑在
+`src/weld_core/step_geometry.py::parse_step_faces`，纯 OCP，不依赖 pycatia）
+
+**用途**：Phase 1.5，补上"提取面数据"步骤里恒为空的 `vertices` 字段。离线解析同一文档
+导出的 STEP 文件（`STEPCAFControl_Reader` + XCAF 装配树遍历，顶点用最小二乘平面拟合判
+平面性，因为 STEP 导出会丢失 `GeomAbs_Plane` 类型信息，细节见模块内 docstring 与 DEVLOG），
+按"重心距离 + 法向夹角 + 面积相对误差"把每个 COM 提取的平面面匹配到对应的 STEP 面，
+匹配成功则填入顶点并清除 `manual_review`；匹配失败/STEP 判非平面的保留
+`manual_review=True` 并写明原因。
+
+**输入**：`faces.json`（上一步 COM 提取产物）+ 同一文档导出的 `*.stp`。
+
+**输出**：`faces.enriched.json`（同样是 `FacesDocument`，`vertices`/`manual_review`/`reason`
+字段被更新）+ 运行日志（`logs/enrich_faces_with_step_*.log`，含匹配率统计，按零件分组）。
+
+```bash
+python scripts/enrich_faces_with_step.py data/faces.json data/component.stp data/faces.enriched.json
+```
+
+---
+
+## 运行核心算法
+
+**代码路径**：`src/weld_core/pipeline.py`（编排 `pairing.py`/`region.py`/`points.py`/
+`filtering.py`）
+
+**用途**：Phase 2 算法核心。纯 Python + numpy，不依赖 pycatia/pywin32，可脱离运行中的
+CATIA 独立跑（也是 `pytest` 覆盖的部分）。从已补全顶点的面数据里：按法向夹角 ≤5°/面间距
+≤0.1mm/投影包围盒重叠找候选贴合面对 → 取重叠区域中点作为焊接厚度方向位置 → 按
+20~70mm 间距布点 → 过滤明显不合理的候选（不在区域内/相距过近）。候选 id（`wc_NNN`）
+按内容（关联面 id + 坐标）排序后编号，不依赖输入顺序，保证跨会话重跑时同一个物理候选点
+拿到同一个 id（供回写层按 id 做增量更新，见 DEVLOG）。
+
+**输入**：`faces.enriched.json`（`FacesDocument`，只用 `surface_type=="planar"` 且
+`manual_review==False` 且 `vertices` 非空的面）。
+
+**输出**：`candidates.json`（`weld_core.schema.CandidatesDocument`，字段见
+`docs/json_contract.md`）。
+
+```bash
+python -m weld_core.pipeline data/faces.enriched.json data/candidates.json
+```
+
+---
+
+## 回写候选点到 CATIA
+
+**代码路径**：`catia/write_candidates.py`
+
+**用途**：Phase 3 回写层。把 `candidates.json` 里的候选点在当前激活文档的根 Product 下
+建成一个 `Weld_Candidates` Part 组件（含同名 `HybridBody`），每个候选建成一个真实的
+`HybridShapePointCoord`，点名即候选 id，附带一条同名 `_info` 字符串参数记录关联面/层数
+分类/间距/生成原因。**重复运行是幂等的、原地更新**：已存在的点直接改坐标参数值（不删除
+重建——`Selection.Delete`/`Products.remove`+`Document.close` 在这套 CATIA/pycatia 环境
+里均被验证不可靠，细节见脚本内 docstring 与 DEVLOG），本轮消失的候选不删除，只在其
+`_info` 参数前加 `STALE` 前缀标记。
+
+**输入**：`candidates.json` + 一个已在 CATIA 里打开并激活的 Product 文档（候选点坐标
+假定与该文档的全局坐标系一致，回写前会校验新建组件的放置矩阵是单位阵）。
+
+**输出**：修改当前激活的 CATIA 文档（内存中，需要用户自己 Save/SaveAs 落盘）；终端打印
+本次新建/更新/新标记 stale 的点数。
+
+```bash
+python catia/write_candidates.py data/candidates.json
+```
+
+---
+
+## 一键端到端
+
+**代码路径**：`scripts/run_full_pipeline.py`
+
+**用途**：Phase 4 编排脚本，把上面"提取面数据→导出 STEP→用 STEP 补全顶点→运行核心算法→
+（可选）回写候选点到 CATIA"这条完整链路串成一次调用，复用各阶段已验证的独立实现（不重复
+造轮子）。默认只读 CATIA（提取+导出）、只写本地文件，不碰当前打开的文档；传 `--write` 才
+会在最后一步真正回写进 CATIA。
+
+**输入**：一个已在 CATIA 里打开并激活的文档（隐式）。
+
+**输出**：`<prefix>.stp` / `<prefix>.faces.json` / `<prefix>.faces.enriched.json` /
+`<prefix>.candidates.json` + 一份合并了各阶段耗时/产出量的运行日志
+（`logs/run_full_pipeline_*.log`）；传 `--write` 时额外回写进当前 CATIA 文档。
+
+```bash
+python scripts/run_full_pipeline.py data/component_e2e [--write] [--part-number NAME] [--limit N]
+```
+
+---
+
+## 提取真实焊点
+
+**代码路径**：`scripts/extract_ground_truth.py`（核心解析逻辑在
+`src/weld_core/step_geometry.py::parse_step_spheres`）
+
+**用途**：Phase 5 评测能力的第一步——把"真实焊点在哪里"变成结构化数据。真实焊点不是
+装配体自身几何的一部分，而是单独用小球（半径 3mm）标记出来的（如 `data/SPOT.step`）。
+纯离线解析：按 OCCT 解析出的球面类型（`GeomAbs_Sphere`，这个类型信息在 STEP 里是保真的，
+不像平面那样会丢失）找到全部标记球面，每个真实焊点被导出成 2 个半球面，按球心距离
+（容差 0.5mm）合并去重成 1 个点。**注意**：标记球的 STEP 实例名（如
+`04021210-R60_WP`）不是真实装配体的 PartNumber，只作追溯参考，不能用于按零件匹配。
+
+**输入**：焊点标记球 STEP 文件（如 `data/SPOT.step`）。
+
+**输出**：`ground_truth.json`（`weld_core.schema.GroundTruthDocument`，字段见
+`docs/json_contract.md`）。
+
+```bash
+python scripts/extract_ground_truth.py data/SPOT.step data/SPOT.ground_truth.json
+```
+
+---
+
+## 评测候选点
+
+**代码路径**：`src/weld_core/evaluate.py`
+
+**用途**：Phase 5 评测核心——回答"算法生成的候选焊点，有没有对上真实焊点"。纯
+Python/numpy，不依赖 pycatia。做法：把每个真实焊点和每个候选点的 3D 距离算出来，只保留
+距离 ≤ 容忍度阈值（`--tolerance`，单位 mm）的配对，按距离从近到远贪心做一对一匹配
+（每对配对被认领后，双方都不再参与后续匹配——这是点集检测评测的标准近似算法，规模上
+和精确最优分配不会产生分歧，细节见模块 docstring）。V1 的设计原则是"尽量不漏检"（见
+`PLAN.md`），所以**召回率（recall）是首要指标**，精确率（precision）次要——多余的候选点
+本来就是要交给人工复核的，不算失败。
+
+**输入**：`ground_truth.json`（真实焊点，来自"提取真实焊点"这一步）+ `candidates.json`
+（算法产出的候选点，来自"运行核心算法"这一步）。**前提**：两者必须是同一装配体、同一
+全局坐标系下的数据——用前建议先核对两者的坐标 bbox 是否重合（见 DEVLOG 2026-07-17）。
+
+**输出**：`evaluation.json`（`weld_core.schema.EvaluationDocument`）+ 终端打印的汇总报告
+（含逐个漏检真实焊点的坐标/标签，便于按零件排查漏检是否集中在特定区域）。
+
+```bash
+python -m weld_core.evaluate data/SPOT.ground_truth.json data/candidates.json data/evaluation.json --tolerance 10
+```
+- `--tolerance`：匹配容忍度，单位 mm，默认 10mm。不传时用这个默认值；容忍度设置需结合
+  "焊点定位精度要求"和"20mm 最小点间距"来定——容忍度远小于 20mm 才不会让两个相邻的真实
+  焊点抢同一个候选点。
+
+### 评测指标说明（indicators）
+
+`evaluation.json` 的 `summary` 字段：
+
+| 字段 | 含义 |
+|---|---|
+| `num_ground_truth` / `num_candidates` | 真实焊点总数 / 候选点总数 |
+| `true_positives`（TP） | 命中的真实焊点数：容忍度内找到了对应候选点 |
+| `false_negatives`（FN） | **漏检**的真实焊点数：容忍度内没有任何候选点——V1 最关心的失败模式 |
+| `false_positives`（FP） | **多余**候选点数：容忍度内没有对应任何真实焊点——交给人工复核，不算严重失败 |
+| `recall` = TP/(TP+FN) | 召回率，**首要指标**：真实焊点里有多少被找到了 |
+| `precision` = TP/(TP+FP) | 精确率，次要指标：候选点里有多少是有效的 |
+| `mean_error_mm` / `max_error_mm` | 命中的匹配对里，候选点到真实焊点的距离均值/最大值——衡量"找到了但准不准" |
+
+**真实数据基准**（2026-07-17，`data/SPOT.step` 解析出的 286 个真实焊点 vs
+`data/component_e2e.candidates.json` 的 200 个候选点，同一装配体、坐标系已核对一致，
+详见 DEVLOG 同日条目）：
+
+| 容忍度 | recall | precision | mean_error_mm | max_error_mm |
+|---|---|---|---|---|
+| 5mm | 6.6% | 9.5% | 2.081 | 4.925 |
+| 10mm | 22.7% | 32.5% | 6.345 | 9.987 |
+| 15mm | 39.2% | 56.0% | 8.759 | 14.902 |
+| 20mm（≈最小点间距上限） | 48.3% | 69.0% | 10.329 | 19.095 |
+| 30mm | 54.9% | 78.5% | 11.988 | 28.680 |
+
+**解读**：即使把容忍度放宽到接近 20mm 的点间距设计上限，recall 也只能到 ~50%——约一半
+真实焊点在任何合理容忍度下都找不到邻近候选点。这不是容忍度选择的问题，是当前配对/布点
+阈值（法向夹角 ≤5°、面间距 ≤0.1mm、点间距 20~70mm 等，见 `src/weld_core/config.py`）
+产出的候选点位置和真实焊点位置系统性对不上，与"V1 不漏检为先"的目标有明显差距，是否
+调参/改进算法待产品侧决策（见 PLAN.md P5、DEVLOG 2026-07-17）。
