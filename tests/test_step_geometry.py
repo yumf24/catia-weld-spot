@@ -66,3 +66,43 @@ def test_parse_step_faces_groups_by_part_name(tmp_path):
     all_faces = [f for faces in grouped.values() for f in faces]
     assert len(all_faces) == 6
     assert all(f.is_planar for f in all_faces)
+
+
+def test_parse_step_spheres_merges_two_marker_balls_into_two_points(tmp_path):
+    """Mirrors data/SPOT.step's shape: two separate weld-spot marker balls.
+
+    A single BRepPrimAPI_MakeSphere shape is already one solid (its faces
+    all share one analytic center), so two spheres at different locations
+    stand in for "two distinct weld points" -- parse_step_spheres must
+    return exactly one merged MarkerSphere per location, not one per face.
+    """
+    from OCP.BRepBuilderAPI import BRepBuilderAPI_Transform
+    from OCP.BRepPrimAPI import BRepPrimAPI_MakeSphere
+    from OCP.gp import gp_Trsf, gp_Vec
+    from OCP.STEPControl import STEPControl_AsIs, STEPControl_Writer
+    from OCP.TopoDS import TopoDS_Compound
+    from OCP.BRep import BRep_Builder
+
+    sphere_a = BRepPrimAPI_MakeSphere(3.0).Shape()
+    trsf = gp_Trsf()
+    trsf.SetTranslation(gp_Vec(100.0, 0.0, 0.0))
+    sphere_b = BRepBuilderAPI_Transform(sphere_a, trsf, True).Shape()
+
+    builder = BRep_Builder()
+    compound = TopoDS_Compound()
+    builder.MakeCompound(compound)
+    builder.Add(compound, sphere_a)
+    builder.Add(compound, sphere_b)
+
+    step_path = tmp_path / "spots.step"
+    writer = STEPControl_Writer()
+    writer.Transfer(compound, STEPControl_AsIs)
+    writer.Write(str(step_path))
+
+    spheres = sg.parse_step_spheres(str(step_path))
+
+    assert len(spheres) == 2
+    centers = sorted(s.center for s in spheres)
+    assert centers[0] == pytest.approx((0.0, 0.0, 0.0), abs=1e-6)
+    assert centers[1] == pytest.approx((100.0, 0.0, 0.0), abs=1e-6)
+    assert all(s.radius == pytest.approx(3.0) for s in spheres)

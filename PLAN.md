@@ -166,11 +166,14 @@ CATIA ──①extract(COM，面积/法向/零件号)──▶ faces.json ──
 | **P2 核心** | 离线实现筛选/布点/过滤 | faces.json→candidates.json | 合成夹具单测全绿 | **完成**（真实装配体验证：0.47s 跑通，产出 192 个候选/41 组零件配对，间距全部落在 20-70mm） | 三层板分类未做（留待后续，见 DEVLOG）；`body` 字段仍占位 |
 | **P3 回写** | 建 Weld_Candidates | candidates.json→CATIA 点集 | 位置一致；重复运行幂等 | **完成**（真实会话验证：坐标/参数精确匹配，幂等性验证通过——不用删除类 API，改成按 id 原地更新点坐标，详见 DEVLOG） | `Selection.Delete`/`Products.remove`+`Document.close` 在这套环境里均不可靠，已避开，改用"找到则更新、找不到则新建、多余的标记 stale 不删除"策略 |
 | **P4 集成** | 端到端+调参+日志+文档 | 真实零件→全链路 | 无明显漏检；一键复现 | **完成**（`catia/export_step.py` + `scripts/run_full_pipeline.py` 一键跑通 extract→export→enrich→core→write 全链路，对着真正的原生 `.CATProduct` 验证；过程中发现并修复候选点 id 跨会话不稳定的问题，详见 DEVLOG） | 漏检高→放宽阈值/加边采样；调参决策仍待工程师人工复核后反馈，本阶段未改动 `WeldParams` 默认值 |
+| **P5 评测** | 用真实焊点（`data/SPOT.step`）量化候选点漏检/误检 | ground_truth.json + candidates.json → evaluation.json | 合成夹具单测全绿；真实数据出具 recall/precision | **完成**（`weld_core.evaluate` + `scripts/extract_ground_truth.py`；真实评测：286 个真实焊点 vs 200 候选，10mm 容忍度下 recall 22.7%/precision 32.5%，20mm 容忍度 recall 48.3%——即使放宽容忍度到接近 20mm 最小点间距上限，仍有约一半真实焊点找不到对应候选，说明当前 V1 阈值/算法离"不漏检"目标有明显差距，见 DEVLOG） | 真实焊点标记的实例名（如 `04021210-R60_WP`）不对应装配体真实 PartNumber，评测按纯 3D 距离匹配，不按零件配对 |
 
 ## 里程碑
 - **M0** 环境就绪（完成）· **M1** 提取可用（完成，附带顶点限制）· **M1.5** 顶点补全
   （完成，见 P1.5）· **M2** 算法可用（完成，见 P2）· **M3** 回写可用（完成，见 P3）·
-  **M4** 端到端交付（完成，见 P4——一键复现脚本 + 真实原生文件全链路验证 + id 稳定性修复）
+  **M4** 端到端交付（完成，见 P4——一键复现脚本 + 真实原生文件全链路验证 + id 稳定性修复）·
+  **M5** 真实焊点评测（完成，见 P5——发现明显的 recall 缺口，是否需要回头调参/改进算法
+  待产品侧决策）
 
 ## 环境（不改动系统/全局 Python）
 - 单一环境：项目本地 `.venv`（Windows，Python 3.12，本机无 conda）：

@@ -35,9 +35,13 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import numpy as np
+
 from OCP.BRep import BRep_Tool
+from OCP.BRepAdaptor import BRepAdaptor_Surface
 from OCP.BRepGProp import BRepGProp
 from OCP.BRepTools import BRepTools
+from OCP.GeomAbs import GeomAbs_Sphere
 from OCP.GProp import GProp_GProps
 from OCP.IFSelect import IFSelect_RetDone
 from OCP.STEPCAFControl import STEPCAFControl_Reader
@@ -148,13 +152,22 @@ def _face_to_step_face(face, part_name: str) -> StepFace:
     )
 
 
-def _walk(shape_tool, label: TDF_Label, current_name: str, loc: TopLoc_Location, out: list[StepFace]) -> None:
+def _walk(shape_tool, label: TDF_Label, current_name: str, loc: TopLoc_Location, out: list, face_fn) -> None:
+    """Recurse the XCAF assembly tree, calling ``face_fn(face, part_name)`` on
+    every leaf face (in global/assembly coordinates) and collecting whatever
+    it returns (skipping ``None``) into ``out``.
+
+    Shared by ``parse_step_faces`` (planar-face extraction) and
+    ``parse_step_spheres`` (weld-spot marker extraction) so the assembly
+    traversal / name resolution / location composition — the tricky, already
+    validated part (see module docstring pitfalls 1-2) — is written once.
+    """
     if shape_tool.IsReference_s(label):
         my_loc = shape_tool.GetLocation_s(label)
         combined = loc.Multiplied(my_loc)
         ref_label = TDF_Label()
         shape_tool.GetReferredShape_s(label, ref_label)
-        _walk(shape_tool, ref_label, current_name, combined, out)
+        _walk(shape_tool, ref_label, current_name, combined, out, face_fn)
         return
 
     name = _name_of(label)
@@ -165,23 +178,19 @@ def _walk(shape_tool, label: TDF_Label, current_name: str, loc: TopLoc_Location,
         fexp = TopExp_Explorer(shape, TopAbs_FACE)
         while fexp.More():
             face = TopoDS.Face_s(fexp.Current())
-            out.append(_face_to_step_face(face, effective_name or "UNNAMED"))
+            result = face_fn(face, effective_name or "UNNAMED")
+            if result is not None:
+                out.append(result)
             fexp.Next()
         return
 
     children = TDF_LabelSequence()
     shape_tool.GetComponents_s(label, children)
     for i in range(1, children.Length() + 1):
-        _walk(shape_tool, children.Value(i), effective_name, loc, out)
+        _walk(shape_tool, children.Value(i), effective_name, loc, out, face_fn)
 
 
-def parse_step_faces(path: str) -> dict[str, list[StepFace]]:
-    """Parse a STEP file and return its faces grouped by CATIA PartNumber.
-
-    Coordinates are in the STEP file's own units (mm, matching CATIA/the
-    rest of this pipeline) and in the assembly's global frame (ancestor
-    ``TopLoc_Location``s are composed and applied).
-    """
+def _read_xcaf_document(path: str):
     app = XCAFApp_Application.GetApplication_s()
     doc = TDocStd_Document(TCollection_ExtendedString("XmlXCAF"))
     app.NewDocument(TCollection_ExtendedString("MDTV-XCAF"), doc)
@@ -193,16 +202,125 @@ def parse_step_faces(path: str) -> dict[str, list[StepFace]]:
         raise RuntimeError(f"failed to read STEP file: {path!r} (status={status})")
     if not reader.Transfer(doc):
         raise RuntimeError(f"failed to transfer STEP data into XCAF document: {path!r}")
+    return doc
 
+
+def _free_shape_labels(doc) -> tuple:
     shape_tool = XCAFDoc_DocumentTool.ShapeTool_s(doc.Main())
     free_shapes = TDF_LabelSequence()
     shape_tool.GetFreeShapes(free_shapes)
+    return shape_tool, free_shapes
+
+
+def parse_step_faces(path: str) -> dict[str, list[StepFace]]:
+    """Parse a STEP file and return its faces grouped by CATIA PartNumber.
+
+    Coordinates are in the STEP file's own units (mm, matching CATIA/the
+    rest of this pipeline) and in the assembly's global frame (ancestor
+    ``TopLoc_Location``s are composed and applied).
+    """
+    doc = _read_xcaf_document(path)
+    shape_tool, free_shapes = _free_shape_labels(doc)
 
     faces: list[StepFace] = []
     for i in range(1, free_shapes.Length() + 1):
-        _walk(shape_tool, free_shapes.Value(i), "", TopLoc_Location(), faces)
+        _walk(shape_tool, free_shapes.Value(i), "", TopLoc_Location(), faces, _face_to_step_face)
 
     grouped: dict[str, list[StepFace]] = {}
     for f in faces:
         grouped.setdefault(f.part_name, []).append(f)
     return grouped
+
+
+@dataclass
+class MarkerSphere:
+    """One weld-spot marker ball found in a STEP file (e.g. ``data/SPOT.step``).
+
+    ``label`` is the STEP/XCAF instance name the marker was found under —
+    informational only (see ``parse_step_spheres`` docstring: it does not
+    reliably correspond to real assembly PartNumbers, so it must not be used
+    to key matching against ``faces.json``/``candidates.json``).
+    """
+
+    center: Vec3
+    radius: float
+    label: str = ""
+
+
+# Weld-spot marker balls are exported as >=2 faces sharing one analytic
+# sphere center (see parse_step_spheres docstring). On data/SPOT.step the two
+# hemisphere centers of the same marker agreed on X/Z to ~0.002mm and the
+# sphere.Location() each hemisphere's adaptor reports is exactly identical
+# (both derive from the same analytic sphere), so a generous-but-still-far-
+# below-the-20mm-min-point-spacing tolerance is safe here.
+_SPHERE_DEDUPE_TOL_MM = 0.5
+
+
+def _sphere_face_or_none(face, part_name: str) -> MarkerSphere | None:
+    adaptor = BRepAdaptor_Surface(face)
+    if adaptor.GetType() != GeomAbs_Sphere:
+        return None
+    sphere = adaptor.Sphere()
+    center = sphere.Location()
+    return MarkerSphere(
+        center=(float(center.X()), float(center.Y()), float(center.Z())),
+        radius=float(sphere.Radius()),
+        label=part_name,
+    )
+
+
+def parse_step_spheres(path: str, dedupe_tol_mm: float = _SPHERE_DEDUPE_TOL_MM) -> list[MarkerSphere]:
+    """Parse a STEP file for spherical marker faces and return one entry per
+    unique sphere, in the assembly's global frame.
+
+    Built for ``data/SPOT.step``: real weld-spot locations marked as small
+    (r=3mm) ball geometry, one weld point per ball. Unlike ``parse_step_faces``'s
+    vertex-plane-fit planarity check, sphere detection here uses OCCT's
+    analytic surface type (``BRepAdaptor_Surface.GetType() ==
+    GeomAbs_Sphere``) directly — reliable for this file (verified: all 572
+    marker faces in ``SPOT.step`` are typed ``GeomAbs_Sphere``, each with
+    ``radius == 3.0`` exactly), unlike the planar case where STEP export
+    loses the ``GeomAbs_Plane`` type for real part geometry (see module
+    docstring pitfall 3).
+
+    Each ball is exported as 2 hemisphere faces (split by some plane through
+    the center) rather than 1 closed spherical face — verified on
+    ``SPOT.step``: 572 sphere faces collapse to exactly 286 unique centers,
+    2 faces each, both hemisphere centroids equidistant from and colinear
+    with the shared analytic center. Centers within ``dedupe_tol_mm`` of
+    each other are merged (position/radius averaged) into one
+    ``MarkerSphere``; this is a broad tolerance relative to the sub-mm
+    agreement observed, but still far below the pipeline's 20mm minimum
+    point spacing so it cannot merge two genuinely distinct weld points.
+    """
+    doc = _read_xcaf_document(path)
+    shape_tool, free_shapes = _free_shape_labels(doc)
+
+    raw: list[MarkerSphere] = []
+    for i in range(1, free_shapes.Length() + 1):
+        _walk(shape_tool, free_shapes.Value(i), "", TopLoc_Location(), raw, _sphere_face_or_none)
+
+    clusters: list[list[MarkerSphere]] = []
+    for sphere in raw:
+        center = np.asarray(sphere.center, dtype=float)
+        match = next(
+            (
+                c
+                for c in clusters
+                if np.linalg.norm(np.asarray(c[0].center, dtype=float) - center) <= dedupe_tol_mm
+            ),
+            None,
+        )
+        if match is None:
+            clusters.append([sphere])
+        else:
+            match.append(sphere)
+
+    merged: list[MarkerSphere] = []
+    for cluster in clusters:
+        centers = [s.center for s in cluster]
+        radii = [s.radius for s in cluster]
+        avg_center = tuple(sum(c[i] for c in centers) / len(centers) for i in range(3))
+        avg_radius = sum(radii) / len(radii)
+        merged.append(MarkerSphere(center=avg_center, radius=avg_radius, label=cluster[0].label))
+    return merged

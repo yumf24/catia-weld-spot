@@ -87,12 +87,84 @@ class CandidatesDocument(BaseModel):
     candidates: list[Candidate] = Field(default_factory=list)
 
 
+class GroundTruthPoint(BaseModel):
+    """A single real (ground-truth) weld point, e.g. parsed from a
+    weld-spot marker STEP file such as ``data/SPOT.step``."""
+
+    id: str
+    position: Vec3
+    radius: float = 0.0
+    label: str = ""
+
+
+class GroundTruthMeta(BaseModel):
+    source: str = ""
+    unit: str = "mm"
+    extractor_version: str = SCHEMA_VERSION
+
+
+class GroundTruthDocument(BaseModel):
+    """Top-level ``ground_truth.json`` document."""
+
+    meta: GroundTruthMeta = Field(default_factory=GroundTruthMeta)
+    points: list[GroundTruthPoint] = Field(default_factory=list)
+
+
+class EvalMatch(BaseModel):
+    """One ground-truth point matched to one candidate within tolerance."""
+
+    ground_truth_id: str
+    candidate_id: str
+    distance_mm: float
+
+
+class EvalSummary(BaseModel):
+    num_ground_truth: int = 0
+    num_candidates: int = 0
+    true_positives: int = 0
+    false_negatives: int = 0
+    false_positives: int = 0
+    recall: float = 0.0
+    precision: float = 0.0
+    mean_error_mm: float = 0.0
+    max_error_mm: float = 0.0
+
+
+class EvaluationMeta(BaseModel):
+    ground_truth_source: str = ""
+    candidates_source: str = ""
+    tolerance_mm: float = 0.0
+    core_version: str = SCHEMA_VERSION
+
+
+class EvaluationDocument(BaseModel):
+    """Top-level ``evaluation.json`` document."""
+
+    meta: EvaluationMeta = Field(default_factory=EvaluationMeta)
+    summary: EvalSummary = Field(default_factory=EvalSummary)
+    matches: list[EvalMatch] = Field(default_factory=list)
+    unmatched_ground_truth: list[str] = Field(default_factory=list)
+    unmatched_candidates: list[str] = Field(default_factory=list)
+
+
 def load_faces(path: str | Path) -> FacesDocument:
     return FacesDocument.model_validate_json(Path(path).read_text(encoding="utf-8"))
 
 
 def load_candidates(path: str | Path) -> CandidatesDocument:
     return CandidatesDocument.model_validate_json(
+        Path(path).read_text(encoding="utf-8")
+    )
+
+
+def load_ground_truth(path: str | Path) -> GroundTruthDocument:
+    return GroundTruthDocument.model_validate_json(
+        Path(path).read_text(encoding="utf-8")
+    )
+
+
+def load_evaluation(path: str | Path) -> EvaluationDocument:
+    return EvaluationDocument.model_validate_json(
         Path(path).read_text(encoding="utf-8")
     )
 

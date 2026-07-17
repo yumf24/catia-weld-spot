@@ -37,3 +37,39 @@
 | `candidates[].spacing_mm` | float | 点间距 |
 | `candidates[].region_bbox` | {min,max} | 候选区域包围盒 |
 | `candidates[].reason` | str | 生成原因 |
+
+## ground_truth.json（真实焊点，评测用 → 核心输入）
+
+由 `scripts/extract_ground_truth.py` 离线解析焊点标记球 STEP 文件（如 `data/SPOT.step`）
+产出，不需要 CATIA 运行；解析逻辑见 `weld_core.step_geometry.parse_step_spheres`
+（每个真实焊点在这类文件里以一个 r=3mm 的球标记，球被导出成 2 个半球面，
+按球心去重合并成 1 个点）。
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `meta.source` | str | 标记球 STEP 文件路径 |
+| `meta.unit` | str | 单位，固定 `mm` |
+| `points[].id` | str | 如 `gt_001` |
+| `points[].position` | [x,y,z] | 球心坐标（真实焊点位置），与 `candidates.json` 同一全局坐标系 |
+| `points[].radius` | float | 标记球半径 mm（信息性，不参与匹配） |
+| `points[].label` | str | STEP 里的实例名（如 `04021210-R60_WP`）；**不对应真实装配体的 PartNumber**，只作追溯用，不能用于匹配 |
+
+## evaluation.json（评测结果，`weld_core.evaluate` 输出）
+
+将 `ground_truth.json` 与某次 `candidates.json` 按 3D 距离做一对一贪心匹配（每对
+候选按距离从近到远认领，任一方被认领后不再参与后续匹配），距离超过容忍度
+阈值（`--tolerance`，单位 mm）不算匹配。V1 以"不漏检"为先，`recall`（真实焊点的
+命中率）是首要指标，`precision`（候选点里有多少是有效的）次要——多余候选交给
+人工复核，不算失败。
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `meta.ground_truth_source` / `candidates_source` | str | 两份输入文件路径 |
+| `meta.tolerance_mm` | float | 本次评测用的容忍度阈值 |
+| `summary.true_positives` | int | 命中的真实焊点数 |
+| `summary.false_negatives` | int | 漏检的真实焊点数（容忍度内找不到候选） |
+| `summary.false_positives` | int | 多余候选数（容忍度内没有对应真实焊点） |
+| `summary.recall` / `precision` | float | `TP/(TP+FN)` / `TP/(TP+FP)` |
+| `summary.mean_error_mm` / `max_error_mm` | float | 命中的匹配对里，候选点到真实焊点的距离统计 |
+| `matches[].ground_truth_id` / `candidate_id` / `distance_mm` | — | 每一对命中的匹配详情 |
+| `unmatched_ground_truth` / `unmatched_candidates` | str[] | 漏检的真实焊点 id / 多余候选 id 列表 |
