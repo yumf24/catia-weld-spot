@@ -5,6 +5,47 @@
 
 ---
 
+## 2026-07-16 — 发现 STEP 导出会丢失点名/参数；改用原生 Save As；打包给同事看
+
+**做了什么**
+- 上一条记录里把 `Weld_Candidates` 导出成了 `data/component_with_weld_candidates.stp`。用户
+  重新打开这个 STEP 文件后反馈"`Weld_Candidates` 没有展开的选项"——排查发现 **STEP 是中性交换
+  格式，不携带 CATIA 原生的 feature 树/对象名字/参数**：重新导入后 `Weld_Candidates` 这个
+  Product 级别的名字还在（PRODUCT 实体的名字保留了），但它引用的实际几何文档被 CATIA 的 STEP
+  导入器改成了通用名字（如 `PartNN.CATPart`），192 个点的独立名字（`wc_001`等）和所有
+  `_info` 参数都没有随之保留——即"坐标本身是对的，但名字/元数据这层信息在 STEP 往返后丢了"。
+- 解决办法：不导出 STEP，改用 **原生 `Document.SaveAs` 存成 `.CATProduct`/`.CATPart`**
+  （CATIA 自己的格式，不是中性交换格式，不会有这个丢失问题）。用户确认后重新走了一遍
+  "关闭重开 CATIA → 导入 component.step → 跑 write_candidates.py"的干净流程（这次
+  `192 created, 0 updated`，全新的一次），然后 `save_as` 到
+  `data/component_with_weld_candidates_native.CATProduct`。
+  - 验证：`SaveAs` 在顶层 Product 上调用，会级联把所有新增/修改过的子文档（包括之前一直没有
+    绑定磁盘路径的 `Weld_Candidates.CATPart`）一起存到同一目录，不需要对每个子文档单独存一次。
+  - 最终落盘 35 个文件（1 个 `.CATProduct` + 34 个 `.CATPart`：33 个真实零件 + 1 个
+    `Weld_Candidates`），共 90MB。
+- 用户要把这个装配体发给同事看，要求打包成一个 zip。用 PowerShell 的
+  `Compress-Archive`（Git Bash 没有 `zip` 命令）把这 35 个原生文件（不含两个大 STEP 输入文件，
+  同事不需要）打平打包成 `data/component_with_weld_candidates.zip`（71MB），验证了包内是
+  平铺结构（没有子目录）——这一点很重要，因为 CATIA 靠"零件文件和装配体文件在同一目录"来自动
+  解析组件引用，解压到不同目录会打不开。
+
+**结论**
+- **看 Weld_Candidates 里每个点的名字/参数，必须走原生 `.CATProduct`/`.CATPart`，不能用 STEP
+  往返**——这是这套 CATIA COM/STEP 环境里一个通用结论，不只是这次的个例，以后任何需要保留
+  CATIA 原生对象名字/参数的场景都要记得这条。
+- `catia/write_candidates.py` 本身不用改：它一直操作的是内存里的活动文档，问题出在"事后怎么把
+  结果存下来给人看"这一步的格式选择上，不是回写逻辑本身的问题。
+
+**新增忽略规则**
+- `.gitignore` 加了 `data/*.zip`（71MB 的打包压缩包不应该进仓库，和已有的 `data/*.step`/
+  `data/*.stp` 归一类）。
+
+**下一步**
+- Phase 4：端到端集成（如果拿到真正的原生 `.CATProduct` 原文件）、调参、文档收尾——同上一条
+  记录，还没变。
+
+---
+
 ## 2026-07-16 — Phase 3 完成：`catia/write_candidates.py` 回写 CATIA，真实会话验证通过（附带三个 COM 坑）
 
 **做了什么**

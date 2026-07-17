@@ -73,6 +73,9 @@ CATIA 回写（需 CATIA V5 已打开，目标 Product 为当前 active document
 ```bash
 python catia/write_candidates.py data/candidates.json
 ```
+> **保存结果时用原生 `Document.SaveAs`（`.CATProduct`/`.CATPart`），不要导出 STEP** ——
+> STEP 是中性交换格式，不携带 CATIA 的对象名字/参数，往返一次会丢掉每个焊点的 `wc_NNN` 名字和
+> `_info` 元数据（坐标本身不受影响）。详见 `DEVLOG.md`。
 
 ## 状态
 - [x] Phase 0：环境、骨架、数据契约、验证脚本、单测
