@@ -5,6 +5,104 @@
 
 ---
 
+## 2026-07-17 — 新增 CLI.md：汇总全部命令行入口
+
+**做了什么**
+- 用户要求做一份文档，列出项目现有的全部命令行功能：对应代码路径、输入/输出、用途，
+  并把评测指标（`evaluation.json` 的 `summary` 字段含义）作为"indicators"说明放在
+  评测命令下面。
+- 新建 `CLI.md`：按 pipeline 顺序（环境检查 → 提取面数据 → 导出 STEP → 用 STEP 补全
+  顶点 → 运行核心算法 → 回写候选点 → 一键端到端 → 提取真实焊点 → 评测候选点）逐一列出
+  10 个命令入口，每个都写明代码路径、需不需要 CATIA、输入/输出文件、一句话用途、
+  命令行示例；顶部加了一张速查表。"评测候选点"一节末尾加了"评测指标说明"小节
+  （TP/FN/FP/recall/precision/mean_error_mm/max_error_mm 逐项解释）+ 上条记录里跑出的
+  真实数据基准表（5/10/15/20/30mm 容忍度下的 recall/precision）。
+- 没有新增/改动代码，纯文档整理，信息来源是各脚本自己的 docstring/argparse 定义和
+  上一条 DEVLOG 记录的真实评测结果，没有引入新结论。
+
+**下一步**
+- 无阻塞，等待用户下一步指示（例如按 Phase 5 记录里提到的"按零件分组看漏检分布"排查
+  recall 缺口，或推进其他方向）。
+
+---
+
+
+## 2026-07-17 — Phase 5 完成：新增真实焊点评测（`weld_core.evaluate`），真实数据显示明显 recall 缺口
+
+**做了什么**
+- 目标：用户提供的 `data/SPOT.step` 是真实焊点标记（不是零件几何），希望拿它和算法产出的
+  候选焊点对比，评测漏检/误检情况，要求有容忍度阈值。
+- 先探测 `data/SPOT.step` 的结构（新写的一次性探测脚本，未入库）确认可行性：
+  - 572 个面全部被 OCCT 判定为 `GeomAbs_Sphere`，半径恰好 3mm——这条和上上条记录
+    （2026-07-16 "STEP+OCP 顶点提取方案验证通过"）里"第一次拿错测试对象"时的发现一致，
+    只是这次反过来利用它：SPOT.step 本来就是"焊点标记球"文件，正好可以当真实焊点的来源。
+  - 每个焊点被导出成 2 个半球面（不是 1 个封闭球面），但两个半球面的 `BRepAdaptor_Surface.
+    Sphere().Location()` 返回的解析球心完全相同（同一个球的两半），去重后 572 面 → 恰好
+    286 个唯一球心，每个对应 1 个真实焊点。
+  - **坐标系核对**（关键前提，必须先确认才能做 3D 距离比较）：`SPOT.step` 球心 bbox
+    （X: -558.8~547.8, Y: -739.9~-218.7, Z: -92.8~590.1）与同一装配体产出的
+    `data/component_e2e.candidates.json`（200 候选）bbox（X: -558~547.6,
+    Y: -721.8~-218.7, Z: -85.3~590.2）几乎完全重合——确认两者是同一全局坐标系，
+    可以直接做 3D 距离比较，不需要额外对齐/变换。
+  - 另确认 `SPOT.step` 里每个球的 XCAF 实例名（如 `04021210-R60_WP`）不是真实装配体的
+    PartNumber（真实零件命名是 `1EAVWXKUA9` 这类随机字符串）——评测按纯 3D 坐标距离匹配，
+    不按零件/面配对，这个名字只作为结果里的追溯标签。
+- 实现：
+  - `src/weld_core/step_geometry.py`：把原来 `parse_step_faces` 私有的 `_walk` 递归重构成
+    接受一个 `face_fn` 回调的通用版本（装配树遍历/实例名解析/位置矩阵累乘这部分逻辑不重复
+    造轮子），新增 `parse_step_spheres()`——按 `BRepAdaptor_Surface.GetType() ==
+    GeomAbs_Sphere` 直接读解析球心/半径（比 `parse_step_faces` 用的"顶点平面拟合"判平面完全
+    不同的路子：球类型在 STEP 里保真，之前发现"丢失"的只是 `GeomAbs_Plane`），按球心距离
+    （容差 0.5mm，远小于 20mm 最小点间距，不会误并两个真实焊点）合并同一个球的多个面。
+  - `src/weld_core/schema.py`：新增 `GroundTruthPoint`/`GroundTruthDocument`（真实焊点）、
+    `EvalMatch`/`EvalSummary`/`EvaluationDocument`（评测结果）+ 对应 load helper。
+  - `src/weld_core/evaluate.py`（新模块，纯 Python/numpy，不依赖 pycatia）：核心是"按距离从近
+    到远贪心一对一匹配"（每对真实焊点-候选点在容忍度内就算候选对，按距离排序，从近到远认领，
+    任一方被认领后退出后续匹配）——这是点集检测评测里的标准近似算法（类似 COCO 关键点匹配），
+    不是精确最优分配，但在这个场景（几百个点，真实焊点间距 ≥20mm 而合理容忍度是几 mm）不会
+    和精确解产生分歧，不必为此引入 `scipy`。V1"不漏检为先"的原则决定了 `recall`（真实焊点
+    命中率）是首要指标，`precision`（候选点里多少是有效的）次要——多余候选交给人工复核，
+    不算失败，这条在模块 docstring 里写明了。CLI 用法同 `pipeline.py` 的 `python -m
+    weld_core.xxx` 风格。
+  - `scripts/extract_ground_truth.py`（新脚本，纯离线 OCP，不需要 CATIA 运行）：
+    `data/SPOT.step` → `ground_truth.json`。
+  - 测试：`tests/test_evaluate.py`（8 个用例，纯合成数据，不需要 OCP：完美匹配/漏检/多余候选/
+    容忍度边界内外/多个候选选最近的/一对一不会多对一/真实焊点或候选点为空时 recall/precision
+    的边界定义）；`tests/test_step_geometry.py` 加了一个 OCP 现场构造两个球（模拟两个真实焊点）
+    验证 `parse_step_spheres` 按位置正确合并/不误并的用例。全部 37 个用例（原 27 + 新 10）通过。
+  - `docs/json_contract.md` 补充 `ground_truth.json`/`evaluation.json` 契约；`PLAN.md`
+    新增 P5 阶段和 M5 里程碑。
+
+**真实数据评测结果**（`data/SPOT.step` 解析出的 286 个真实焊点 vs 同一装配体今天上午
+Phase 4 记录里跑出的 `data/component_e2e.candidates.json`，200 个候选点）
+- 容忍度扫了几档：5mm → recall 6.6%/precision 9.5%；**10mm → recall 22.7%/precision
+  32.5%**（mean/max 匹配误差 6.3mm/10.0mm）；15mm → recall 39.2%/precision 56.0%；
+  20mm（逼近 20mm 最小点间距上限，再大就有跨点误匹配风险）→ recall 48.3%/precision 69.0%；
+  30mm → recall 54.9%/precision 78.5%。
+- **结论：即使把容忍度放宽到接近点间距设计上限，真实焊点的命中率也只能到 ~50%，还有一半
+  左右的真实焊点在任何合理容忍度下都找不到邻近的候选点**——这不是容忍度选择的问题，是当前
+  V1 配对/布点阈值（法向夹角 ≤5°、面间距 ≤0.1mm、点间距 20-70mm 等）产出的候选点位置和真实
+  焊点位置系统性地对不上。和 PLAN.md"V1 不漏检为先"的目标有明显差距。
+- 遗留的 `unmatched_ground_truth`（漏检的真实焊点 id 列表）已完整输出在
+  `data/component_e2e.evaluation.json` 里，可供后续排查具体漏在哪些零件/区域。
+
+**结论**
+- Phase 5（评测能力）完成：现在有了可重复运行的"真实焊点 vs 候选点"评测链路，容忍度可调
+  （`--tolerance`），recall 优先于 precision 的取向和 PLAN.md 一致。
+- 评测结果本身是一个新发现的、比较严重的产品问题（约一半真实焊点漏检），不是本次改动的
+  bug，是评测揭示出的算法现状——是否要回头调整 `WeldParams` 阈值、改进配对/布点算法，还是
+  V1 阶段先接受这个 recall 水平继续人工复核兜底，需要产品侧/工程师决策。
+
+**下一步**
+- 和用户/产品侧过一遍 `unmatched_ground_truth` 里漏检的真实焊点分布（`label` 字段按零件
+  分组能看出漏检是否集中在特定零件/区域），判断是配对阈值太严（法向夹角/面间距）还是布点
+  阶段的问题（区域中点位置系统性偏移），再决定要不要调 `WeldParams` 默认值。
+- 如果要调参，评测链路已经就位，可以直接在每次调参后重跑
+  `scripts/extract_ground_truth.py`（一次性，SPOT.step 不变不用重跑）+
+  `python -m weld_core.evaluate` 看 recall/precision 变化，不需要再手工比对。
+
+---
+
 ## 2026-07-17 — Phase 4 完成：补齐一键复现脚本，真正端到端跑通原生文件全链路，
 过程中发现并修复了候选点 id 跨会话不稳定的问题
 
