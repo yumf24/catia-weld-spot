@@ -1,0 +1,5200 @@
+{
+  "meta": {
+    "source": "component.CATProduct",
+    "core_version": "0.1",
+    "params": {
+      "max_normal_angle_deg": 5.0,
+      "max_gap_mm": 0.1,
+      "min_spacing_mm": 20.0,
+      "max_spacing_mm": 70.0,
+      "min_point_distance_mm": 20.0,
+      "min_face_width_mm": 5.0
+    }
+  },
+  "candidates": [
+    {
+      "id": "wc_001",
+      "position": [
+        -558.0,
+        -486.0,
+        253.09316859410404
+      ],
+      "faces": [
+        "MDAU54VBV4/face_4",
+        "MNQZOGTNYY/face_27"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 69.64658429705202,
+      "region_bbox": {
+        "min": [
+          -558.0,
+          -550.0,
+          113.8
+        ],
+        "max": [
+          -558.0,
+          -422.0,
+          253.09316859410404
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_002",
+      "position": [
+        -558.0,
+        -486.0,
+        183.44658429705203
+      ],
+      "faces": [
+        "MDAU54VBV4/face_4",
+        "MNQZOGTNYY/face_27"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 69.64658429705202,
+      "region_bbox": {
+        "min": [
+          -558.0,
+          -550.0,
+          113.8
+        ],
+        "max": [
+          -558.0,
+          -422.0,
+          253.09316859410404
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_003",
+      "position": [
+        -558.0,
+        -486.0,
+        113.8
+      ],
+      "faces": [
+        "MDAU54VBV4/face_4",
+        "MNQZOGTNYY/face_27"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 69.64658429705202,
+      "region_bbox": {
+        "min": [
+          -558.0,
+          -550.0,
+          113.8
+        ],
+        "max": [
+          -558.0,
+          -422.0,
+          253.09316859410404
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_004",
+      "position": [
+        -558.0,
+        -613.3402892237896,
+        258.0
+      ],
+      "faces": [
+        "MDAU54VBV4/face_4",
+        "KDR55KC0S2/face_1"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 47.80194265135859,
+      "region_bbox": {
+        "min": [
+          -558.0,
+          -653.0,
+          114.59417204592424
+        ],
+        "max": [
+          -558.0,
+          -573.6805784475791,
+          258.0
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_005",
+      "position": [
+        -558.0,
+        -613.3402892237896,
+        210.1980573486414
+      ],
+      "faces": [
+        "MDAU54VBV4/face_4",
+        "KDR55KC0S2/face_1"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 47.80194265135859,
+      "region_bbox": {
+        "min": [
+          -558.0,
+          -653.0,
+          114.59417204592424
+        ],
+        "max": [
+          -558.0,
+          -573.6805784475791,
+          258.0
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_006",
+      "position": [
+        -558.0,
+        -613.3402892237896,
+        162.39611469728283
+      ],
+      "faces": [
+        "MDAU54VBV4/face_4",
+        "KDR55KC0S2/face_1"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 47.80194265135859,
+      "region_bbox": {
+        "min": [
+          -558.0,
+          -653.0,
+          114.59417204592424
+        ],
+        "max": [
+          -558.0,
+          -573.6805784475791,
+          258.0
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_007",
+      "position": [
+        -558.0,
+        -613.3402892237896,
+        114.59417204592424
+      ],
+      "faces": [
+        "MDAU54VBV4/face_4",
+        "KDR55KC0S2/face_1"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 47.80194265135859,
+      "region_bbox": {
+        "min": [
+          -558.0,
+          -653.0,
+          114.59417204592424
+        ],
+        "max": [
+          -558.0,
+          -573.6805784475791,
+          258.0
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_008",
+      "position": [
+        -537.8357032655,
+        -448.2871076289789,
+        233.69719824249526
+      ],
+      "faces": [
+        "MNQZOGTNYY/face_3",
+        "84CK99UPEH/face_288"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 47.70313181727803,
+      "region_bbox": {
+        "min": [
+          -547.971406529,
+          -495.92486396200354,
+          233.69719824249526
+        ],
+        "max": [
+          -527.700000002,
+          -448.2871076289789,
+          236.19378726193256
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_009",
+      "position": [
+        -537.8357032655,
+        -495.92486396200354,
+        236.19378726193256
+      ],
+      "faces": [
+        "MNQZOGTNYY/face_3",
+        "84CK99UPEH/face_288"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 47.70313181727803,
+      "region_bbox": {
+        "min": [
+          -547.971406529,
+          -495.92486396200354,
+          233.69719824249526
+        ],
+        "max": [
+          -527.700000002,
+          -448.2871076289789,
+          236.19378726193256
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_010",
+      "position": [
+        -537.8357032645,
+        -496.2749250280135,
+        130.1398582322582
+      ],
+      "faces": [
+        "MNQZOGTNYY/face_113",
+        "84CK99UPEH/face_269"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 48.053683671389585,
+      "region_bbox": {
+        "min": [
+          -547.971406529,
+          -496.2749250280135,
+          130.1398582322582
+        ],
+        "max": [
+          -527.7,
+          -448.2870972600101,
+          132.65479371819313
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_011",
+      "position": [
+        -537.8357032645,
+        -448.2870972600101,
+        132.65479371819313
+      ],
+      "faces": [
+        "MNQZOGTNYY/face_113",
+        "84CK99UPEH/face_269"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 48.053683671389585,
+      "region_bbox": {
+        "min": [
+          -547.971406529,
+          -496.2749250280135,
+          130.1398582322582
+        ],
+        "max": [
+          -527.7,
+          -448.2870972600101,
+          132.65479371819313
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_012",
+      "position": [
+        -537.8355,
+        -525.2,
+        209.244491197
+      ],
+      "faces": [
+        "MNQZOGTNYY/face_117",
+        "1EAVWXKUA9/face_68"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 52.4705333,
+      "region_bbox": {
+        "min": [
+          -547.971,
+          -525.2,
+          156.773957897
+        ],
+        "max": [
+          -527.7,
+          -525.2,
+          209.244491197
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_013",
+      "position": [
+        -537.8355,
+        -525.2,
+        156.773957897
+      ],
+      "faces": [
+        "MNQZOGTNYY/face_117",
+        "1EAVWXKUA9/face_68"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 52.4705333,
+      "region_bbox": {
+        "min": [
+          -547.971,
+          -525.2,
+          156.773957897
+        ],
+        "max": [
+          -527.7,
+          -525.2,
+          209.244491197
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_014",
+      "position": [
+        -496.1805913681958,
+        -590.2034174011703,
+        157.79207127349997
+      ],
+      "faces": [
+        "KDR55KC0S2/face_68",
+        "UTGIQPI25A/face_281"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 41.45504032974136,
+      "region_bbox": {
+        "min": [
+          -523.7036792896517,
+          -621.203417401304,
+          148.15855536599997
+        ],
+        "max": [
+          -496.1805913681958,
+          -590.2034174011703,
+          167.42558718099997
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_015",
+      "position": [
+        -523.7036792896517,
+        -621.203417401304,
+        157.79207127349997
+      ],
+      "faces": [
+        "KDR55KC0S2/face_68",
+        "UTGIQPI25A/face_281"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 41.45504032974136,
+      "region_bbox": {
+        "min": [
+          -523.7036792896517,
+          -621.203417401304,
+          148.15855536599997
+        ],
+        "max": [
+          -496.1805913681958,
+          -590.2034174011703,
+          167.42558718099997
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_016",
+      "position": [
+        -477.9506576313014,
+        -569.6705488706151,
+        221.9742368755
+      ],
+      "faces": [
+        "KDR55KC0S2/face_68",
+        "UTGIQPI25A/face_310"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.22269579946804,
+      "region_bbox": {
+        "min": [
+          -501.9998548654832,
+          -596.7578116221783,
+          214.948473751
+        ],
+        "max": [
+          -477.9506576313014,
+          -569.6705488706151,
+          229.0
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_017",
+      "position": [
+        -501.9998548654832,
+        -596.7578116221783,
+        221.9742368755
+      ],
+      "faces": [
+        "KDR55KC0S2/face_68",
+        "UTGIQPI25A/face_310"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.22269579946804,
+      "region_bbox": {
+        "min": [
+          -501.9998548654832,
+          -596.7578116221783,
+          214.948473751
+        ],
+        "max": [
+          -477.9506576313014,
+          -569.6705488706151,
+          229.0
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_018",
+      "position": [
+        -477.9506521420129,
+        -569.6705426878807,
+        198.075276617
+      ],
+      "faces": [
+        "KDR55KC0S2/face_68",
+        "UTGIQPI25A/face_319"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.22270406684572,
+      "region_bbox": {
+        "min": [
+          -501.99985486512344,
+          -596.7578116217732,
+          191.0
+        ],
+        "max": [
+          -477.9506521420129,
+          -569.6705426878807,
+          205.150553234
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_019",
+      "position": [
+        -501.99985486512344,
+        -596.7578116217732,
+        198.075276617
+      ],
+      "faces": [
+        "KDR55KC0S2/face_68",
+        "UTGIQPI25A/face_319"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.22270406684572,
+      "region_bbox": {
+        "min": [
+          -501.99985486512344,
+          -596.7578116217732,
+          191.0
+        ],
+        "max": [
+          -477.9506521420129,
+          -569.6705426878807,
+          205.150553234
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_020",
+      "position": [
+        -384.397,
+        -509.0,
+        250.95122463769314
+      ],
+      "faces": [
+        "KDR55KC0S2/face_92",
+        "1EAVWXKUA9/face_753"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 54.80210414081529,
+      "region_bbox": {
+        "min": [
+          -494.00120828163057,
+          -509.0,
+          241.5024492753863
+        ],
+        "max": [
+          -384.397,
+          -509.0,
+          260.4
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_021",
+      "position": [
+        -439.1991041408153,
+        -509.0,
+        250.95122463769314
+      ],
+      "faces": [
+        "KDR55KC0S2/face_92",
+        "1EAVWXKUA9/face_753"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 54.80210414081529,
+      "region_bbox": {
+        "min": [
+          -494.00120828163057,
+          -509.0,
+          241.5024492753863
+        ],
+        "max": [
+          -384.397,
+          -509.0,
+          260.4
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_022",
+      "position": [
+        -494.00120828163057,
+        -509.0,
+        250.95122463769314
+      ],
+      "faces": [
+        "KDR55KC0S2/face_92",
+        "1EAVWXKUA9/face_753"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 54.80210414081529,
+      "region_bbox": {
+        "min": [
+          -494.00120828163057,
+          -509.0,
+          241.5024492753863
+        ],
+        "max": [
+          -384.397,
+          -509.0,
+          260.4
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_023",
+      "position": [
+        -401.19849999999997,
+        -527.0,
+        141.138615904
+      ],
+      "faces": [
+        "KDR55KC0S2/face_110",
+        "1EAVWXKUA9/face_765"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 40.743832131000005,
+      "region_bbox": {
+        "min": [
+          -418.0,
+          -527.0,
+          141.138615904
+        ],
+        "max": [
+          -384.397,
+          -527.0,
+          222.62628016600002
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_024",
+      "position": [
+        -401.19849999999997,
+        -527.0,
+        181.882448035
+      ],
+      "faces": [
+        "KDR55KC0S2/face_110",
+        "1EAVWXKUA9/face_765"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 40.743832131000005,
+      "region_bbox": {
+        "min": [
+          -418.0,
+          -527.0,
+          141.138615904
+        ],
+        "max": [
+          -384.397,
+          -527.0,
+          222.62628016600002
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_025",
+      "position": [
+        -401.19849999999997,
+        -527.0,
+        222.62628016600002
+      ],
+      "faces": [
+        "KDR55KC0S2/face_110",
+        "1EAVWXKUA9/face_765"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 40.743832131000005,
+      "region_bbox": {
+        "min": [
+          -418.0,
+          -527.0,
+          141.138615904
+        ],
+        "max": [
+          -384.397,
+          -527.0,
+          222.62628016600002
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_026",
+      "position": [
+        -419.346744163,
+        -514.3,
+        115.8132655175
+      ],
+      "faces": [
+        "KDR55KC0S2/face_268",
+        "1EAVWXKUA9/face_508"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 38.186592698,
+      "region_bbox": {
+        "min": [
+          -495.719929559,
+          -514.3,
+          107.0
+        ],
+        "max": [
+          -419.346744163,
+          -514.3,
+          124.626531035
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_027",
+      "position": [
+        -457.53333686099995,
+        -514.3,
+        115.8132655175
+      ],
+      "faces": [
+        "KDR55KC0S2/face_268",
+        "1EAVWXKUA9/face_508"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 38.186592698,
+      "region_bbox": {
+        "min": [
+          -495.719929559,
+          -514.3,
+          107.0
+        ],
+        "max": [
+          -419.346744163,
+          -514.3,
+          124.626531035
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_028",
+      "position": [
+        -495.719929559,
+        -514.3,
+        115.8132655175
+      ],
+      "faces": [
+        "KDR55KC0S2/face_268",
+        "1EAVWXKUA9/face_508"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 38.186592698,
+      "region_bbox": {
+        "min": [
+          -495.719929559,
+          -514.3,
+          107.0
+        ],
+        "max": [
+          -419.346744163,
+          -514.3,
+          124.626531035
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_029",
+      "position": [
+        165.1492190883976,
+        -469.5965238804748,
+        99.51654682149207
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_101",
+        "84CK99UPEH/face_413"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 40.680511366189165,
+      "region_bbox": {
+        "min": [
+          124.48260972798617,
+          -471.21355980547213,
+          88.87328611177296
+        ],
+        "max": [
+          165.1492190883976,
+          -469.0414618074982,
+          110.10413276161943
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_030",
+      "position": [
+        124.48260972798617,
+        -470.65849773249545,
+        99.46087205190031
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_101",
+        "84CK99UPEH/face_413"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 40.680511366189165,
+      "region_bbox": {
+        "min": [
+          124.48260972798617,
+          -471.21355980547213,
+          88.87328611177296
+        ],
+        "max": [
+          165.1492190883976,
+          -469.0414618074982,
+          110.10413276161943
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_031",
+      "position": [
+        144.40246682399447,
+        -471.3566873006888,
+        122.72824575646133
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_101",
+        "X9V6XAQETD/face_1"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 28.80478026485826,
+      "region_bbox": {
+        "min": [
+          115.6075301969918,
+          -472.31221234383094,
+          118.80581166229828
+        ],
+        "max": [
+          144.40246682399447,
+          -471.153117491814,
+          126.61125803780718
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_032",
+      "position": [
+        115.6075301969918,
+        -472.1086425349561,
+        122.68882394364411
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_101",
+        "X9V6XAQETD/face_1"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 28.80478026485826,
+      "region_bbox": {
+        "min": [
+          115.6075301969918,
+          -472.31221234383094,
+          118.80581166229828
+        ],
+        "max": [
+          144.40246682399447,
+          -471.153117491814,
+          126.61125803780718
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_033",
+      "position": [
+        196.61121079166094,
+        -469.51082910535445,
+        113.59677557533715
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_101",
+        "ZAVVBT2HVL/face_49"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 45.266258536789195,
+      "region_bbox": {
+        "min": [
+          151.36042137673334,
+          -471.37855605525453,
+          100.44886578389134
+        ],
+        "max": [
+          196.61121079166094,
+          -468.82478796348545,
+          126.68273460879884
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_034",
+      "position": [
+        -46.014907985757816,
+        -489.1308108085289,
+        115.31059048199998
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_103",
+        "84CK99UPEH/face_165"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 65.83031831738099,
+      "region_bbox": {
+        "min": [
+          -111.35453709299841,
+          -497.15350847801295,
+          106.99999996899997
+        ],
+        "max": [
+          -46.014907985757816,
+          -489.1308108085289,
+          123.621180995
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_035",
+      "position": [
+        -111.35453709299841,
+        -497.15350847801295,
+        115.31059048199998
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_103",
+        "84CK99UPEH/face_165"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 65.83031831738099,
+      "region_bbox": {
+        "min": [
+          -111.35453709299841,
+          -497.15350847801295,
+          106.99999996899997
+        ],
+        "max": [
+          -46.014907985757816,
+          -489.1308108085289,
+          123.621180995
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_036",
+      "position": [
+        65.14292422544716,
+        -475.4823451895694,
+        112.98497256549999
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_103",
+        "84CK99UPEH/face_395"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 55.99630406477208,
+      "region_bbox": {
+        "min": [
+          -46.014907985807994,
+          -489.130810808535,
+          104.613383527
+        ],
+        "max": [
+          65.14292422544716,
+          -475.4823451895694,
+          121.35656160399999
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_037",
+      "position": [
+        9.56400811981959,
+        -482.3065779990522,
+        112.98497256549999
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_103",
+        "84CK99UPEH/face_395"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 55.99630406477208,
+      "region_bbox": {
+        "min": [
+          -46.014907985807994,
+          -489.130810808535,
+          104.613383527
+        ],
+        "max": [
+          65.14292422544716,
+          -475.4823451895694,
+          121.35656160399999
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_038",
+      "position": [
+        -547.971,
+        -512.5,
+        113.95388729062168
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_418",
+        "84CK99UPEH/face_158"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 64.31212791850004,
+      "region_bbox": {
+        "min": [
+          -547.971,
+          -512.5,
+          105.0
+        ],
+        "max": [
+          -419.3467441629999,
+          -512.5,
+          122.90777458124334
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_039",
+      "position": [
+        -164.1188955455316,
+        -503.4288665584523,
+        115.18106500149949
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_421",
+        "84CK99UPEH/face_222"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          -173.79611787105165,
+          -504.42129565353537,
+          107.0
+        ],
+        "max": [
+          -154.44167322001152,
+          -502.43643746336915,
+          123.362130002999
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_040",
+      "position": [
+        -189.96353387117924,
+        -499.1534835376,
+        107.00000000000003
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_423",
+        "84CK99UPEH/face_204"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.375789548759116,
+      "region_bbox": {
+        "min": [
+          -226.33932341993835,
+          -503.3464722485139,
+          107.00000000000003
+        ],
+        "max": [
+          -189.96353387117924,
+          -494.96049482668604,
+          107.00000000000003
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_041",
+      "position": [
+        -226.33932341993835,
+        -499.1534835376,
+        107.00000000000003
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_423",
+        "84CK99UPEH/face_204"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.375789548759116,
+      "region_bbox": {
+        "min": [
+          -226.33932341993835,
+          -503.3464722485139,
+          107.00000000000003
+        ],
+        "max": [
+          -189.96353387117924,
+          -494.96049482668604,
+          107.00000000000003
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_042",
+      "position": [
+        -260.14787388192474,
+        -503.226630303661,
+        107.00000000000003
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_428",
+        "84CK99UPEH/face_232"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 49.98264406185058,
+      "region_bbox": {
+        "min": [
+          -310.1305179437753,
+          -510.6288866230733,
+          107.00000000000003
+        ],
+        "max": [
+          -260.14787388192474,
+          -495.8243739842487,
+          107.00000000000003
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_043",
+      "position": [
+        -310.1305179437753,
+        -503.226630303661,
+        107.00000000000003
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_428",
+        "84CK99UPEH/face_232"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 49.98264406185058,
+      "region_bbox": {
+        "min": [
+          -310.1305179437753,
+          -510.6288866230733,
+          107.00000000000003
+        ],
+        "max": [
+          -260.14787388192474,
+          -495.8243739842487,
+          107.00000000000003
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_044",
+      "position": [
+        137.49396089650182,
+        -474.97004945250364,
+        188.20097494623818
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_481",
+        "X9V6XAQETD/face_1"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 31.28560089803584,
+      "region_bbox": {
+        "min": [
+          130.58545496900916,
+          -475.15045919816265,
+          156.9488211013324
+        ],
+        "max": [
+          144.40246682399447,
+          -473.1517181300866,
+          188.21043306142866
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_045",
+      "position": [
+        137.49396089650182,
+        -473.3321278757456,
+        156.95827921652287
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_481",
+        "X9V6XAQETD/face_1"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 31.28560089803584,
+      "region_bbox": {
+        "min": [
+          130.58545496900916,
+          -475.15045919816265,
+          156.9488211013324
+        ],
+        "max": [
+          144.40246682399447,
+          -473.1517181300866,
+          188.21043306142866
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_046",
+      "position": [
+        188.73420692000312,
+        -472.67172066543355,
+        169.95505899883003
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_481",
+        "ZAVVBT2HVL/face_49"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 37.38656188707445,
+      "region_bbox": {
+        "min": [
+          151.36042137673334,
+          -474.3253933826961,
+          156.97726314472087
+        ],
+        "max": [
+          188.73420692000312,
+          -471.99403251197424,
+          182.88168813578184
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_047",
+      "position": [
+        -352.757612215,
+        -512.7706489607659,
+        115.5
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_584",
+        "84CK99UPEH/face_207"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 28.67108119400035,
+      "region_bbox": {
+        "min": [
+          -352.757612215,
+          -512.7706489607659,
+          107.0
+        ],
+        "max": [
+          -324.08653102099964,
+          -512.7706489607397,
+          124.0
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_048",
+      "position": [
+        -116.67676562700049,
+        -507.2,
+        252.3882043185
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_740",
+        "84CK99UPEH/face_114"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 61.61346205328565,
+      "region_bbox": {
+        "min": [
+          -547.971,
+          -507.2,
+          244.376408637
+        ],
+        "max": [
+          -116.67676562700049,
+          -507.2,
+          260.4
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_049",
+      "position": [
+        -178.29022768028614,
+        -507.2,
+        252.3882043185
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_740",
+        "84CK99UPEH/face_114"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 61.61346205328565,
+      "region_bbox": {
+        "min": [
+          -547.971,
+          -507.2,
+          244.376408637
+        ],
+        "max": [
+          -116.67676562700049,
+          -507.2,
+          260.4
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_050",
+      "position": [
+        -239.9036897335718,
+        -507.2,
+        252.3882043185
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_740",
+        "84CK99UPEH/face_114"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 61.61346205328565,
+      "region_bbox": {
+        "min": [
+          -547.971,
+          -507.2,
+          244.376408637
+        ],
+        "max": [
+          -116.67676562700049,
+          -507.2,
+          260.4
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_051",
+      "position": [
+        -301.5171517868574,
+        -507.2,
+        252.3882043185
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_740",
+        "84CK99UPEH/face_114"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 61.61346205328565,
+      "region_bbox": {
+        "min": [
+          -547.971,
+          -507.2,
+          244.376408637
+        ],
+        "max": [
+          -116.67676562700049,
+          -507.2,
+          260.4
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_052",
+      "position": [
+        -363.1306138401431,
+        -507.2,
+        252.3882043185
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_740",
+        "84CK99UPEH/face_114"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 61.61346205328565,
+      "region_bbox": {
+        "min": [
+          -547.971,
+          -507.2,
+          244.376408637
+        ],
+        "max": [
+          -116.67676562700049,
+          -507.2,
+          260.4
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_053",
+      "position": [
+        -547.971,
+        -507.2,
+        252.3882043185
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_740",
+        "84CK99UPEH/face_114"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 61.61346205328565,
+      "region_bbox": {
+        "min": [
+          -547.971,
+          -507.2,
+          244.376408637
+        ],
+        "max": [
+          -116.67676562700049,
+          -507.2,
+          260.4
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_054",
+      "position": [
+        -205.666389857,
+        -509.0,
+        252.3882043185
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_753",
+        "JPSXUDTAO2/face_916"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 44.49481219117346,
+      "region_bbox": {
+        "min": [
+          -205.666389857,
+          -509.0,
+          244.376408637
+        ],
+        "max": [
+          -116.6767654746531,
+          -509.0,
+          260.4
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_055",
+      "position": [
+        153.43477409621954,
+        -478.43662067442716,
+        284.75672410388086
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_857",
+        "JPSXUDTAO2/face_359"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 48.779493716173505,
+      "region_bbox": {
+        "min": [
+          57.07689968901968,
+          -493.6982086832531,
+          264.04631730181393
+        ],
+        "max": [
+          153.43477409621954,
+          -478.43662067442716,
+          305.4671309059477
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_056",
+      "position": [
+        105.25583689261961,
+        -486.0674146788401,
+        284.75672410388086
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_857",
+        "JPSXUDTAO2/face_359"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 48.779493716173505,
+      "region_bbox": {
+        "min": [
+          57.07689968901968,
+          -493.6982086832531,
+          264.04631730181393
+        ],
+        "max": [
+          153.43477409621954,
+          -478.43662067442716,
+          305.4671309059477
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_057",
+      "position": [
+        57.07689968901968,
+        -493.6982086832531,
+        284.75672410388086
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_857",
+        "JPSXUDTAO2/face_359"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 48.779493716173505,
+      "region_bbox": {
+        "min": [
+          57.07689968901968,
+          -493.6982086832531,
+          264.04631730181393
+        ],
+        "max": [
+          153.43477409621954,
+          -478.43662067442716,
+          305.4671309059477
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_058",
+      "position": [
+        171.19483994725684,
+        -475.62347396434114,
+        305.4671309059477
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_857",
+        "YTVD2G4GWW/face_144"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 26.673346193947737,
+      "region_bbox": {
+        "min": [
+          158.13955710405006,
+          -477.69122763073824,
+          278.793784712
+        ],
+        "max": [
+          184.25012279046362,
+          -473.5557202979441,
+          305.4671309059477
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_059",
+      "position": [
+        183.9685998177102,
+        -471.77787193008646,
+        279.2336410375001
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_877",
+        "84CK99UPEH/face_554"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 64.37927444440753,
+      "region_bbox": {
+        "min": [
+          56.795282328274396,
+          -491.9201466448384,
+          253.302152021
+        ],
+        "max": [
+          183.9685998177102,
+          -471.77787193008646,
+          305.1651300540002
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_060",
+      "position": [
+        78.86164668550387,
+        -488.4254064962644,
+        296.7372465689715
+      ],
+      "faces": [
+        "1EAVWXKUA9/face_877",
+        "Q3Y6UCSE5D/face_67"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          70.95922765099199,
+          -489.6770267122538,
+          288.007362232
+        ],
+        "max": [
+          86.76406572001576,
+          -487.1737862802749,
+          305.46713090594295
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_061",
+      "position": [
+        132.38118799210932,
+        -720.3553375860071,
+        560.8632177104286
+      ],
+      "faces": [
+        "JPG81WS6QG/face_21",
+        "2JVB4T5BI0/face_141"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.98725215773798,
+      "region_bbox": {
+        "min": [
+          58.421519202609744,
+          -725.2476930743974,
+          548.7367709657454
+        ],
+        "max": [
+          132.38118799210932,
+          -716.8873247238444,
+          573.397008721069
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_062",
+      "position": [
+        95.40135359735953,
+        -721.0675088991209,
+        561.0668898434072
+      ],
+      "faces": [
+        "JPG81WS6QG/face_21",
+        "2JVB4T5BI0/face_141"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.98725215773798,
+      "region_bbox": {
+        "min": [
+          58.421519202609744,
+          -725.2476930743974,
+          548.7367709657454
+        ],
+        "max": [
+          132.38118799210932,
+          -716.8873247238444,
+          573.397008721069
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_063",
+      "position": [
+        58.421519202609744,
+        -721.7796802122347,
+        561.2705619763859
+      ],
+      "faces": [
+        "JPG81WS6QG/face_21",
+        "2JVB4T5BI0/face_141"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.98725215773798,
+      "region_bbox": {
+        "min": [
+          58.421519202609744,
+          -725.2476930743974,
+          548.7367709657454
+        ],
+        "max": [
+          132.38118799210932,
+          -716.8873247238444,
+          573.397008721069
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_064",
+      "position": [
+        -67.93012109153582,
+        -693.195146333935,
+        551.1556823381883
+      ],
+      "faces": [
+        "JPG81WS6QG/face_110",
+        "2JVB4T5BI0/face_88"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 41.917815703938146,
+      "region_bbox": {
+        "min": [
+          -71.1388821213337,
+          -693.2627915628211,
+          545.9954729185513
+        ],
+        "max": [
+          -64.72136006173797,
+          -651.4561813464642,
+          551.7766866548236
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_065",
+      "position": [
+        -67.93012109153582,
+        -651.5238265753503,
+        546.6164772351865
+      ],
+      "faces": [
+        "JPG81WS6QG/face_110",
+        "2JVB4T5BI0/face_88"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 41.917815703938146,
+      "region_bbox": {
+        "min": [
+          -71.1388821213337,
+          -693.2627915628211,
+          545.9954729185513
+        ],
+        "max": [
+          -64.72136006173797,
+          -651.4561813464642,
+          551.7766866548236
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_066",
+      "position": [
+        -49.48271932051844,
+        -579.8066282140019,
+        559.5258586439235
+      ],
+      "faces": [
+        "JPG81WS6QG/face_114",
+        "2JVB4T5BI0/face_226"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 35.305645597983016,
+      "region_bbox": {
+        "min": [
+          -58.42905412941881,
+          -614.5759017239966,
+          543.029722809264
+        ],
+        "max": [
+          -46.57400549543355,
+          -579.8066282140019,
+          577.0865899573221
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_067",
+      "position": [
+        -55.52034030433391,
+        -614.5759017239966,
+        560.5904541226628
+      ],
+      "faces": [
+        "JPG81WS6QG/face_114",
+        "2JVB4T5BI0/face_226"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 35.305645597983016,
+      "region_bbox": {
+        "min": [
+          -58.42905412941881,
+          -614.5759017239966,
+          543.029722809264
+        ],
+        "max": [
+          -46.57400549543355,
+          -579.8066282140019,
+          577.0865899573221
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_068",
+      "position": [
+        -11.13004225490343,
+        -684.623475543959,
+        577.6364153111903
+      ],
+      "faces": [
+        "JPG81WS6QG/face_116",
+        "2JVB4T5BI0/face_159"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 38.739752175724725,
+      "region_bbox": {
+        "min": [
+          -49.57239125511669,
+          -698.8376560613239,
+          573.7203999976183
+        ],
+        "max": [
+          -11.13004225490343,
+          -669.136766335604,
+          586.1713994180079
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_069",
+      "position": [
+        -49.57239125511669,
+        -683.3509468529688,
+        582.2553841044361
+      ],
+      "faces": [
+        "JPG81WS6QG/face_116",
+        "2JVB4T5BI0/face_159"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 38.739752175724725,
+      "region_bbox": {
+        "min": [
+          -49.57239125511669,
+          -698.8376560613239,
+          573.7203999976183
+        ],
+        "max": [
+          -11.13004225490343,
+          -669.136766335604,
+          586.1713994180079
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_070",
+      "position": [
+        5.426023775101811,
+        -579.2619202276328,
+        583.9907590648461
+      ],
+      "faces": [
+        "JPG81WS6QG/face_121",
+        "2JVB4T5BI0/face_234"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 37.30071001935672,
+      "region_bbox": {
+        "min": [
+          -31.72097506163783,
+          -595.455281083929,
+          582.9136612485091
+        ],
+        "max": [
+          5.426023775101811,
+          -562.844048195422,
+          588.4432146553003
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_071",
+      "position": [
+        -31.72097506163783,
+        -579.0374090517182,
+        587.3661168389633
+      ],
+      "faces": [
+        "JPG81WS6QG/face_121",
+        "2JVB4T5BI0/face_234"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 37.30071001935672,
+      "region_bbox": {
+        "min": [
+          -31.72097506163783,
+          -595.455281083929,
+          582.9136612485091
+        ],
+        "max": [
+          5.426023775101811,
+          -562.844048195422,
+          588.4432146553003
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_072",
+      "position": [
+        119.05321844219691,
+        -559.4146503493382,
+        567.268437901269
+      ],
+      "faces": [
+        "JPG81WS6QG/face_229",
+        "2JVB4T5BI0/face_55"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 66.93172685258864,
+      "region_bbox": {
+        "min": [
+          -14.258602069736753,
+          -592.1318323144512,
+          565.0922617779771
+        ],
+        "max": [
+          119.05321844219691,
+          -525.8917507078658,
+          581.5579772527532
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_073",
+      "position": [
+        52.39730818623006,
+        -559.0117915111585,
+        573.3251195153651
+      ],
+      "faces": [
+        "JPG81WS6QG/face_229",
+        "2JVB4T5BI0/face_55"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 66.93172685258864,
+      "region_bbox": {
+        "min": [
+          -14.258602069736753,
+          -592.1318323144512,
+          565.0922617779771
+        ],
+        "max": [
+          119.05321844219691,
+          -525.8917507078658,
+          581.5579772527532
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_074",
+      "position": [
+        -14.258602069736753,
+        -558.6089326729789,
+        579.3818011294613
+      ],
+      "faces": [
+        "JPG81WS6QG/face_229",
+        "2JVB4T5BI0/face_55"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 66.93172685258864,
+      "region_bbox": {
+        "min": [
+          -14.258602069736753,
+          -592.1318323144512,
+          565.0922617779771
+        ],
+        "max": [
+          119.05321844219691,
+          -525.8917507078658,
+          581.5579772527532
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_075",
+      "position": [
+        41.462036596957745,
+        -511.89184887121354,
+        550.3147481558026
+      ],
+      "faces": [
+        "JPG81WS6QG/face_276",
+        "2JVB4T5BI0/face_200"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 20.709469121390697,
+      "region_bbox": {
+        "min": [
+          20.831277091374496,
+          -514.040365543174,
+          540.3875531351979
+        ],
+        "max": [
+          41.462036596957745,
+          -511.5460745765169,
+          560.1787495545882
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_076",
+      "position": [
+        20.831277091374496,
+        -513.6945912484773,
+        550.2515545339835
+      ],
+      "faces": [
+        "JPG81WS6QG/face_276",
+        "2JVB4T5BI0/face_200"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 20.709469121390697,
+      "region_bbox": {
+        "min": [
+          20.831277091374496,
+          -514.040365543174,
+          540.3875531351979
+        ],
+        "max": [
+          41.462036596957745,
+          -511.5460745765169,
+          560.1787495545882
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_077",
+      "position": [
+        -16.516116030212032,
+        -613.688622963275,
+        583.2514508287769
+      ],
+      "faces": [
+        "JPG81WS6QG/face_287",
+        "2JVB4T5BI0/face_92"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 57.749206456851105,
+      "region_bbox": {
+        "min": [
+          -41.88571838462926,
+          -671.4638345413287,
+          580.946244830586
+        ],
+        "max": [
+          8.853486324205164,
+          -613.5352926960813,
+          589.3893635197863
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_078",
+      "position": [
+        142.9628333710575,
+        -674.490498256051,
+        555.7057689419453
+      ],
+      "faces": [
+        "JPG81WS6QG/face_306",
+        "2JVB4T5BI0/face_52"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 29.687439475442915,
+      "region_bbox": {
+        "min": [
+          136.06649720603951,
+          -705.7855077513303,
+          544.2034297693647
+        ],
+        "max": [
+          149.8591695360755,
+          -672.4080157459625,
+          572.4969954972909
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_079",
+      "position": [
+        118.95703873379419,
+        -616.1453863414356,
+        576.0824319154995
+      ],
+      "faces": [
+        "JPG81WS6QG/face_327",
+        "2JVB4T5BI0/face_59"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 31.83265139801093,
+      "region_bbox": {
+        "min": [
+          87.25556538814973,
+          -628.8870262640329,
+          575.2349245537498
+        ],
+        "max": [
+          118.95703873379419,
+          -603.2121472242346,
+          579.810490004334
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_080",
+      "position": [
+        87.25556538814973,
+        -615.953787146832,
+        578.9629826425843
+      ],
+      "faces": [
+        "JPG81WS6QG/face_327",
+        "2JVB4T5BI0/face_59"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 31.83265139801093,
+      "region_bbox": {
+        "min": [
+          87.25556538814973,
+          -628.8870262640329,
+          575.2349245537498
+        ],
+        "max": [
+          118.95703873379419,
+          -603.2121472242346,
+          579.810490004334
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_081",
+      "position": [
+        135.49596348908688,
+        -655.3099129640474,
+        565.0953003438553
+      ],
+      "faces": [
+        "JPG81WS6QG/face_330",
+        "2JVB4T5BI0/face_52"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.89829081536328,
+      "region_bbox": {
+        "min": [
+          128.2708762528427,
+          -657.4916682386327,
+          539.8976049934407
+        ],
+        "max": [
+          142.72105072533105,
+          -580.5121062416539,
+          577.1459605718644
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_082",
+      "position": [
+        135.49596348908688,
+        -619.0018872401432,
+        558.5217827826526
+      ],
+      "faces": [
+        "JPG81WS6QG/face_330",
+        "2JVB4T5BI0/face_52"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.89829081536328,
+      "region_bbox": {
+        "min": [
+          128.2708762528427,
+          -657.4916682386327,
+          539.8976049934407
+        ],
+        "max": [
+          142.72105072533105,
+          -580.5121062416539,
+          577.1459605718644
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_083",
+      "position": [
+        135.49596348908688,
+        -582.6938615162392,
+        551.9482652214499
+      ],
+      "faces": [
+        "JPG81WS6QG/face_330",
+        "2JVB4T5BI0/face_52"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.89829081536328,
+      "region_bbox": {
+        "min": [
+          128.2708762528427,
+          -657.4916682386327,
+          539.8976049934407
+        ],
+        "max": [
+          142.72105072533105,
+          -580.5121062416539,
+          577.1459605718644
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_084",
+      "position": [
+        92.95251497056827,
+        -704.4421294775271,
+        579.2970386567397
+      ],
+      "faces": [
+        "JPG81WS6QG/face_332",
+        "2JVB4T5BI0/face_56"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 67.55693027652596,
+      "region_bbox": {
+        "min": [
+          60.22177374185861,
+          -704.6399494207777,
+          571.8393366648853
+        ],
+        "max": [
+          125.68325619927792,
+          -636.8363284215212,
+          582.2711136915626
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_085",
+      "position": [
+        92.95251497056827,
+        -637.0341483647719,
+        574.8134116997081
+      ],
+      "faces": [
+        "JPG81WS6QG/face_332",
+        "2JVB4T5BI0/face_56"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 67.55693027652596,
+      "region_bbox": {
+        "min": [
+          60.22177374185861,
+          -704.6399494207777,
+          571.8393366648853
+        ],
+        "max": [
+          125.68325619927792,
+          -636.8363284215212,
+          582.2711136915626
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_086",
+      "position": [
+        27.307123909642552,
+        -702.4822513153451,
+        590.1897121621038
+      ],
+      "faces": [
+        "JPG81WS6QG/face_340",
+        "2JVB4T5BI0/face_95"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 50.46484710419365,
+      "region_bbox": {
+        "min": [
+          4.459503399698178,
+          -702.6203390830834,
+          584.7644083508682
+        ],
+        "max": [
+          50.154744419586926,
+          -651.9905810723008,
+          592.2657585702472
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_087",
+      "position": [
+        27.307123909642552,
+        -652.1286688400389,
+        586.8404547590115
+      ],
+      "faces": [
+        "JPG81WS6QG/face_340",
+        "2JVB4T5BI0/face_95"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 50.46484710419365,
+      "region_bbox": {
+        "min": [
+          4.459503399698178,
+          -702.6203390830834,
+          584.7644083508682
+        ],
+        "max": [
+          50.154744419586926,
+          -651.9905810723008,
+          592.2657585702472
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_088",
+      "position": [
+        -61.66021876654438,
+        -638.4328062875143,
+        561.6896263963561
+      ],
+      "faces": [
+        "2JVB4T5BI0/face_151",
+        "JPSXUDTAO2/face_978"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 59.883235342241,
+      "region_bbox": {
+        "min": [
+          -74.82271940234001,
+          -697.4062807280072,
+          543.3132101997815
+        ],
+        "max": [
+          -48.497718130748765,
+          -579.4593318470212,
+          580.0660425929307
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_089",
+      "position": [
+        141.58928147036107,
+        -702.4316330184424,
+        567.1305014623612
+      ],
+      "faces": [
+        "2JVB4T5BI0/face_250",
+        "JPSXUDTAO2/face_222"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 60.26353385210833,
+      "region_bbox": {
+        "min": [
+          131.59683097392832,
+          -705.4490473230807,
+          528.9919986284914
+        ],
+        "max": [
+          151.58173196679382,
+          -580.8152327468736,
+          583.7968228282805
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_090",
+      "position": [
+        -101.2724465551486,
+        -572.3914699431392,
+        429.4621779386971
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_307",
+        "4QN1HUUK58/face_237"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          -109.72380612401031,
+          -580.5767178648164,
+          422.9795789154679
+        ],
+        "max": [
+          -92.8210869862869,
+          -564.2062220214623,
+          435.9447769619262
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_091",
+      "position": [
+        -102.69336533409127,
+        -600.663255876335,
+        450.8169558617649
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_307",
+        "4QN1HUUK58/face_242"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          -110.75967342101434,
+          -608.5599846079256,
+          444.56547549690026
+        ],
+        "max": [
+          -94.6270572471682,
+          -592.7665271447444,
+          457.06843622662956
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_092",
+      "position": [
+        -81.39588413316477,
+        -707.1494314046611,
+        513.3302634855
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_406",
+        "UTGIQPI25A/face_251"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 64.16210246374352,
+      "region_bbox": {
+        "min": [
+          -205.90831175206065,
+          -707.1494314046611,
+          469.714619262
+        ],
+        "max": [
+          -81.39588413316477,
+          -676.1049964972432,
+          556.945907709
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_093",
+      "position": [
+        -143.65209794261273,
+        -691.6272139509522,
+        513.3302634855
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_406",
+        "UTGIQPI25A/face_251"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 64.16210246374352,
+      "region_bbox": {
+        "min": [
+          -205.90831175206065,
+          -707.1494314046611,
+          469.714619262
+        ],
+        "max": [
+          -81.39588413316477,
+          -676.1049964972432,
+          556.945907709
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_094",
+      "position": [
+        -205.90831175206065,
+        -676.1049964972432,
+        513.3302634855
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_406",
+        "UTGIQPI25A/face_251"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 64.16210246374352,
+      "region_bbox": {
+        "min": [
+          -205.90831175206065,
+          -707.1494314046611,
+          469.714619262
+        ],
+        "max": [
+          -81.39588413316477,
+          -676.1049964972432,
+          556.945907709
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_095",
+      "position": [
+        177.50005147183043,
+        -526.2467352309143,
+        339.2040591277098
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_410",
+        "YTVD2G4GWW/face_31"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 52.634482826765826,
+      "region_bbox": {
+        "min": [
+          161.9837381956352,
+          -573.6369853885072,
+          314.34175625526433
+        ],
+        "max": [
+          193.01636474802567,
+          -478.8564850733212,
+          364.0663620001552
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_096",
+      "position": [
+        177.50005147183043,
+        -573.144402826833,
+        363.0996142897858
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_410",
+        "YTVD2G4GWW/face_31"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 52.634482826765826,
+      "region_bbox": {
+        "min": [
+          161.9837381956352,
+          -573.6369853885072,
+          314.34175625526433
+        ],
+        "max": [
+          193.01636474802567,
+          -478.8564850733212,
+          364.0663620001552
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_097",
+      "position": [
+        78.48014998736494,
+        -504.31952831377936,
+        327.3
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_423",
+        "ZWO0Q535RY/face_124"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 58.374145591000286,
+      "region_bbox": {
+        "min": [
+          68.83875118256455,
+          -504.8248126143205,
+          327.3
+        ],
+        "max": [
+          88.12154879216531,
+          -503.81424401323824,
+          385.6741455910003
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_098",
+      "position": [
+        78.48014998736494,
+        -504.31952831377936,
+        385.6741455910003
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_423",
+        "ZWO0Q535RY/face_124"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 58.374145591000286,
+      "region_bbox": {
+        "min": [
+          68.83875118256455,
+          -504.8248126143205,
+          327.3
+        ],
+        "max": [
+          88.12154879216531,
+          -503.81424401323824,
+          385.6741455910003
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_099",
+      "position": [
+        6.023970161260513,
+        -507.8193709404415,
+        442.94019840716464
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_472",
+        "ZWO0Q535RY/face_281"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 43.28672147496294,
+      "region_bbox": {
+        "min": [
+          -1.7424940482738442,
+          -511.53091119142044,
+          442.9164091229167
+        ],
+        "max": [
+          13.790434370794872,
+          -507.14072727983165,
+          529.484289138392
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_100",
+      "position": [
+        6.023970161260513,
+        -509.3358192356261,
+        486.2003491306544
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_472",
+        "ZWO0Q535RY/face_281"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 43.28672147496294,
+      "region_bbox": {
+        "min": [
+          -1.7424940482738442,
+          -511.53091119142044,
+          442.9164091229167
+        ],
+        "max": [
+          13.790434370794872,
+          -507.14072727983165,
+          529.484289138392
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_101",
+      "position": [
+        6.023970161260513,
+        -510.85226753081065,
+        529.4604998541441
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_472",
+        "ZWO0Q535RY/face_281"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 43.28672147496294,
+      "region_bbox": {
+        "min": [
+          -1.7424940482738442,
+          -511.53091119142044,
+          442.9164091229167
+        ],
+        "max": [
+          13.790434370794872,
+          -507.14072727983165,
+          529.484289138392
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_102",
+      "position": [
+        -126.028584206,
+        -519.3121798637853,
+        376.754515240575
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_666",
+        "FFHD4BOHJR/face_28"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 30.000086958781225,
+      "region_bbox": {
+        "min": [
+          -156.02867116478123,
+          -520.3265429921549,
+          369.72683855493995
+        ],
+        "max": [
+          -126.028584206,
+          -518.2978167354157,
+          383.78219192621003
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_103",
+      "position": [
+        -156.02867116478123,
+        -519.3121798637853,
+        376.754515240575
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_666",
+        "FFHD4BOHJR/face_28"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 30.000086958781225,
+      "region_bbox": {
+        "min": [
+          -156.02867116478123,
+          -520.3265429921549,
+          369.72683855493995
+        ],
+        "max": [
+          -126.028584206,
+          -518.2978167354157,
+          383.78219192621003
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_104",
+      "position": [
+        -101.31179847422327,
+        -661.8414382809945,
+        474.05029195325375
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_802",
+        "4QN1HUUK58/face_400"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          -109.68405222833697,
+          -671.5984083918846,
+          469.73186234366216
+        ],
+        "max": [
+          -92.93954472010957,
+          -652.0844681701041,
+          478.3687215628454
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_105",
+      "position": [
+        81.526553825761,
+        -501.8623925310202,
+        461.0649110501945
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_841",
+        "ZWO0Q535RY/face_348"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 59.270544536771226,
+      "region_bbox": {
+        "min": [
+          71.76757955595319,
+          -504.79154816608934,
+          461.0350185525779
+        ],
+        "max": [
+          91.2855280955688,
+          -501.00964077120017,
+          520.328965959651
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_106",
+      "position": [
+        81.526553825761,
+        -503.9387964062694,
+        520.2990734620345
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_841",
+        "ZWO0Q535RY/face_348"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 59.270544536771226,
+      "region_bbox": {
+        "min": [
+          71.76757955595319,
+          -504.79154816608934,
+          461.0350185525779
+        ],
+        "max": [
+          91.2855280955688,
+          -501.00964077120017,
+          520.328965959651
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_107",
+      "position": [
+        169.75394768085832,
+        -594.9036761116421,
+        380.21120227503627
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_991",
+        "YTVD2G4GWW/face_15"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 63.957652964704835,
+      "region_bbox": {
+        "min": [
+          156.44371689798643,
+          -605.2841720472458,
+          380.0580660349785
+        ],
+        "max": [
+          171.43078324395196,
+          -584.5231801760383,
+          507.749540193605
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_108",
+      "position": [
+        163.93725007096918,
+        -594.9036761116421,
+        443.90380311429175
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_991",
+        "YTVD2G4GWW/face_15"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 63.957652964704835,
+      "region_bbox": {
+        "min": [
+          156.44371689798643,
+          -605.2841720472458,
+          380.0580660349785
+        ],
+        "max": [
+          171.43078324395196,
+          -584.5231801760383,
+          507.749540193605
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_109",
+      "position": [
+        158.12055246108008,
+        -594.9036761116421,
+        507.5964039535472
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_991",
+        "YTVD2G4GWW/face_15"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 63.957652964704835,
+      "region_bbox": {
+        "min": [
+          156.44371689798643,
+          -605.2841720472458,
+          380.0580660349785
+        ],
+        "max": [
+          171.43078324395196,
+          -584.5231801760383,
+          507.749540193605
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_110",
+      "position": [
+        -96.66474742069012,
+        -513.8296499605286,
+        318.163615376182
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_1043",
+        "4QN1HUUK58/face_592"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          -105.88530551901836,
+          -514.973053960235,
+          308.5017158185043
+        ],
+        "max": [
+          -87.44418932236186,
+          -512.6862459608222,
+          327.82551493385984
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_111",
+      "position": [
+        -98.16984790287992,
+        -512.7411462720296,
+        283.3551111117376
+      ],
+      "faces": [
+        "JPSXUDTAO2/face_1043",
+        "4QN1HUUK58/face_604"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          -107.54498405497203,
+          -513.7843255644588,
+          276.93720130144106
+        ],
+        "max": [
+          -88.79471175078781,
+          -511.6979669796003,
+          289.7730209220341
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_112",
+      "position": [
+        -179.28510564742038,
+        -683.9796436593633,
+        515.9579119593255
+      ],
+      "faces": [
+        "UTGIQPI25A/face_58",
+        "YU2PFEMV6C/face_81"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 49.05512305432552,
+      "region_bbox": {
+        "min": [
+          -196.8537092170855,
+          -688.3599885001375,
+          466.902788905
+        ],
+        "max": [
+          -161.71650207775528,
+          -679.5992988185891,
+          515.9579119593255
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_113",
+      "position": [
+        -179.28510564742038,
+        -683.9796436593633,
+        466.902788905
+      ],
+      "faces": [
+        "UTGIQPI25A/face_58",
+        "YU2PFEMV6C/face_81"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 49.05512305432552,
+      "region_bbox": {
+        "min": [
+          -196.8537092170855,
+          -688.3599885001375,
+          466.902788905
+        ],
+        "max": [
+          -161.71650207775528,
+          -679.5992988185891,
+          515.9579119593255
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_114",
+      "position": [
+        -253.42270756087876,
+        -645.0528078316875,
+        431.75
+      ],
+      "faces": [
+        "UTGIQPI25A/face_175",
+        "MHEGLGO4GF/face_49"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 34.00000000088262,
+      "region_bbox": {
+        "min": [
+          -285.12171680303226,
+          -645.0528078316875,
+          416.0
+        ],
+        "max": [
+          -253.42270756087876,
+          -632.7575724485854,
+          447.5
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_115",
+      "position": [
+        -285.12171680303226,
+        -632.7575724485854,
+        431.75
+      ],
+      "faces": [
+        "UTGIQPI25A/face_175",
+        "MHEGLGO4GF/face_49"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 34.00000000088262,
+      "region_bbox": {
+        "min": [
+          -285.12171680303226,
+          -645.0528078316875,
+          416.0
+        ],
+        "max": [
+          -253.42270756087876,
+          -632.7575724485854,
+          447.5
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_116",
+      "position": [
+        57.51810790441907,
+        -482.4,
+        335.5
+      ],
+      "faces": [
+        "ZWO0Q535RY/face_324",
+        "Q3Y6UCSE5D/face_39"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 29.990191103919067,
+      "region_bbox": {
+        "min": [
+          27.5279168005,
+          -482.4,
+          327.3
+        ],
+        "max": [
+          57.51810790441907,
+          -482.4,
+          343.7
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_117",
+      "position": [
+        27.5279168005,
+        -482.4,
+        335.5
+      ],
+      "faces": [
+        "ZWO0Q535RY/face_324",
+        "Q3Y6UCSE5D/face_39"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 29.990191103919067,
+      "region_bbox": {
+        "min": [
+          27.5279168005,
+          -482.4,
+          327.3
+        ],
+        "max": [
+          57.51810790441907,
+          -482.4,
+          343.7
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_118",
+      "position": [
+        -413.95699517453966,
+        -437.000000091,
+        98.5327031668619
+      ],
+      "faces": [
+        "JTB90P4NTF/face_6",
+        "OK07BRDMSU/face_34"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 65.57099995046036,
+      "region_bbox": {
+        "min": [
+          -479.527995125,
+          -437.000000091,
+          89.70019771572377
+        ],
+        "max": [
+          -413.95699517453966,
+          -437.000000091,
+          107.365208618
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_119",
+      "position": [
+        -479.527995125,
+        -437.000000091,
+        98.5327031668619
+      ],
+      "faces": [
+        "JTB90P4NTF/face_6",
+        "OK07BRDMSU/face_34"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 65.57099995046036,
+      "region_bbox": {
+        "min": [
+          -479.527995125,
+          -437.000000091,
+          89.70019771572377
+        ],
+        "max": [
+          -413.95699517453966,
+          -437.000000091,
+          107.365208618
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_120",
+      "position": [
+        -390.944,
+        -437.0,
+        143.0
+      ],
+      "faces": [
+        "JTB90P4NTF/face_6",
+        "84CK99UPEH/face_359"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 53.74345324449999,
+      "region_bbox": {
+        "min": [
+          -498.430906489,
+          -437.0,
+          135.5
+        ],
+        "max": [
+          -390.944,
+          -437.0,
+          150.50000000000003
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_121",
+      "position": [
+        -444.68745324450003,
+        -437.0,
+        143.0
+      ],
+      "faces": [
+        "JTB90P4NTF/face_6",
+        "84CK99UPEH/face_359"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 53.74345324449999,
+      "region_bbox": {
+        "min": [
+          -498.430906489,
+          -437.0,
+          135.5
+        ],
+        "max": [
+          -390.944,
+          -437.0,
+          150.50000000000003
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_122",
+      "position": [
+        -498.430906489,
+        -437.0,
+        143.0
+      ],
+      "faces": [
+        "JTB90P4NTF/face_6",
+        "84CK99UPEH/face_359"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 53.74345324449999,
+      "region_bbox": {
+        "min": [
+          -498.430906489,
+          -437.0,
+          135.5
+        ],
+        "max": [
+          -390.944,
+          -437.0,
+          150.50000000000003
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_123",
+      "position": [
+        -415.457202864,
+        -470.85749999999996,
+        32.5
+      ],
+      "faces": [
+        "JTB90P4NTF/face_30",
+        "CCSYOJEUC3/face_124"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 62.57081463099996,
+      "region_bbox": {
+        "min": [
+          -478.028017495,
+          -495.215,
+          32.5
+        ],
+        "max": [
+          -415.457202864,
+          -446.5,
+          32.5
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_124",
+      "position": [
+        -478.028017495,
+        -470.85749999999996,
+        32.5
+      ],
+      "faces": [
+        "JTB90P4NTF/face_30",
+        "CCSYOJEUC3/face_124"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 62.57081463099996,
+      "region_bbox": {
+        "min": [
+          -478.028017495,
+          -495.215,
+          32.5
+        ],
+        "max": [
+          -415.457202864,
+          -446.5,
+          32.5
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_125",
+      "position": [
+        -486.02800874749994,
+        -470.85749999999996,
+        124.437061045
+      ],
+      "faces": [
+        "JTB90P4NTF/face_34",
+        "CCSYOJEUC3/face_31"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 42.718530522500025,
+      "region_bbox": {
+        "min": [
+          -486.02800874749994,
+          -495.215,
+          38.99999999999994
+        ],
+        "max": [
+          -486.02800874749994,
+          -446.5,
+          124.437061045
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_126",
+      "position": [
+        -486.02800874749994,
+        -470.85749999999996,
+        81.71853052249998
+      ],
+      "faces": [
+        "JTB90P4NTF/face_34",
+        "CCSYOJEUC3/face_31"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 42.718530522500025,
+      "region_bbox": {
+        "min": [
+          -486.02800874749994,
+          -495.215,
+          38.99999999999994
+        ],
+        "max": [
+          -486.02800874749994,
+          -446.5,
+          124.437061045
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_127",
+      "position": [
+        -407.457101432,
+        -470.85749999999996,
+        123.62757544599998
+      ],
+      "faces": [
+        "JTB90P4NTF/face_122",
+        "CCSYOJEUC3/face_86"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 42.313787723199994,
+      "region_bbox": {
+        "min": [
+          -407.457101432,
+          -495.215,
+          38.99999999959999
+        ],
+        "max": [
+          -407.457101432,
+          -446.5,
+          123.62757544599998
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_128",
+      "position": [
+        -407.457101432,
+        -470.85749999999996,
+        81.31378772279999
+      ],
+      "faces": [
+        "JTB90P4NTF/face_122",
+        "CCSYOJEUC3/face_86"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 42.313787723199994,
+      "region_bbox": {
+        "min": [
+          -407.457101432,
+          -495.215,
+          38.99999999959999
+        ],
+        "max": [
+          -407.457101432,
+          -446.5,
+          123.62757544599998
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_129",
+      "position": [
+        -474.527995125,
+        -509.2,
+        96.7002083238231
+      ],
+      "faces": [
+        "CCSYOJEUC3/face_27",
+        "OK07BRDMSU/face_35"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 55.181250986446855,
+      "region_bbox": {
+        "min": [
+          -474.527995125,
+          -509.2,
+          89.70020802944622
+        ],
+        "max": [
+          -419.34674413855316,
+          -509.2,
+          103.7002086182
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_130",
+      "position": [
+        -408.95709899450003,
+        -499.2000273605293,
+        98.53270844743602
+      ],
+      "faces": [
+        "CCSYOJEUC3/face_37",
+        "OK07BRDMSU/face_33"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 52.700027360529305,
+      "region_bbox": {
+        "min": [
+          -408.95709899450003,
+          -499.2000273605293,
+          89.70020827687203
+        ],
+        "max": [
+          -408.95709899450003,
+          -446.5,
+          107.365208618
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_131",
+      "position": [
+        -288.9680881108988,
+        -451.90521257947677,
+        235.6892853114416
+      ],
+      "faces": [
+        "84CK99UPEH/face_28",
+        "ETHC80XAEP/face_2"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 52.48563561655061,
+      "region_bbox": {
+        "min": [
+          -393.939359344,
+          -463.2308398909569,
+          235.0957343350603
+        ],
+        "max": [
+          -288.9680881108988,
+          -440.57958526799666,
+          236.28283628782287
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_132",
+      "position": [
+        -341.4537237274494,
+        -451.90521257947677,
+        235.6892853114416
+      ],
+      "faces": [
+        "84CK99UPEH/face_28",
+        "ETHC80XAEP/face_2"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 52.48563561655061,
+      "region_bbox": {
+        "min": [
+          -393.939359344,
+          -463.2308398909569,
+          235.0957343350603
+        ],
+        "max": [
+          -288.9680881108988,
+          -440.57958526799666,
+          236.28283628782287
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_133",
+      "position": [
+        -393.939359344,
+        -451.90521257947677,
+        235.6892853114416
+      ],
+      "faces": [
+        "84CK99UPEH/face_28",
+        "ETHC80XAEP/face_2"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 52.48563561655061,
+      "region_bbox": {
+        "min": [
+          -393.939359344,
+          -463.2308398909569,
+          235.0957343350603
+        ],
+        "max": [
+          -288.9680881108988,
+          -440.57958526799666,
+          236.28283628782287
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_134",
+      "position": [
+        -110.3,
+        -450.7119486752984,
+        235.62674900012505
+      ],
+      "faces": [
+        "84CK99UPEH/face_28",
+        "J08M568ZJT/face_47"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 54.85,
+      "region_bbox": {
+        "min": [
+          -220.0,
+          -463.1860689505994,
+          234.97300805798778
+        ],
+        "max": [
+          -110.3,
+          -438.2378283999974,
+          236.2804899422623
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_135",
+      "position": [
+        -165.15,
+        -450.7119486752984,
+        235.62674900012505
+      ],
+      "faces": [
+        "84CK99UPEH/face_28",
+        "J08M568ZJT/face_47"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 54.85,
+      "region_bbox": {
+        "min": [
+          -220.0,
+          -463.1860689505994,
+          234.97300805798778
+        ],
+        "max": [
+          -110.3,
+          -438.2378283999974,
+          236.2804899422623
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_136",
+      "position": [
+        -220.0,
+        -450.7119486752984,
+        235.62674900012505
+      ],
+      "faces": [
+        "84CK99UPEH/face_28",
+        "J08M568ZJT/face_47"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 54.85,
+      "region_bbox": {
+        "min": [
+          -220.0,
+          -463.1860689505994,
+          234.97300805798778
+        ],
+        "max": [
+          -110.3,
+          -438.2378283999974,
+          236.2804899422623
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_137",
+      "position": [
+        -283.66025400203637,
+        -438.8,
+        146.9952343725
+      ],
+      "faces": [
+        "84CK99UPEH/face_121",
+        "WP3XRNWMZU/face_64"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 42.33974599796363,
+      "region_bbox": {
+        "min": [
+          -326.0,
+          -438.8,
+          138.5
+        ],
+        "max": [
+          -283.66025400203637,
+          -438.8,
+          155.490468745
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_138",
+      "position": [
+        -326.0,
+        -438.8,
+        146.9952343725
+      ],
+      "faces": [
+        "84CK99UPEH/face_121",
+        "WP3XRNWMZU/face_64"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 42.33974599796363,
+      "region_bbox": {
+        "min": [
+          -326.0,
+          -438.8,
+          138.5
+        ],
+        "max": [
+          -283.66025400203637,
+          -438.8,
+          155.490468745
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_139",
+      "position": [
+        -283.660254038,
+        -438.8,
+        217.38423650000001
+      ],
+      "faces": [
+        "84CK99UPEH/face_121",
+        "WP3XRNWMZU/face_113"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 42.339745961999995,
+      "region_bbox": {
+        "min": [
+          -326.0,
+          -438.8,
+          210.1091541
+        ],
+        "max": [
+          -283.660254038,
+          -438.8,
+          224.65931890000002
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_140",
+      "position": [
+        -326.0,
+        -438.8,
+        217.38423650000001
+      ],
+      "faces": [
+        "84CK99UPEH/face_121",
+        "WP3XRNWMZU/face_113"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 42.339745961999995,
+      "region_bbox": {
+        "min": [
+          -326.0,
+          -438.8,
+          210.1091541
+        ],
+        "max": [
+          -283.660254038,
+          -438.8,
+          224.65931890000002
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_141",
+      "position": [
+        -257.0000000499662,
+        -438.8,
+        147.9747436344997
+      ],
+      "faces": [
+        "84CK99UPEH/face_121",
+        "WP3XRNWMZU/face_116"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          -266.33974611880615,
+          -438.8,
+          140.459018581
+        ],
+        "max": [
+          -247.6602539811263,
+          -438.8,
+          155.49046868799942
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_142",
+      "position": [
+        -257.0000000280127,
+        -438.8,
+        217.38423650000001
+      ],
+      "faces": [
+        "84CK99UPEH/face_121",
+        "WP3XRNWMZU/face_149"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          -266.339746003025,
+          -438.8,
+          210.1091541
+        ],
+        "max": [
+          -247.66025405300041,
+          -438.8,
+          224.65931890000002
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_143",
+      "position": [
+        -322.75,
+        -468.30000000000007,
+        130.8
+      ],
+      "faces": [
+        "84CK99UPEH/face_187",
+        "WP3XRNWMZU/face_125"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 21.800000000000068,
+      "region_bbox": {
+        "min": [
+          -326.0,
+          -468.30000000000007,
+          130.8
+        ],
+        "max": [
+          -319.5,
+          -446.5,
+          130.8
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_144",
+      "position": [
+        -204.0,
+        -457.13437469450787,
+        132.19112755515076
+      ],
+      "faces": [
+        "84CK99UPEH/face_243",
+        "WP3XRNWMZU/face_18"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 27.24371222799965,
+      "region_bbox": {
+        "min": [
+          -231.24371222799965,
+          -468.30000000003054,
+          131.60596192858253
+        ],
+        "max": [
+          -204.0,
+          -445.96874938898526,
+          132.77629318171898
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_145",
+      "position": [
+        -231.24371222799965,
+        -457.13437469450787,
+        132.19112755515076
+      ],
+      "faces": [
+        "84CK99UPEH/face_243",
+        "WP3XRNWMZU/face_18"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 27.24371222799965,
+      "region_bbox": {
+        "min": [
+          -231.24371222799965,
+          -468.30000000003054,
+          131.60596192858253
+        ],
+        "max": [
+          -204.0,
+          -445.96874938898526,
+          132.77629318171898
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_146",
+      "position": [
+        -257.0,
+        -468.3000000000306,
+        131.60596192858253
+      ],
+      "faces": [
+        "84CK99UPEH/face_243",
+        "WP3XRNWMZU/face_23"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 22.233457073420816,
+      "region_bbox": {
+        "min": [
+          -267.243712228,
+          -468.3000000000306,
+          131.60596192858253
+        ],
+        "max": [
+          -246.756287772,
+          -446.0970131068145,
+          132.769571165105
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_147",
+      "position": [
+        -204.0,
+        -470.3503853235173,
+        234.85348563016962
+      ],
+      "faces": [
+        "84CK99UPEH/face_288",
+        "WP3XRNWMZU/face_114"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 61.0,
+      "region_bbox": {
+        "min": [
+          -326.0,
+          -493.50000000001984,
+          233.64026573371754
+        ],
+        "max": [
+          -204.0,
+          -447.2007706470148,
+          236.06670552662166
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_148",
+      "position": [
+        -265.0,
+        -470.3503853235173,
+        234.85348563016962
+      ],
+      "faces": [
+        "84CK99UPEH/face_288",
+        "WP3XRNWMZU/face_114"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 61.0,
+      "region_bbox": {
+        "min": [
+          -326.0,
+          -493.50000000001984,
+          233.64026573371754
+        ],
+        "max": [
+          -204.0,
+          -447.2007706470148,
+          236.06670552662166
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_149",
+      "position": [
+        -326.0,
+        -470.3503853235173,
+        234.85348563016962
+      ],
+      "faces": [
+        "84CK99UPEH/face_288",
+        "WP3XRNWMZU/face_114"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 61.0,
+      "region_bbox": {
+        "min": [
+          -326.0,
+          -493.50000000001984,
+          233.64026573371754
+        ],
+        "max": [
+          -204.0,
+          -447.2007706470148,
+          236.06670552662166
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_150",
+      "position": [
+        -377.52764596192446,
+        -437.0,
+        218.7735245690002
+      ],
+      "faces": [
+        "84CK99UPEH/face_359",
+        "ETHC80XAEP/face_82"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 20.040377219075538,
+      "region_bbox": {
+        "min": [
+          -397.568023181,
+          -437.0,
+          210.230629452
+        ],
+        "max": [
+          -377.52764596192446,
+          -437.0,
+          227.31641968600042
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_151",
+      "position": [
+        -397.568023181,
+        -437.0,
+        218.7735245690002
+      ],
+      "faces": [
+        "84CK99UPEH/face_359",
+        "ETHC80XAEP/face_82"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 20.040377219075538,
+      "region_bbox": {
+        "min": [
+          -397.568023181,
+          -437.0,
+          210.230629452
+        ],
+        "max": [
+          -377.52764596192446,
+          -437.0,
+          227.31641968600042
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_152",
+      "position": [
+        142.91440554504845,
+        -392.68724369439434,
+        149.95511471499998
+      ],
+      "faces": [
+        "84CK99UPEH/face_412",
+        "X9V6XAQETD/face_116"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 35.04698570254493,
+      "region_bbox": {
+        "min": [
+          73.34290397366873,
+          -401.2295499661844,
+          125.622644934
+        ],
+        "max": [
+          142.91440554504845,
+          -392.68724369439434,
+          174.287584496
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_153",
+      "position": [
+        108.1286547593586,
+        -396.95839683028936,
+        149.95511471499998
+      ],
+      "faces": [
+        "84CK99UPEH/face_412",
+        "X9V6XAQETD/face_116"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 35.04698570254493,
+      "region_bbox": {
+        "min": [
+          73.34290397366873,
+          -401.2295499661844,
+          125.622644934
+        ],
+        "max": [
+          142.91440554504845,
+          -392.68724369439434,
+          174.287584496
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_154",
+      "position": [
+        73.34290397366873,
+        -401.2295499661844,
+        149.95511471499998
+      ],
+      "faces": [
+        "84CK99UPEH/face_412",
+        "X9V6XAQETD/face_116"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 35.04698570254493,
+      "region_bbox": {
+        "min": [
+          73.34290397366873,
+          -401.2295499661844,
+          125.622644934
+        ],
+        "max": [
+          142.91440554504845,
+          -392.68724369439434,
+          174.287584496
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_155",
+      "position": [
+        173.24009777401338,
+        -388.96371688998755,
+        166.324662577
+      ],
+      "faces": [
+        "84CK99UPEH/face_412",
+        "ZAVVBT2HVL/face_55"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 46.33878554,
+      "region_bbox": {
+        "min": [
+          151.58759169878715,
+          -391.6223103408793,
+          119.985877037
+        ],
+        "max": [
+          194.8926038492396,
+          -386.3051234390957,
+          166.324662577
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_156",
+      "position": [
+        173.24009777401338,
+        -388.96371688998755,
+        119.985877037
+      ],
+      "faces": [
+        "84CK99UPEH/face_412",
+        "ZAVVBT2HVL/face_55"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 46.33878554,
+      "region_bbox": {
+        "min": [
+          151.58759169878715,
+          -391.6223103408793,
+          119.985877037
+        ],
+        "max": [
+          194.8926038492396,
+          -386.3051234390957,
+          166.324662577
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_157",
+      "position": [
+        0.7841532153921449,
+        -412.82771715641644,
+        159.0
+      ],
+      "faces": [
+        "84CK99UPEH/face_431",
+        "X9V6XAQETD/face_125"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 24.099999999999994,
+      "region_bbox": {
+        "min": [
+          -7.522999102039961,
+          -414.4024760179687,
+          134.9
+        ],
+        "max": [
+          9.091305532824258,
+          -411.25295829486413,
+          159.0
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_158",
+      "position": [
+        0.7841532153921449,
+        -412.82771715641644,
+        134.9
+      ],
+      "faces": [
+        "84CK99UPEH/face_431",
+        "X9V6XAQETD/face_125"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 24.099999999999994,
+      "region_bbox": {
+        "min": [
+          -7.522999102039961,
+          -414.4024760179687,
+          134.9
+        ],
+        "max": [
+          9.091305532824258,
+          -411.25295829486413,
+          159.0
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_159",
+      "position": [
+        28.874015826301346,
+        -417.47734645895275,
+        183.50003876800005
+      ],
+      "faces": [
+        "84CK99UPEH/face_491",
+        "1ICSZHJGAR/face_62"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 27.310857109766467,
+      "region_bbox": {
+        "min": [
+          2.041031892979049,
+          -422.5639847696791,
+          175.041451884
+        ],
+        "max": [
+          28.874015826301346,
+          -417.47734645895275,
+          191.9586256520001
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_160",
+      "position": [
+        2.041031892979049,
+        -422.5639847696791,
+        183.50003876800005
+      ],
+      "faces": [
+        "84CK99UPEH/face_491",
+        "1ICSZHJGAR/face_62"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 27.310857109766467,
+      "region_bbox": {
+        "min": [
+          2.041031892979049,
+          -422.5639847696791,
+          175.041451884
+        ],
+        "max": [
+          28.874015826301346,
+          -417.47734645895275,
+          191.9586256520001
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_161",
+      "position": [
+        85.90520062450848,
+        -469.9565807162079,
+        250.75768341193373
+      ],
+      "faces": [
+        "84CK99UPEH/face_539",
+        "Q3Y6UCSE5D/face_205"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 49.596999033958724,
+      "region_bbox": {
+        "min": [
+          36.7895476264259,
+          -479.9051121282468,
+          243.36698301952714
+        ],
+        "max": [
+          85.90520062450848,
+          -460.3723422405705,
+          251.264908344739
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_162",
+      "position": [
+        36.7895476264259,
+        -470.32087365260946,
+        243.87420795233243
+      ],
+      "faces": [
+        "84CK99UPEH/face_539",
+        "Q3Y6UCSE5D/face_205"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 49.596999033958724,
+      "region_bbox": {
+        "min": [
+          36.7895476264259,
+          -479.9051121282468,
+          243.36698301952714
+        ],
+        "max": [
+          85.90520062450848,
+          -460.3723422405705,
+          251.264908344739
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_163",
+      "position": [
+        46.0385705316649,
+        -415.45069887575687,
+        240.24776212801586
+      ],
+      "faces": [
+        "84CK99UPEH/face_633",
+        "1ICSZHJGAR/face_86"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 64.05509641038871,
+      "region_bbox": {
+        "min": [
+          32.5966146168559,
+          -479.515979296993,
+          238.36389480628358
+        ],
+        "max": [
+          59.480526446473874,
+          -415.35099930357813,
+          245.51686840540307
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_164",
+      "position": [
+        4.715222817122424,
+        -412.0825175435824,
+        216.8388397729943
+      ],
+      "faces": [
+        "84CK99UPEH/face_634",
+        "1ICSZHJGAR/face_98"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          0.3391401013144346,
+          -412.9120767923208,
+          208.644258773
+        ],
+        "max": [
+          9.09130553293042,
+          -411.252958294844,
+          225.03342077298862
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_165",
+      "position": [
+        223.50058139094097,
+        -368.52369761562665,
+        147.3072495287848
+      ],
+      "faces": [
+        "84CK99UPEH/face_682",
+        "ZAVVBT2HVL/face_89"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          218.18914667483455,
+          -376.58996054726015,
+          140.97732812403973
+        ],
+        "max": [
+          228.81201610704738,
+          -360.45743468399314,
+          153.6371709335299
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_166",
+      "position": [
+        39.50000000004806,
+        -409.09229765,
+        127.2
+      ],
+      "faces": [
+        "84CK99UPEH/face_761",
+        "X9V6XAQETD/face_134"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 66.1110923349703,
+      "region_bbox": {
+        "min": [
+          6.5,
+          -475.2033899849703,
+          127.2
+        ],
+        "max": [
+          72.50000000009612,
+          -409.09229765,
+          127.2
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_167",
+      "position": [
+        39.50000000004806,
+        -475.2033899849703,
+        127.2
+      ],
+      "faces": [
+        "84CK99UPEH/face_761",
+        "X9V6XAQETD/face_134"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 66.1110923349703,
+      "region_bbox": {
+        "min": [
+          6.5,
+          -475.2033899849703,
+          127.2
+        ],
+        "max": [
+          72.50000000009612,
+          -409.09229765,
+          127.2
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_168",
+      "position": [
+        134.3586817310561,
+        -395.55127217195667,
+        172.98444603175238
+      ],
+      "faces": [
+        "X9V6XAQETD/face_56",
+        "ZAVVBT2HVL/face_37"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 44.62715040812651,
+      "region_bbox": {
+        "min": [
+          125.58359309906382,
+          -396.62871757651897,
+          128.35729562362587
+        ],
+        "max": [
+          143.13377036304843,
+          -394.47382676739437,
+          172.98444603175238
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_169",
+      "position": [
+        134.3586817310561,
+        -395.55127217195667,
+        128.35729562362587
+      ],
+      "faces": [
+        "X9V6XAQETD/face_56",
+        "ZAVVBT2HVL/face_37"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 44.62715040812651,
+      "region_bbox": {
+        "min": [
+          125.58359309906382,
+          -396.62871757651897,
+          128.35729562362587
+        ],
+        "max": [
+          143.13377036304843,
+          -394.47382676739437,
+          172.98444603175238
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_170",
+      "position": [
+        195.09931716915102,
+        -391.01639770548235,
+        151.90815655143567
+      ],
+      "faces": [
+        "ZAVVBT2HVL/face_56",
+        "BM2HY5OY5K/face_5"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 32.83477893622211,
+      "region_bbox": {
+        "min": [
+          163.98882142264884,
+          -393.7388251416276,
+          151.79523549456184
+        ],
+        "max": [
+          195.09931716915102,
+          -387.858805346316,
+          162.51252144065296
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.079mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_171",
+      "position": [
+        243.02610563838243,
+        -369.5397758328327,
+        126.21564921723288
+      ],
+      "faces": [
+        "ZAVVBT2HVL/face_80",
+        "N7OI2A2HBC/face_332"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          237.40789070883326,
+          -378.0211444776653,
+          119.52012139098085
+        ],
+        "max": [
+          248.64432056793157,
+          -361.058407188,
+          132.91117704348494
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_172",
+      "position": [
+        261.5820385001873,
+        -368.1209795765578,
+        113.04978305101965
+      ],
+      "faces": [
+        "ZAVVBT2HVL/face_278",
+        "N7OI2A2HBC/face_174"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          257.9545313549144,
+          -373.6600678148611,
+          112.23775053642186
+        ],
+        "max": [
+          265.20954564546014,
+          -362.58189133825437,
+          113.86181556561745
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_173",
+      "position": [
+        547.5759687938322,
+        -465.2514256405199,
+        -21.9999754533
+      ],
+      "faces": [
+        "ZAVVBT2HVL/face_616",
+        "C9VWLI50MK/face_193"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 31.918937770672585,
+      "region_bbox": {
+        "min": [
+          539.3349363058563,
+          -497.1703634111925,
+          -21.9999754533
+        ],
+        "max": [
+          555.8170012818081,
+          -465.2514256405199,
+          -21.9999754533
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_174",
+      "position": [
+        547.5759687938322,
+        -497.1703634111925,
+        -21.9999754533
+      ],
+      "faces": [
+        "ZAVVBT2HVL/face_616",
+        "C9VWLI50MK/face_193"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 31.918937770672585,
+      "region_bbox": {
+        "min": [
+          539.3349363058563,
+          -497.1703634111925,
+          -21.9999754533
+        ],
+        "max": [
+          555.8170012818081,
+          -465.2514256405199,
+          -21.9999754533
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_175",
+      "position": [
+        447.2279554102612,
+        -391.5749607222752,
+        11.225474323913012
+      ],
+      "faces": [
+        "ZAVVBT2HVL/face_622",
+        "C9VWLI50MK/face_14"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 41.947139403295765,
+      "region_bbox": {
+        "min": [
+          438.31675005889383,
+          -433.53177979893104,
+          5.623894119224069
+        ],
+        "max": [
+          456.13916076162855,
+          -391.5652175966906,
+          16.90001530287676
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_176",
+      "position": [
+        447.2279554102612,
+        -433.52203667334646,
+        11.298435098187822
+      ],
+      "faces": [
+        "ZAVVBT2HVL/face_622",
+        "C9VWLI50MK/face_14"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 41.947139403295765,
+      "region_bbox": {
+        "min": [
+          438.31675005889383,
+          -433.53177979893104,
+          5.623894119224069
+        ],
+        "max": [
+          456.13916076162855,
+          -391.5652175966906,
+          16.90001530287676
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_177",
+      "position": [
+        395.6602540037191,
+        -393.6490650483453,
+        43.64461696229612
+      ],
+      "faces": [
+        "ZAVVBT2HVL/face_622",
+        "N7OI2A2HBC/face_253"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.14451809833132,
+      "region_bbox": {
+        "min": [
+          365.0593855874611,
+          -403.6143257956436,
+          43.627283855673355
+        ],
+        "max": [
+          395.6602540037191,
+          -383.65034663822576,
+          62.89764400795482
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_178",
+      "position": [
+        365.0593855874611,
+        -393.6156073855241,
+        62.88031090133205
+      ],
+      "faces": [
+        "ZAVVBT2HVL/face_622",
+        "N7OI2A2HBC/face_253"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 36.14451809833132,
+      "region_bbox": {
+        "min": [
+          365.0593855874611,
+          -403.6143257956436,
+          43.627283855673355
+        ],
+        "max": [
+          395.6602540037191,
+          -383.65034663822576,
+          62.89764400795482
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_179",
+      "position": [
+        415.00229089589004,
+        -378.19909670879844,
+        31.45931039067571
+      ],
+      "faces": [
+        "ZAVVBT2HVL/face_622",
+        "N7OI2A2HBC/face_260"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 33.372231442484875,
+      "region_bbox": {
+        "min": [
+          386.7485108800615,
+          -385.2713999368801,
+          31.44700915852239
+        ],
+        "max": [
+          415.00229089589004,
+          -371.0959020225942,
+          49.23192670972314
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_180",
+      "position": [
+        327.7647223755871,
+        -407.5071328766899,
+        25.126281484587906
+      ],
+      "faces": [
+        "ZAVVBT2HVL/face_771",
+        "4XJ4G9Y32W/face_11"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 0.0,
+      "region_bbox": {
+        "min": [
+          320.58628469090945,
+          -409.9219545329342,
+          19.11429907665736
+        ],
+        "max": [
+          334.9431600602648,
+          -405.0923112204456,
+          31.13826389251845
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_181",
+      "position": [
+        518.287774779,
+        -219.93213187111922,
+        -69.75142270093517
+      ],
+      "faces": [
+        "C9VWLI50MK/face_65",
+        "ZXQHJPJ4M9/face_98"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 44.20919109714306,
+      "region_bbox": {
+        "min": [
+          474.0785836818569,
+          -229.01242210498862,
+          -71.51645232365851
+        ],
+        "max": [
+          518.287774779,
+          -210.85184163724983,
+          -67.98639307821183
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_182",
+      "position": [
+        474.0785836818569,
+        -219.93213187111922,
+        -69.75142270093517
+      ],
+      "faces": [
+        "C9VWLI50MK/face_65",
+        "ZXQHJPJ4M9/face_98"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 44.20919109714306,
+      "region_bbox": {
+        "min": [
+          474.0785836818569,
+          -229.01242210498862,
+          -71.51645232365851
+        ],
+        "max": [
+          518.287774779,
+          -210.85184163724983,
+          -67.98639307821183
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_183",
+      "position": [
+        464.63135184445883,
+        -349.47049045949996,
+        -77.99724594524734
+      ],
+      "faces": [
+        "C9VWLI50MK/face_67",
+        "N7OI2A2HBC/face_364"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 47.85635331933091,
+      "region_bbox": {
+        "min": [
+          460.4603958257172,
+          -360.0000011249999,
+          -77.99724594524734
+        ],
+        "max": [
+          464.63135184445883,
+          -338.94097979399993,
+          -30.323000498524664
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_184",
+      "position": [
+        460.4603958257172,
+        -349.47049045949996,
+        -30.323000498524664
+      ],
+      "faces": [
+        "C9VWLI50MK/face_67",
+        "N7OI2A2HBC/face_364"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 47.85635331933091,
+      "region_bbox": {
+        "min": [
+          460.4603958257172,
+          -360.0000011249999,
+          -77.99724594524734
+        ],
+        "max": [
+          464.63135184445883,
+          -338.94097979399993,
+          -30.323000498524664
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_185",
+      "position": [
+        460.2666399172849,
+        -222.41529235986758,
+        -28.108360331175064
+      ],
+      "faces": [
+        "C9VWLI50MK/face_67",
+        "N7OI2A2HBC/face_393"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 41.45095140939829,
+      "region_bbox": {
+        "min": [
+          460.2666399172849,
+          -232.33058359473523,
+          -69.40157835607614
+        ],
+        "max": [
+          463.87932837496896,
+          -212.5000011249999,
+          -28.108360331175064
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_186",
+      "position": [
+        531.5520844546941,
+        -351.01340497573005,
+        -27.74362625391458
+      ],
+      "faces": [
+        "C9VWLI50MK/face_104",
+        "DFM9EKCH8W/face_30"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 46.27157976725508,
+      "region_bbox": {
+        "min": [
+          525.9129974101447,
+          -358.014,
+          -73.67030468226868
+        ],
+        "max": [
+          531.5520844546941,
+          -344.01280995146016,
+          -27.74362625391458
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_187",
+      "position": [
+        525.9129974101447,
+        -351.01340497573005,
+        -73.67030468226868
+      ],
+      "faces": [
+        "C9VWLI50MK/face_104",
+        "DFM9EKCH8W/face_30"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 46.27157976725508,
+      "region_bbox": {
+        "min": [
+          525.9129974101447,
+          -358.014,
+          -73.67030468226868
+        ],
+        "max": [
+          531.5520844546941,
+          -344.01280995146016,
+          -27.74362625391458
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_188",
+      "position": [
+        531.5910984695407,
+        -218.71048236000001,
+        -27.424408015566392
+      ],
+      "faces": [
+        "C9VWLI50MK/face_104",
+        "ZXQHJPJ4M9/face_15"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 34.27817405040429,
+      "region_bbox": {
+        "min": [
+          527.4136399048942,
+          -225.71048236000001,
+          -61.44707775458704
+        ],
+        "max": [
+          531.5910984695407,
+          -211.71048236000001,
+          -27.424408015566392
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_189",
+      "position": [
+        480.5018538175,
+        -276.43829450398397,
+        -82.77254145168331
+      ],
+      "faces": [
+        "C9VWLI50MK/face_133",
+        "N7OI2A2HBC/face_394"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 64.74624629358874,
+      "region_bbox": {
+        "min": [
+          470.021345903,
+          -276.43829450398397,
+          -82.77254145168331
+        ],
+        "max": [
+          490.982361732,
+          -212.88161911600443,
+          -70.41837524197697
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_190",
+      "position": [
+        481.7916355805,
+        -299.149443635,
+        -85.3
+      ],
+      "faces": [
+        "C9VWLI50MK/face_135",
+        "N7OI2A2HBC/face_365"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 42.85055748999997,
+      "region_bbox": {
+        "min": [
+          472.60090942899996,
+          -342.000001125,
+          -85.3
+        ],
+        "max": [
+          490.982361732,
+          -299.149443635,
+          -85.3
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_191",
+      "position": [
+        481.7916355805,
+        -342.000001125,
+        -85.3
+      ],
+      "faces": [
+        "C9VWLI50MK/face_135",
+        "N7OI2A2HBC/face_365"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 42.85055748999997,
+      "region_bbox": {
+        "min": [
+          472.60090942899996,
+          -342.000001125,
+          -85.3
+        ],
+        "max": [
+          490.982361732,
+          -299.149443635,
+          -85.3
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    },
+    {
+      "id": "wc_192",
+      "position": [
+        515.907768227,
+        -327.01399910300177,
+        -83.29999386329999
+      ],
+      "faces": [
+        "C9VWLI50MK/face_379",
+        "DFM9EKCH8W/face_14"
+      ],
+      "layer_type": "two_layer",
+      "spacing_mm": 40.15297464550815,
+      "region_bbox": {
+        "min": [
+          475.75479358149187,
+          -337.5139982060035,
+          -83.29999386329999
+        ],
+        "max": [
+          515.907768227,
+          -316.514,
+          -83.29999386329999
+        ]
+      },
+      "reason": "two-layer mating pair, gap=0.000mm, normal_angle=0.00deg"
+    }
+  ]
+}
