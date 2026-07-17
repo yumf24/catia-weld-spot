@@ -18,8 +18,8 @@ __pycache__/
 build/
 dist/
 
-# Local Claude Code settings
-.claude/settings.local.json
+# Local Claude Code settings / session runtime state
+.claude/
 
 # Environments
 .venv/
