@@ -1,0 +1,706 @@
+{
+  "meta": {
+    "ground_truth_source": "data\\SPOT.ground_truth.json",
+    "candidates_source": "data\\component_e2e.candidates.json",
+    "tolerance_mm": 10.0,
+    "core_version": "0.1"
+  },
+  "summary": {
+    "num_ground_truth": 286,
+    "num_candidates": 200,
+    "true_positives": 65,
+    "false_negatives": 221,
+    "false_positives": 135,
+    "recall": 0.22727272727272727,
+    "precision": 0.325,
+    "mean_error_mm": 6.345251276576226,
+    "max_error_mm": 9.987075952921696
+  },
+  "matches": [
+    {
+      "ground_truth_id": "gt_107",
+      "candidate_id": "wc_011",
+      "distance_mm": 0.1810650010000085
+    },
+    {
+      "ground_truth_id": "gt_128",
+      "candidate_id": "wc_087",
+      "distance_mm": 0.1942903631531585
+    },
+    {
+      "ground_truth_id": "gt_121",
+      "candidate_id": "wc_085",
+      "distance_mm": 0.21007950340912368
+    },
+    {
+      "ground_truth_id": "gt_083",
+      "candidate_id": "wc_092",
+      "distance_mm": 0.33282399699999254
+    },
+    {
+      "ground_truth_id": "gt_123",
+      "candidate_id": "wc_084",
+      "distance_mm": 0.36067509669222286
+    },
+    {
+      "ground_truth_id": "gt_081",
+      "candidate_id": "wc_093",
+      "distance_mm": 0.6254842493270105
+    },
+    {
+      "ground_truth_id": "gt_124",
+      "candidate_id": "wc_086",
+      "distance_mm": 0.6847899892479133
+    },
+    {
+      "ground_truth_id": "gt_228",
+      "candidate_id": "wc_161",
+      "distance_mm": 0.8110624590997951
+    },
+    {
+      "ground_truth_id": "gt_156",
+      "candidate_id": "wc_166",
+      "distance_mm": 1.0649242408679553
+    },
+    {
+      "ground_truth_id": "gt_186",
+      "candidate_id": "wc_043",
+      "distance_mm": 1.6574256927294222
+    },
+    {
+      "ground_truth_id": "gt_047",
+      "candidate_id": "wc_034",
+      "distance_mm": 1.7892597396614673
+    },
+    {
+      "ground_truth_id": "gt_209",
+      "candidate_id": "wc_017",
+      "distance_mm": 2.200114193259682
+    },
+    {
+      "ground_truth_id": "gt_159",
+      "candidate_id": "wc_054",
+      "distance_mm": 2.5534076454325003
+    },
+    {
+      "ground_truth_id": "gt_192",
+      "candidate_id": "wc_056",
+      "distance_mm": 3.365090971489004
+    },
+    {
+      "ground_truth_id": "gt_220",
+      "candidate_id": "wc_171",
+      "distance_mm": 4.468559340661438
+    },
+    {
+      "ground_truth_id": "gt_064",
+      "candidate_id": "wc_103",
+      "distance_mm": 4.521420058595492
+    },
+    {
+      "ground_truth_id": "gt_196",
+      "candidate_id": "wc_119",
+      "distance_mm": 4.77657701958722
+    },
+    {
+      "ground_truth_id": "gt_046",
+      "candidate_id": "wc_116",
+      "distance_mm": 4.811170663187817
+    },
+    {
+      "ground_truth_id": "gt_252",
+      "candidate_id": "wc_089",
+      "distance_mm": 4.9247643437754
+    },
+    {
+      "ground_truth_id": "gt_170",
+      "candidate_id": "wc_062",
+      "distance_mm": 5.062761006217302
+    },
+    {
+      "ground_truth_id": "gt_134",
+      "candidate_id": "wc_058",
+      "distance_mm": 6.148616230732914
+    },
+    {
+      "ground_truth_id": "gt_138",
+      "candidate_id": "wc_007",
+      "distance_mm": 6.751571238154123
+    },
+    {
+      "ground_truth_id": "gt_284",
+      "candidate_id": "wc_133",
+      "distance_mm": 7.000000000229164
+    },
+    {
+      "ground_truth_id": "gt_115",
+      "candidate_id": "wc_156",
+      "distance_mm": 7.00072148195063
+    },
+    {
+      "ground_truth_id": "gt_110",
+      "candidate_id": "wc_155",
+      "distance_mm": 7.000734931564398
+    },
+    {
+      "ground_truth_id": "gt_029",
+      "candidate_id": "wc_179",
+      "distance_mm": 7.002302022863401
+    },
+    {
+      "ground_truth_id": "gt_067",
+      "candidate_id": "wc_090",
+      "distance_mm": 7.003766376955638
+    },
+    {
+      "ground_truth_id": "gt_160",
+      "candidate_id": "wc_051",
+      "distance_mm": 7.015000415077393
+    },
+    {
+      "ground_truth_id": "gt_053",
+      "candidate_id": "wc_117",
+      "distance_mm": 7.0178344238090995
+    },
+    {
+      "ground_truth_id": "gt_063",
+      "candidate_id": "wc_023",
+      "distance_mm": 7.0178344238090995
+    },
+    {
+      "ground_truth_id": "gt_065",
+      "candidate_id": "wc_094",
+      "distance_mm": 7.0756222709645495
+    },
+    {
+      "ground_truth_id": "gt_073",
+      "candidate_id": "wc_095",
+      "distance_mm": 7.1105454003632325
+    },
+    {
+      "ground_truth_id": "gt_145",
+      "candidate_id": "wc_124",
+      "distance_mm": 7.149636495412248
+    },
+    {
+      "ground_truth_id": "gt_032",
+      "candidate_id": "wc_180",
+      "distance_mm": 7.251433549835658
+    },
+    {
+      "ground_truth_id": "gt_013",
+      "candidate_id": "wc_185",
+      "distance_mm": 7.74477638376363
+    },
+    {
+      "ground_truth_id": "gt_268",
+      "candidate_id": "wc_144",
+      "distance_mm": 7.761649189147853
+    },
+    {
+      "ground_truth_id": "gt_012",
+      "candidate_id": "wc_187",
+      "distance_mm": 7.7786760203120116
+    },
+    {
+      "ground_truth_id": "gt_082",
+      "candidate_id": "wc_099",
+      "distance_mm": 7.999999999914114
+    },
+    {
+      "ground_truth_id": "gt_118",
+      "candidate_id": "wc_107",
+      "distance_mm": 8.00207400874051
+    },
+    {
+      "ground_truth_id": "gt_171",
+      "candidate_id": "wc_046",
+      "distance_mm": 8.062444517387117
+    },
+    {
+      "ground_truth_id": "gt_189",
+      "candidate_id": "wc_163",
+      "distance_mm": 8.179723312191879
+    },
+    {
+      "ground_truth_id": "gt_059",
+      "candidate_id": "wc_035",
+      "distance_mm": 8.197649056344574
+    },
+    {
+      "ground_truth_id": "gt_038",
+      "candidate_id": "wc_033",
+      "distance_mm": 8.198890684338444
+    },
+    {
+      "ground_truth_id": "gt_100",
+      "candidate_id": "wc_032",
+      "distance_mm": 8.200008484025506
+    },
+    {
+      "ground_truth_id": "gt_076",
+      "candidate_id": "wc_104",
+      "distance_mm": 8.2186625303559
+    },
+    {
+      "ground_truth_id": "gt_087",
+      "candidate_id": "wc_029",
+      "distance_mm": 8.226932562832136
+    },
+    {
+      "ground_truth_id": "gt_137",
+      "candidate_id": "wc_059",
+      "distance_mm": 8.254466241978733
+    },
+    {
+      "ground_truth_id": "gt_231",
+      "candidate_id": "wc_019",
+      "distance_mm": 8.272392705359337
+    },
+    {
+      "ground_truth_id": "gt_060",
+      "candidate_id": "wc_113",
+      "distance_mm": 8.428474331081723
+    },
+    {
+      "ground_truth_id": "gt_281",
+      "candidate_id": "wc_131",
+      "distance_mm": 8.65778547206389
+    },
+    {
+      "ground_truth_id": "gt_187",
+      "candidate_id": "wc_169",
+      "distance_mm": 8.67531366106628
+    },
+    {
+      "ground_truth_id": "gt_283",
+      "candidate_id": "wc_132",
+      "distance_mm": 8.771123824955126
+    },
+    {
+      "ground_truth_id": "gt_182",
+      "candidate_id": "wc_126",
+      "distance_mm": 8.848826983705116
+    },
+    {
+      "ground_truth_id": "gt_208",
+      "candidate_id": "wc_200",
+      "distance_mm": 8.93098182759035
+    },
+    {
+      "ground_truth_id": "gt_197",
+      "candidate_id": "wc_040",
+      "distance_mm": 9.176859523512753
+    },
+    {
+      "ground_truth_id": "gt_090",
+      "candidate_id": "wc_105",
+      "distance_mm": 9.200817062768028
+    },
+    {
+      "ground_truth_id": "gt_148",
+      "candidate_id": "wc_008",
+      "distance_mm": 9.245061273158967
+    },
+    {
+      "ground_truth_id": "gt_068",
+      "candidate_id": "wc_096",
+      "distance_mm": 9.303896625669857
+    },
+    {
+      "ground_truth_id": "gt_211",
+      "candidate_id": "wc_016",
+      "distance_mm": 9.489235914676783
+    },
+    {
+      "ground_truth_id": "gt_278",
+      "candidate_id": "wc_141",
+      "distance_mm": 9.502748002817626
+    },
+    {
+      "ground_truth_id": "gt_021",
+      "candidate_id": "wc_108",
+      "distance_mm": 9.624545591271973
+    },
+    {
+      "ground_truth_id": "gt_179",
+      "candidate_id": "wc_009",
+      "distance_mm": 9.69381646305451
+    },
+    {
+      "ground_truth_id": "gt_037",
+      "candidate_id": "wc_020",
+      "distance_mm": 9.721720175644963
+    },
+    {
+      "ground_truth_id": "gt_017",
+      "candidate_id": "wc_100",
+      "distance_mm": 9.943339758687818
+    },
+    {
+      "ground_truth_id": "gt_175",
+      "candidate_id": "wc_118",
+      "distance_mm": 9.987075952921696
+    }
+  ],
+  "unmatched_ground_truth": [
+    "gt_001",
+    "gt_002",
+    "gt_003",
+    "gt_004",
+    "gt_005",
+    "gt_006",
+    "gt_007",
+    "gt_008",
+    "gt_009",
+    "gt_010",
+    "gt_011",
+    "gt_014",
+    "gt_015",
+    "gt_016",
+    "gt_018",
+    "gt_019",
+    "gt_020",
+    "gt_022",
+    "gt_023",
+    "gt_024",
+    "gt_025",
+    "gt_026",
+    "gt_027",
+    "gt_028",
+    "gt_030",
+    "gt_031",
+    "gt_033",
+    "gt_034",
+    "gt_035",
+    "gt_036",
+    "gt_039",
+    "gt_040",
+    "gt_041",
+    "gt_042",
+    "gt_043",
+    "gt_044",
+    "gt_045",
+    "gt_048",
+    "gt_049",
+    "gt_050",
+    "gt_051",
+    "gt_052",
+    "gt_054",
+    "gt_055",
+    "gt_056",
+    "gt_057",
+    "gt_058",
+    "gt_061",
+    "gt_062",
+    "gt_066",
+    "gt_069",
+    "gt_070",
+    "gt_071",
+    "gt_072",
+    "gt_074",
+    "gt_075",
+    "gt_077",
+    "gt_078",
+    "gt_079",
+    "gt_080",
+    "gt_084",
+    "gt_085",
+    "gt_086",
+    "gt_088",
+    "gt_089",
+    "gt_091",
+    "gt_092",
+    "gt_093",
+    "gt_094",
+    "gt_095",
+    "gt_096",
+    "gt_097",
+    "gt_098",
+    "gt_099",
+    "gt_101",
+    "gt_102",
+    "gt_103",
+    "gt_104",
+    "gt_105",
+    "gt_106",
+    "gt_108",
+    "gt_109",
+    "gt_111",
+    "gt_112",
+    "gt_113",
+    "gt_114",
+    "gt_116",
+    "gt_117",
+    "gt_119",
+    "gt_120",
+    "gt_122",
+    "gt_125",
+    "gt_126",
+    "gt_127",
+    "gt_129",
+    "gt_130",
+    "gt_131",
+    "gt_132",
+    "gt_133",
+    "gt_135",
+    "gt_136",
+    "gt_139",
+    "gt_140",
+    "gt_141",
+    "gt_142",
+    "gt_143",
+    "gt_144",
+    "gt_146",
+    "gt_147",
+    "gt_149",
+    "gt_150",
+    "gt_151",
+    "gt_152",
+    "gt_153",
+    "gt_154",
+    "gt_155",
+    "gt_157",
+    "gt_158",
+    "gt_161",
+    "gt_162",
+    "gt_163",
+    "gt_164",
+    "gt_165",
+    "gt_166",
+    "gt_167",
+    "gt_168",
+    "gt_169",
+    "gt_172",
+    "gt_173",
+    "gt_174",
+    "gt_176",
+    "gt_177",
+    "gt_178",
+    "gt_180",
+    "gt_181",
+    "gt_183",
+    "gt_184",
+    "gt_185",
+    "gt_188",
+    "gt_190",
+    "gt_191",
+    "gt_193",
+    "gt_194",
+    "gt_195",
+    "gt_198",
+    "gt_199",
+    "gt_200",
+    "gt_201",
+    "gt_202",
+    "gt_203",
+    "gt_204",
+    "gt_205",
+    "gt_206",
+    "gt_207",
+    "gt_210",
+    "gt_212",
+    "gt_213",
+    "gt_214",
+    "gt_215",
+    "gt_216",
+    "gt_217",
+    "gt_218",
+    "gt_219",
+    "gt_221",
+    "gt_222",
+    "gt_223",
+    "gt_224",
+    "gt_225",
+    "gt_226",
+    "gt_227",
+    "gt_229",
+    "gt_230",
+    "gt_232",
+    "gt_233",
+    "gt_234",
+    "gt_235",
+    "gt_236",
+    "gt_237",
+    "gt_238",
+    "gt_239",
+    "gt_240",
+    "gt_241",
+    "gt_242",
+    "gt_243",
+    "gt_244",
+    "gt_245",
+    "gt_246",
+    "gt_247",
+    "gt_248",
+    "gt_249",
+    "gt_250",
+    "gt_251",
+    "gt_253",
+    "gt_254",
+    "gt_255",
+    "gt_256",
+    "gt_257",
+    "gt_258",
+    "gt_259",
+    "gt_260",
+    "gt_261",
+    "gt_262",
+    "gt_263",
+    "gt_264",
+    "gt_265",
+    "gt_266",
+    "gt_267",
+    "gt_269",
+    "gt_270",
+    "gt_271",
+    "gt_272",
+    "gt_273",
+    "gt_274",
+    "gt_275",
+    "gt_276",
+    "gt_277",
+    "gt_279",
+    "gt_280",
+    "gt_282",
+    "gt_285",
+    "gt_286"
+  ],
+  "unmatched_candidates": [
+    "wc_001",
+    "wc_002",
+    "wc_003",
+    "wc_004",
+    "wc_005",
+    "wc_006",
+    "wc_010",
+    "wc_012",
+    "wc_013",
+    "wc_014",
+    "wc_015",
+    "wc_018",
+    "wc_021",
+    "wc_022",
+    "wc_024",
+    "wc_025",
+    "wc_026",
+    "wc_027",
+    "wc_028",
+    "wc_030",
+    "wc_031",
+    "wc_036",
+    "wc_037",
+    "wc_038",
+    "wc_039",
+    "wc_041",
+    "wc_042",
+    "wc_044",
+    "wc_045",
+    "wc_047",
+    "wc_048",
+    "wc_049",
+    "wc_050",
+    "wc_052",
+    "wc_053",
+    "wc_055",
+    "wc_057",
+    "wc_060",
+    "wc_061",
+    "wc_063",
+    "wc_064",
+    "wc_065",
+    "wc_066",
+    "wc_067",
+    "wc_068",
+    "wc_069",
+    "wc_070",
+    "wc_071",
+    "wc_072",
+    "wc_073",
+    "wc_074",
+    "wc_075",
+    "wc_076",
+    "wc_077",
+    "wc_078",
+    "wc_079",
+    "wc_080",
+    "wc_081",
+    "wc_082",
+    "wc_083",
+    "wc_088",
+    "wc_091",
+    "wc_097",
+    "wc_098",
+    "wc_101",
+    "wc_102",
+    "wc_106",
+    "wc_109",
+    "wc_110",
+    "wc_111",
+    "wc_112",
+    "wc_114",
+    "wc_115",
+    "wc_120",
+    "wc_121",
+    "wc_122",
+    "wc_123",
+    "wc_125",
+    "wc_127",
+    "wc_128",
+    "wc_129",
+    "wc_130",
+    "wc_134",
+    "wc_135",
+    "wc_136",
+    "wc_137",
+    "wc_138",
+    "wc_139",
+    "wc_140",
+    "wc_142",
+    "wc_143",
+    "wc_145",
+    "wc_146",
+    "wc_147",
+    "wc_148",
+    "wc_149",
+    "wc_150",
+    "wc_151",
+    "wc_152",
+    "wc_153",
+    "wc_154",
+    "wc_157",
+    "wc_158",
+    "wc_159",
+    "wc_160",
+    "wc_162",
+    "wc_164",
+    "wc_165",
+    "wc_167",
+    "wc_168",
+    "wc_170",
+    "wc_172",
+    "wc_173",
+    "wc_174",
+    "wc_175",
+    "wc_176",
+    "wc_177",
+    "wc_178",
+    "wc_181",
+    "wc_182",
+    "wc_183",
+    "wc_184",
+    "wc_186",
+    "wc_188",
+    "wc_189",
+    "wc_190",
+    "wc_191",
+    "wc_192",
+    "wc_193",
+    "wc_194",
+    "wc_195",
+    "wc_196",
+    "wc_197",
+    "wc_198",
+    "wc_199"
+  ]
+}
