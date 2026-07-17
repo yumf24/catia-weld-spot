@@ -1,5 +1,4 @@
 # Runtime artifacts
-data/*.json
 logs/
 *.log
 
