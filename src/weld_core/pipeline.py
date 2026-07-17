@@ -41,6 +41,15 @@ def run(faces_doc: FacesDocument, params: WeldParams | None = None) -> Candidate
         candidates.extend(layout_points(region, params))
 
     candidates = filter_candidates(candidates, params)
+
+    # Sort by content (face-pair identity, then position) rather than
+    # discovery order before numbering. Pair discovery order comes from the
+    # input faces list order, which is not guaranteed stable across
+    # independent CATIA extractions of the same document (see DEVLOG.md) --
+    # numbering by discovery order let the same physical candidate get a
+    # different wc_NNN id across runs, which silently corrupted
+    # catia/write_candidates.py's id-based update-in-place matching.
+    candidates.sort(key=lambda c: (tuple(sorted(c.faces)), c.position))
     for i, c in enumerate(candidates, start=1):
         c.id = f"wc_{i:03d}"
 

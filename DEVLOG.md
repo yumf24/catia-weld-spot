@@ -5,6 +5,94 @@
 
 ---
 
+## 2026-07-17 — Phase 4 完成：补齐一键复现脚本，真正端到端跑通原生文件全链路，
+过程中发现并修复了候选点 id 跨会话不稳定的问题
+
+**背景**
+- 检查发现 CATIA 当前打开的活动文档就是上一条记录 SaveAs 出来的
+  `data/component_with_weld_candidates_native.CATProduct`（全部 34 个子文档都绑定了磁盘路径）——
+  正是 Phase 4 一直缺的"真正的原生文件"。和用户确认：就用这个文件做端到端验证；本轮不调整
+  `WeldParams` 阈值（留给工程师后续反馈）；把一直靠 `python -c` 手动调用的 STEP 导出补成正式脚本。
+
+**新增脚本**
+- `catia/export_step.py`：把 `Document.ExportData(path, "stp", overwrite=True)` 这个之前临时用
+  `python -c` 调用的操作正式化，风格对齐 `extract_faces.py`/`write_candidates.py`（同样的 `logs/`
+  运行日志模式）。**踩坑**：pycatia 的 `export_data` 对相对路径只会打一条 warning（"be explicit and
+  use absolute filenames"），不会拦截——但 CATIA COM 侧对相对路径直接报一个无信息量的通用
+  `com_error`（`ExportData 失败`），换成绝对路径后立刻成功。脚本内部对传入路径统一做
+  `.resolve()`，不依赖调用方传对。
+- `scripts/run_full_pipeline.py`：一键串联 extract→export→enrich→core→（`--write` 时）write 五步，
+  直接 import 复用四个已有脚本/模块的现成函数（`catia/extract_faces.py::extract_faces`、新的
+  `export_step`、`scripts/enrich_faces_with_step.py::enrich_faces_document`、
+  `weld_core.pipeline.run`、`catia/write_candidates.py` 的三个函数），没有重新实现任何逻辑；
+  `catia/`/`scripts/` 都不是包（没有 `__init__.py`），沿用现有脚本"加 `sys.path` 再 import"的模式。
+  `--write` 默认关闭（跑一键脚本默认只读 CATIA、写本地 JSON/STEP，不改动活动文档），显式传才回写。
+  先用 `--limit 50` 跑通 smoke test（17/17 平面面匹配成功）确认链路本身没问题，再跑全量。
+
+**真实端到端跑通结果**（对着 `component_with_weld_candidates_native.CATProduct` 跑
+`run_full_pipeline.py --write`，`logs/run_full_pipeline_..._20260717-101448.log`）
+- 提取：10706 个面（1926 planar），**537s（约 19.9 faces/sec）**——比 DEVLOG 早前记录的
+  "3~4 faces/sec、全量要 45~70 分钟" 快了近 6 倍，具体原因未深究（这次读取失败/COM 异常次数可能
+  更少），记录下来但不作为可靠估算依据，以后需要预估耗时时以实测为准。
+- STEP 导出 35s，STEP+OCP enrich 30s（1903/1926 planar 面匹配成功，比上次全量记录的 1892/1925
+  略高，同样未深究、在正常波动范围内），核心算法 0.57s，产出 **200 个候选点**（比 Phase 2 基线的
+  192 个多 8 个，同样是因为这次多匹配到的 11 个 planar 面带来的新候选，量级上合理）。
+
+**发现并修复：候选点 id 跨会话不稳定，导致回写时静默把已复核的点挪到错误位置**
+- 回写阶段报 `8 created, 192 updated, 0 newly stale`，表面看起来像是"基本幂等、只多了 8 个"，但
+  逐个比对新旧 `candidates.json` 发现同一个 `wc_NNN` id 在新旧两次跑里对应的坐标能差出去
+  **700+ mm**（如 `wc_058`）——192 个同名 id 里有 **163 个** 关联的 `faces` 字段前后不一致，
+  即回写把这些点悄悄挪到了完全不同的物理位置，而不是"多找到 8 个"这么简单。用位置做最近邻比对
+  （忽略 id）证实：旧的 192 个候选里 174 个在新结果集里能找到几乎精确重合（<0.01mm）的对应点——
+  说明两次跑找到的物理候选点集合本身高度一致，问题出在 **`wc_NNN` 编号本身不稳定**。
+- **根因**：`weld_core/pipeline.py::run()` 之前按"配对被发现的顺序"给候选点编号
+  （`for i, c in enumerate(candidates, start=1)`），而配对发现顺序由 `pairing.find_mating_pairs`
+  遍历输入 `faces` 列表的顺序决定，这个顺序又来自 `faces.json` 里面 face 的原始顺序——**同一个文档
+  两次独立 COM 提取，`Selection.Search` 返回 face 的顺序不保证一致**（这次和 Phase 2 基线之间还
+  隔着一次 STEP 重新导入，内部顺序更容易变化）。而 `catia/write_candidates.py` 的"原地更新"策略
+  是按 id 字符串匹配的（详见该文件 2026-07-16 的设计说明）——**编号不稳定 + 按 id 匹配回写，两者
+  叠加，就会把一个物理点在无声无息间移动到另一个物理点曾经的位置**，且不会报错、不会被
+  `manual_review`/`STALE` 机制捕捉到（这两个机制防的是"点消失"，不是"同名点被意外改指向"）。这是
+  Phase 3 "幂等性验证通过" 结论的一个盲点：Phase 3 只验证过"同一个 `candidates.json` 重复回写"，
+  没验证过"独立重新提取一遍再回写"，而这正是 Phase 4 端到端测试要覆盖的场景。
+- **修复**（`src/weld_core/pipeline.py`）：编号前按内容（`sorted(faces)` 元组 + `position`）对
+  `candidates` 排序，而不是按发现顺序，使编号变成候选点内容的确定性函数，不再依赖遍历顺序。
+  新增回归测试 `tests/test_pipeline.py::test_candidate_ids_stable_regardless_of_input_face_order`：
+  构造两组独立的贴合面对，分别按正序和逆序喂给 `run()`，断言两次跑出来的 `id -> position` 映射
+  完全一致。**28 个用例（含新增这条）全部通过。**
+
+**现场善后**（活动文档在发现问题前已经被那一轮"跳号"结果写坏——163/192 个点被移到了错的位置）
+- 先用旧基线 `data/candidates_component_full.json`（Phase 2 那 192 个、已核对过的候选）重跑一次
+  `write_candidates.py`：`0 created, 192 updated, 8 newly marked stale`——把被跳号问题错误挪动的
+  192 个点位置恢复回 Phase 2 复核过的坐标，同时把这一轮多出的 8 个（`wc_193`~`wc_200`）标记
+  stale（符合预期：它们不在这次传入的候选集里）。
+- 再用**修复后的 pipeline** 重新跑一遍核心算法（复用同一份已提取好的
+  `data/component_e2e.faces.enriched.json`，不需要重新连 CATIA/重新导出 STEP）生成新的
+  `data/component_e2e.candidates.json`（仍是 200 个候选，只是编号方式变了），回写：
+  `0 created, 200 updated, 0 newly stale`——200 个 id 全部对上（因为这次的 id 从 1 到 200 连续，
+  和文档里已存在的 `wc_001`~`wc_200` 恰好全覆盖），之前标的 stale 前缀也随更新一起清掉了。
+- **验证**：用 `HybridShapePointCoord.x/y/z`（不是参数缓存值）读回 `wc_001`/`wc_050`/`wc_100`/
+  `wc_150`/`wc_192`/`wc_200` 六个点的真实坐标，和 `component_e2e.candidates.json` 逐分量比对，
+  **误差全部为 0.0**——确认活动文档现在的状态和修复后的候选集完全一致。
+
+**结论**
+- Phase 4 的核心目标——"端到端集成，不像上次因为环境问题中途换了对象"——达成：这次全程只用了一个
+  原生 `.CATProduct` 文件，提取/导出/回写都对着同一个活动文档，没有再依赖 STEP 重新导入兜底。
+- 顺带发现并修复了一个真实的、之前没测出来的正确性问题（id 跨会话不稳定导致回写静默错位），比
+  单纯"跑通一次"更有价值——这也是为什么 DEVLOG 早前"幂等性验证通过"的表述需要修正为"仅验证了
+  同输入重复回写幂等，跨会话重新提取的幂等性直到这次才被验证并证明存在缺陷，现已修复"。
+- 本轮按约定**没有调整** `WeldParams` 任何阈值（`max_normal_angle_deg`/`max_gap_mm`/
+  `min_spacing_mm`/`max_spacing_mm`/`min_point_distance_mm`/`min_face_width_mm` 均为
+  `config.py` 里的默认值）——是否需要调参，仍然等工程师看过现在这 200 个候选点后再反馈，Phase 2
+  记录里提的这个开放问题依然开放。
+
+**下一步**
+- 等工程师/产品侧对 CATIA 里当前这 200 个候选点做一次人工复核，反馈是否需要调整
+  `WeldParams` 阈值。
+- 三层板自动识别、`body` 字段仍是已知的简化/占位（见 Phase 2 记录），不阻塞。
+
+---
+
 ## 2026-07-16 — 发现 STEP 导出会丢失点名/参数；改用原生 Save As；打包给同事看
 
 **做了什么**

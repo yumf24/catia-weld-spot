@@ -1,11 +1,12 @@
 """Schema + pipeline tests."""
 
+import copy
 from pathlib import Path
 
 import pytest
 
 from weld_core.pipeline import run
-from weld_core.schema import load_faces
+from weld_core.schema import FacesDocument, load_faces
 
 FIXTURE = Path(__file__).parent / "fixtures" / "two_layer.json"
 
@@ -32,3 +33,40 @@ def test_pipeline_runs_and_returns_document():
         assert c.spacing_mm == pytest.approx(45.0)
         assert c.position[2] == pytest.approx(1.025)
         assert set(c.faces) == {"PartA/Body1/face_top", "PartB/Body1/face_bottom"}
+
+
+def _shifted_pair(doc: FacesDocument, dx: float, suffix: str) -> list:
+    """A second, spatially-separated mating pair shaped like the fixture's."""
+    faces = copy.deepcopy(doc.faces)
+    for f in faces:
+        f.id = f"{f.id}{suffix}"
+        f.part = f"{f.part}{suffix}"
+        f.plane_origin = (f.plane_origin[0] + dx, f.plane_origin[1], f.plane_origin[2])
+        f.centroid = (f.centroid[0] + dx, f.centroid[1], f.centroid[2])
+        f.vertices = [(v[0] + dx, v[1], v[2]) for v in f.vertices]
+    return faces
+
+
+def test_candidate_ids_stable_regardless_of_input_face_order():
+    """wc_NNN ids must depend on candidate content, not on discovery order.
+
+    catia/write_candidates.py matches points across CATIA sessions by id, so
+    if two independent extractions of the same document yield the same faces
+    in a different order (observed in practice, see DEVLOG.md), the same
+    physical candidate must still land on the same id -- otherwise re-running
+    the pipeline silently reassigns an existing point's position.
+    """
+    base = load_faces(FIXTURE)
+    pair_2 = _shifted_pair(base, dx=1000.0, suffix="_2")
+
+    forward = FacesDocument(meta=base.meta, faces=base.faces + pair_2)
+    reversed_ = FacesDocument(meta=base.meta, faces=list(reversed(base.faces + pair_2)))
+
+    result_forward = run(forward)
+    result_reversed = run(reversed_)
+
+    assert len(result_forward.candidates) == len(result_reversed.candidates) == 6
+
+    forward_by_id = {c.id: c.position for c in result_forward.candidates}
+    reversed_by_id = {c.id: c.position for c in result_reversed.candidates}
+    assert forward_by_id == reversed_by_id

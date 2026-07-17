@@ -165,12 +165,12 @@ CATIA ──①extract(COM，面积/法向/零件号)──▶ faces.json ──
 | **P1.5 顶点补全** | 解决 vertices 缺失 | STEP 文件→精确顶点/边界 | 抽样与 CATIA 面积/法向交叉核对一致 | **完成**（`step_geometry.py`+`enrich_faces_with_step.py`，真实装配体验证：planar 面 manual_review 100%→1.7%，顶点与 COM 平面吻合误差<0.001mm） | 面→零件号映射：XCAF assembly tree 已解决；3 顶点面误判：2 个非对称 UV 采样点已解决 |
 | **P2 核心** | 离线实现筛选/布点/过滤 | faces.json→candidates.json | 合成夹具单测全绿 | **完成**（真实装配体验证：0.47s 跑通，产出 192 个候选/41 组零件配对，间距全部落在 20-70mm） | 三层板分类未做（留待后续，见 DEVLOG）；`body` 字段仍占位 |
 | **P3 回写** | 建 Weld_Candidates | candidates.json→CATIA 点集 | 位置一致；重复运行幂等 | **完成**（真实会话验证：坐标/参数精确匹配，幂等性验证通过——不用删除类 API，改成按 id 原地更新点坐标，详见 DEVLOG） | `Selection.Delete`/`Products.remove`+`Document.close` 在这套环境里均不可靠，已避开，改用"找到则更新、找不到则新建、多余的标记 stale 不删除"策略 |
-| **P4 集成** | 端到端+调参+日志+文档 | 真实零件→全链路 | 无明显漏检；一键复现 | 未开始 | 漏检高→放宽阈值/加边采样 |
+| **P4 集成** | 端到端+调参+日志+文档 | 真实零件→全链路 | 无明显漏检；一键复现 | **完成**（`catia/export_step.py` + `scripts/run_full_pipeline.py` 一键跑通 extract→export→enrich→core→write 全链路，对着真正的原生 `.CATProduct` 验证；过程中发现并修复候选点 id 跨会话不稳定的问题，详见 DEVLOG） | 漏检高→放宽阈值/加边采样；调参决策仍待工程师人工复核后反馈，本阶段未改动 `WeldParams` 默认值 |
 
 ## 里程碑
 - **M0** 环境就绪（完成）· **M1** 提取可用（完成，附带顶点限制）· **M1.5** 顶点补全
   （完成，见 P1.5）· **M2** 算法可用（完成，见 P2）· **M3** 回写可用（完成，见 P3）·
-  **M4** 端到端交付
+  **M4** 端到端交付（完成，见 P4——一键复现脚本 + 真实原生文件全链路验证 + id 稳定性修复）
 
 ## 环境（不改动系统/全局 Python）
 - 单一环境：项目本地 `.venv`（Windows，Python 3.12，本机无 conda）：
