@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-22 16:11:55 +08:00 — G03 通用平面选面几何契约
+
+**做了什么**
+- 新增 `weld_core.general_plane_selection`，定义通用选面参数、平面 face、pair 审计、精确投影 overlap 测量和去重选面结果；不包含 template、reference 或数据集特定字段。
+- 对平行且有间隙的候选 face，将第二张 CAD face 投影到公共比较平面后使用 OCCT boolean common 计算真实公共面积、双向覆盖率和评分；AABB 仅作为预筛。
+- 实现同 part 默认排除、无向法向夹角、平面间隙、最小有效宽度、最小公共面积、覆盖率阈值和完整拒绝原因审计；同一 face 通过多个 pair 时只选中一次并保留支持 pair 追溯。
+- `docs/ALG_updatev2.json` 中 `G03_general_selection_contract_and_geometry` 标记为通过。
+
+**验证结果**
+- `.venv\Scripts\python -m pytest tests\test_general_plane_selection_geometry.py --basetemp .pytest_cache\g03-geometry`：**10 passed**。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\g03-full`：**72 passed**。
+
+---
+
 ## 2026-07-22 16:06:41 +08:00 — G02 移除冻结模板运行路径
 
 **做了什么**

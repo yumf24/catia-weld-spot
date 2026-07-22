@@ -154,7 +154,7 @@
       "id": "G03_general_selection_contract_and_geometry",
       "priority": 3,
       "depends_on": ["G02_remove_frozen_template_path"],
-      "pass": false,
+      "pass": true,
       "goal": "落地不依赖具体零件身份的通用选面几何契约、数据模型和精确 pair-overlap API。",
       "changes": [
         "定义通用 selection 参数、pair 记录、face 记录、审计记录、拒绝原因和置信度/排序字段；不得包含 template、reference 或数据集特定字段。",
