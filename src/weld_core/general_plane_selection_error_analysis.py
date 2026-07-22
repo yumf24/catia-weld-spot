@@ -16,6 +16,40 @@ class ErrorAnalysisInputError(ValueError):
     """Raised when evaluation and audit artifacts cannot be joined safely."""
 
 
+_FN_REASON_DETAILS = {
+    "overlap_area_below_threshold": (
+        "overlap_area",
+        "investigate_overlap_area_threshold",
+        0,
+    ),
+    "coverage_below_threshold": (
+        "coverage",
+        "investigate_face_coverage_threshold",
+        1,
+    ),
+    "projected_aabb_no_overlap": (
+        "projected_aabb",
+        "diagnose_projected_aabb_pre_filter",
+        2,
+    ),
+    "plane_gap_exceeds_threshold": (
+        "plane_gap",
+        "investigate_gap_threshold_or_layered_gap_strategy",
+        3,
+    ),
+    "same_part_excluded": (
+        "same_part_policy",
+        "evaluate_same_part_pair_policy",
+        4,
+    ),
+    "normal_angle_exceeds_threshold": (
+        "normal_angle",
+        "investigate_normal_angle_threshold",
+        5,
+    ),
+}
+
+
 def _load_json(path: str | Path, label: str) -> dict[str, Any]:
     source = Path(path)
     try:
@@ -145,6 +179,101 @@ def join_error_analysis(
         "parameters": selection_audit.get("parameters"),
         "faces": faces,
     }
+
+
+def _counterpart(pair: dict[str, Any], face_id: str) -> tuple[str, str | None]:
+    """Return the opposite face and its part after the join has validated endpoints."""
+
+    if pair["face_a_id"] == face_id:
+        return pair["face_b_id"], pair.get("part_b")
+    if pair["face_b_id"] == face_id:
+        return pair["face_a_id"], pair.get("part_a")
+    raise ErrorAnalysisInputError(f"pair {pair['id']!r} does not contain false-negative face {face_id!r}")
+
+
+def _fn_pair_sort_key(pair: dict[str, Any]) -> tuple[int, str]:
+    """Prefer failures that reached the deepest geometry-validation stage.
+
+    A pair rejected after precise overlap or coverage measurement is stronger
+    diagnostic evidence than an early rejection.  Among early rejections, a
+    passed-gap AABB failure is more useful than a gap failure; same-part is
+    retained ahead of normal-angle-only evidence because it represents a
+    separately controllable policy.  Pair IDs make ties reproducible.
+    """
+
+    details = _FN_REASON_DETAILS.get(pair.get("reason"))
+    return (details[2] if details is not None else 6, pair["id"])
+
+
+def classify_false_negatives(joined: dict[str, Any], pair_audit: dict[str, Any]) -> list[dict[str, Any]]:
+    """Classify each false negative using its most diagnostic failed pair.
+
+    ``joined`` must be the result of :func:`join_error_analysis`; ``pair_audit``
+    is retained separately so analysis can inspect all rejected pairs without
+    changing the compact face-level join contract.
+    """
+
+    pair_rows = pair_audit.get("pairs")
+    if not isinstance(pair_rows, list):
+        raise ErrorAnalysisInputError("pair_audit.pairs must be a list")
+    pairs_by_face: dict[str, list[dict[str, Any]]] = {}
+    for pair in pair_rows:
+        if not isinstance(pair, dict) or not isinstance(pair.get("id"), str):
+            raise ErrorAnalysisInputError("pair_audit.pairs must contain objects with string ids")
+        for endpoint in (pair.get("face_a_id"), pair.get("face_b_id")):
+            if isinstance(endpoint, str):
+                pairs_by_face.setdefault(endpoint, []).append(pair)
+
+    classifications: list[dict[str, Any]] = []
+    for face in joined.get("faces", []):
+        if face.get("classification") != "false_negative":
+            continue
+        face_id = face.get("face_id")
+        if not isinstance(face_id, str):
+            raise ErrorAnalysisInputError("joined false-negative face must contain string face_id")
+        failed_pairs = [pair for pair in pairs_by_face.get(face_id, []) if not pair.get("accepted")]
+        if not failed_pairs:
+            classifications.append(
+                {
+                    "face_id": face_id,
+                    "failure_stage": "no_evidence",
+                    "recommended_recovery": "review_pair_audit_coverage",
+                    "best_failed_pair": None,
+                }
+            )
+            continue
+
+        pair = min(failed_pairs, key=_fn_pair_sort_key)
+        counterpart_face_id, counterpart_part = _counterpart(pair, face_id)
+        failure_stage, recommended_recovery, _ = _FN_REASON_DETAILS.get(
+            pair.get("reason"),
+            ("no_evidence", "review_unrecognized_pair_rejection", 6),
+        )
+        classifications.append(
+            {
+                "face_id": face_id,
+                "failure_stage": failure_stage,
+                "recommended_recovery": recommended_recovery,
+                "best_failed_pair": {
+                    "pair_id": pair["id"],
+                    "reason": pair.get("reason"),
+                    "counterpart_face_id": counterpart_face_id,
+                    "parts": {
+                        "source_part": pair.get("part_a") if pair["face_a_id"] == face_id else pair.get("part_b"),
+                        "counterpart_part": counterpart_part,
+                        "relation": "same_part" if pair.get("part_a") == pair.get("part_b") else "different_parts",
+                    },
+                    "normal_angle_deg": pair.get("normal_angle_deg"),
+                    "plane_gap_mm": pair.get("plane_gap_mm"),
+                    "aabb_overlap_width_mm": pair.get("aabb_overlap_width_mm"),
+                    "aabb_overlap_height_mm": pair.get("aabb_overlap_height_mm"),
+                    "common_area_mm2": pair.get("common_area_mm2"),
+                    "coverage_a": pair.get("coverage_a"),
+                    "coverage_b": pair.get("coverage_b"),
+                },
+            }
+        )
+    return classifications
 
 
 def load_and_join_error_analysis(

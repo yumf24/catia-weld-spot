@@ -101,7 +101,7 @@
       "id": "EA03_classify_false_negatives",
       "priority": 3,
       "depends_on": ["EA02_join_audit_sources"],
-      "pass": false,
+      "pass": true,
       "goal": "为每个 FN 找到最有诊断价值的失败 pair，并按可操作原因分类。",
       "changes": [
         "实现 FN 最佳失败 pair 排序，优先保留有几何证据的 pair。",

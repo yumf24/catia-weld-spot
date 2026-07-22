@@ -4,7 +4,12 @@ import json
 
 import pytest
 
-from weld_core.general_plane_selection_error_analysis import ErrorAnalysisInputError, join_error_analysis, load_and_join_error_analysis
+from weld_core.general_plane_selection_error_analysis import (
+    ErrorAnalysisInputError,
+    classify_false_negatives,
+    join_error_analysis,
+    load_and_join_error_analysis,
+)
 
 
 def _artifacts():
@@ -74,3 +79,99 @@ def test_load_and_join_reads_explicit_artifact_paths(tmp_path):
     result = load_and_join_error_analysis(*paths)
 
     assert result["summary"]["true_positives"] == 1
+
+
+def test_fn_classification_prefers_gap_evidence_and_preserves_geometry_fields():
+    evaluation, pair_audit, selection_audit = _artifacts()
+    pair_audit["pairs"][1].update(
+        {
+            "reason": "plane_gap_exceeds_threshold",
+            "part_a": "primary",
+            "part_b": "reference",
+            "normal_angle_deg": 0.1,
+            "plane_gap_mm": 0.8,
+            "aabb_overlap_width_mm": None,
+            "aabb_overlap_height_mm": None,
+            "common_area_mm2": 0.0,
+            "coverage_a": 0.0,
+            "coverage_b": 0.0,
+        }
+    )
+
+    result = classify_false_negatives(join_error_analysis(evaluation, pair_audit, selection_audit), pair_audit)
+
+    assert result == [
+        {
+            "face_id": "truth-rejected",
+            "failure_stage": "plane_gap",
+            "recommended_recovery": "investigate_gap_threshold_or_layered_gap_strategy",
+            "best_failed_pair": {
+                "pair_id": "rejected",
+                "reason": "plane_gap_exceeds_threshold",
+                "counterpart_face_id": "other-rejected",
+                "parts": {"source_part": "primary", "counterpart_part": "reference", "relation": "different_parts"},
+                "normal_angle_deg": 0.1,
+                "plane_gap_mm": 0.8,
+                "aabb_overlap_width_mm": None,
+                "aabb_overlap_height_mm": None,
+                "common_area_mm2": 0.0,
+                "coverage_a": 0.0,
+                "coverage_b": 0.0,
+            },
+        }
+    ]
+
+
+def test_fn_classification_prefers_projected_aabb_to_gap_and_same_part():
+    evaluation, pair_audit, selection_audit = _artifacts()
+    selection_audit["rejected_faces"].extend(
+        [
+            {"face_id": "same-part-face", "reason": "no_accepted_pair"},
+            {"face_id": "aabb-face", "reason": "no_accepted_pair"},
+        ]
+    )
+    selection_audit["total_planar_faces"] = 6
+    pair_audit["pairs"].extend(
+        [
+            {
+                "id": "same-part",
+                "face_a_id": "truth-rejected",
+                "face_b_id": "same-part-face",
+                "part_a": "one",
+                "part_b": "one",
+                "accepted": False,
+                "reason": "same_part_excluded",
+            },
+            {
+                "id": "aabb",
+                "face_a_id": "truth-rejected",
+                "face_b_id": "aabb-face",
+                "part_a": "one",
+                "part_b": "two",
+                "accepted": False,
+                "reason": "projected_aabb_no_overlap",
+                "plane_gap_mm": 0.1,
+                "common_area_mm2": 0.0,
+                "coverage_a": 0.0,
+                "coverage_b": 0.0,
+            },
+        ]
+    )
+
+    result = classify_false_negatives(join_error_analysis(evaluation, pair_audit, selection_audit), pair_audit)
+
+    assert result[0]["failure_stage"] == "projected_aabb"
+    assert result[0]["recommended_recovery"] == "diagnose_projected_aabb_pre_filter"
+    assert result[0]["best_failed_pair"]["pair_id"] == "aabb"
+
+
+def test_fn_classification_uses_same_part_when_no_deeper_geometry_evidence_exists():
+    evaluation, pair_audit, selection_audit = _artifacts()
+    selection_audit["rejected_faces"].append({"face_id": "same-part-face", "reason": "no_accepted_pair"})
+    selection_audit["total_planar_faces"] = 5
+    pair_audit["pairs"][1].update({"reason": "same_part_excluded", "part_a": "one", "part_b": "one"})
+
+    result = classify_false_negatives(join_error_analysis(evaluation, pair_audit, selection_audit), pair_audit)
+
+    assert result[0]["failure_stage"] == "same_part_policy"
+    assert result[0]["recommended_recovery"] == "evaluate_same_part_pair_policy"

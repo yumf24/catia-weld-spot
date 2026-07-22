@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-22 17:20:02 +08:00 - EA03 归类平面选面 false negatives
+
+**做了什么**
+- 为每个离线 FN 从完整 pair audit 选出可复现的最佳失败 pair：精确 overlap/coverage 证据优先，其次 projected AABB、gap、same-part 和 normal-angle 早期拒绝。
+- 新增 FN 分类输出，保留 failure stage、恢复建议、对侧 face/part 关系、normal/gap/AABB、公共面积和双方 coverage；无 pair 证据时明确标为 `no_evidence`。
+- 未修改运行时通用选面、默认阈值或 pipeline，也未将数据集身份信息写入生产逻辑。
+
+**验证结果**
+- `.venv\Scripts\python -m pytest tests\test_general_plane_selection_error_analysis.py -k fn`：**4 passed**。
+- 实际受管回归分类：**23** 个 FN，`plane_gap=18`、`projected_aabb=3`、`same_part_policy=2`。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\ea03-full`：**92 passed**。
+
+---
+
+
 ## 2026-07-22 17:13:00 +08:00 - EA02 连接平面选面离线审计
 
 **做了什么**
