@@ -1,0 +1,329 @@
+{
+  "format_version": 1,
+  "title": "通用 CAD 焊接选面改造计划（废弃冻结模板路线）",
+  "project": {
+    "repository": "ml-pipeline",
+    "goal": "从任意受支持的主 STEP 中，依据可解释的面间几何关系发现可能参与焊接的单个 CAD face；人工参考 STEP 仅在离线评测时作为真值输入，绝不参与运行时选面或以 face 身份、SHA-256、固定数量等方式写入生产逻辑。",
+    "non_goals": [
+      "不再为 component-simplify 或任何零件保留、构建或使用冻结模板。",
+      "不因主 STEP 与既有样本的 SHA-256 不同而拒绝通用选面；运行时只核验原始输入清单自身的完整性。",
+      "不将当前 40 个参考面、其 STEP index、零件名、边界指纹、面积、重心或法向作为生产规则、默认值或特例。",
+      "不声称仅凭单个 component-simplify 样本已证明对未知零件的泛化能力。"
+    ],
+    "datasets": {
+      "component_simplify": {
+        "role": "已标注的回归/评测数据集，不是生产逻辑配置。",
+        "primary_model": "raw_data/component-simplify/component_simplify.step",
+        "surface_reference": "raw_data/component-simplify/component_simplify_surface.step",
+        "primary_sha256": "8c79d3364640245c035702cd382aad0022a0740280f74f72212a5b6c15287856",
+        "reference_sha256": "d035d1f9106d870b2bbe21c0aacf7e09bd05250baefe66bf788e677728d6a2ff",
+        "known_counts": {
+          "primary_step_faces": 2834,
+          "primary_planar_faces": 525,
+          "reference_step_faces": 89,
+          "reference_planar_faces": 40
+        }
+      },
+      "future_datasets": "每个新增零件须以独立 raw manifest 登记主 STEP；如有人工参考，只作为同一数据集的 evaluation_only 输入登记。必须按零件划分开发集、验证集和最终保留测试集，禁止用测试集调参。"
+    },
+    "generic_geometry_definition": {
+      "selection_unit": "来自主 STEP 的单个 planar CAD face；只有与至少一个几何上可解释的相邻 face pair 关联的 face 才能被选中。",
+      "pair_preselection": [
+        "只用主 STEP 自身的零件归属、平面、法向、边界和空间索引；AABB 仅可缩小候选对，不能作为选中条件。",
+        "候选对默认来自不同 part；同 part 候选必须明确记录并按配置排除或单独审计，不能静默混入。",
+        "无向法向平行度、两平面间隙、最小有效面宽度和粗略空间邻近性均为可配置的通用特征，不得依赖某个样本的 face identity。"
+      ],
+      "exact_acceptance": [
+        "将候选 face 的修剪边界投影到由两面定义的公共比较平面，使用 OCP 布尔公共形状和 SurfaceProperties 计算真实重叠面积；投影 AABB 不能替代此计算。",
+        "要求公共面积为正、重叠覆盖率达到配置阈值，并记录法向夹角、平面间隙、公共面积、双方覆盖率及拒绝原因。",
+        "通过任一有效 pair 的 face 被输出为 selected；同一 face 的多个 pair 必须以可审计方式去重，不得把重叠面积重复累计。"
+      ],
+      "runtime_output": "运行生成通用 FacesDocument（建议命名 faces.general-selected.json）、pair_audit.json 和 selection_audit.json。每个选面必须能追溯至其支持 pair、几何测量值、分数及阈值；每个排除面必须有原因。"
+    },
+    "evaluation_definition": {
+      "reference_usage": "评测命令才可读取 surface_reference STEP。它用精确 OCP 公共面积将参考面映射至主 STEP face，生成临时真值；该映射不得写入模板、运行时 JSON 或生产分支。",
+      "face_match": "真值映射和预测评测均采用零件归属、无向法向、平面距离、精确修剪面公共面积和 source 覆盖率；任一参考面无法唯一映射或映射歧义时，评测必须失败，不得猜测。",
+      "metrics": [
+        "face-level TP、FP、FN、precision、recall；预测/真值均以单个主 STEP CAD face 为单位。",
+        "每个 TP 的法向误差、平面距离、公共面积、source/reference 覆盖率，以及每个 FP/FN 的可诊断原因。",
+        "pair-level 数量、去重结果、分数分布和按零件的分层指标，用于定位泛化失败模式。"
+      ],
+      "acceptance_targets": {
+        "reference_mapping_source_coverage_min": 0.95,
+        "normal_angle_deg_max": 0.5,
+        "plane_distance_mm_max": 0.05,
+        "per_dataset_precision_min": 0.9,
+        "per_dataset_recall_min": 0.95,
+        "generalization_gate": "在至少两个未参与阈值设定的独立零件验证集上分别达标后，才可宣称初步泛化；在此之前 component-simplify 的结果只报告为单数据集回归结果。"
+      }
+    }
+  },
+  "directory_layout": {
+    "raw_data/<part-id>/": "不可变主 STEP 与可选 evaluation_only 人工参考 STEP，以及输入 manifest。",
+    "data/<part-id>/<run-id>/": "每次通用选面、离线评测和候选生成的受管运行产物及 manifest。",
+    "src/weld_core/": "纯 Python/OCP 的通用几何、通用选面、离线评测和候选生成；严禁 import pycatia/pywin32。",
+    "tests/": "合成 OCP 单元测试、多数据集回归测试；测试标签不得被生产模块加载。",
+    "templates/": "本计划完成后不得保留冻结选面模板或任何运行时 face 白名单。",
+    "docs/": "JSON 契约、CLI、数据集/评测说明和本执行计划。"
+  },
+  "global_rules": {
+    "python": ".venv\\Scripts\\python",
+    "source_of_truth": "src/weld_core/schema.py、原始/运行 manifest 及本计划；人工参考面仅为评测真值。",
+    "runtime_reference_policy": "通用选面和下游 pipeline 进程不得打开、读取、哈希、枚举或依赖 surface_reference STEP；仅显式的评测命令可读取它。",
+    "no_template_policy": "禁止目录 templates/component-simplify/、plane-selection-template.json、冻结 face index/指纹白名单、template SHA 校验、仅针对 component-simplify 的 pipeline 分支，及任何等价的隐式硬编码。",
+    "dataset_isolation_policy": "生产代码不得按 part_id、文件名、输入 SHA、已知面数、参考面数或已知标签数量改变选面结果。数据集特定断言仅可存在于 tests/、评测脚本或原始 manifest。",
+    "truth_matching_policy": "正式评测真值必须使用 OCP CAD 面边界的精确公共面积和覆盖率；AABB 仅用于候选预筛。",
+    "ambiguity_policy": "参考面不能唯一、可审计地映射到单个或明确集合的主 CAD face 时，评测失败并保留 pass=false；禁止自动猜测。",
+    "step_completion_policy": [
+      "每个步骤开始时 pass 必须为 false。",
+      "strict_tests 中所有命令必须以预期退出码完成，且所有显式断言成立。",
+      "全部严格测试通过后才可将该步骤 pass 改为 true。",
+      "完成步骤时必须更新 DEVLOG.md；实现、测试、DEVLOG.md 与本 JSON 的 pass 更新必须位于同一个 Git commit。",
+      "提交前必须通过 git diff --check；提交后 git status --short 必须为空。",
+      "失败、数据标签歧义、运行时读取参考 STEP、生产代码出现模板/数据集硬编码或工作区非干净时，当前步骤保持 pass=false 且不得提交该步骤。"
+    ],
+    "external_change_guard": "执行前如 git status --short 非空，必须先由用户处理或明确隔离外部改动；不得暂存、提交、还原或覆盖非本步骤文件。"
+  },
+  "steps": [
+    {
+      "id": "G01_preflight_and_deprecation_inventory",
+      "priority": 1,
+      "depends_on": [],
+      "pass": false,
+      "goal": "建立通用选面改造前的干净基线，审计并明确所有冻结模板路径的删除范围；不改变算法行为。",
+      "changes": [
+        "确认工作区干净、.venv 可用、当前全量测试通过，并将 component-simplify 的 2834/525 与 89/40 数据集统计记录为测试基线而非算法常量。",
+        "列出并验证所有待移除的冻结模板文件、CLI、schema/管线专属字段、测试、文档和生产代码符号；列出可保留的通用 OCP 公共面积与几何工具。",
+        "记录冻结模板最终历史指标仅作为历史事实，明确其不能作为泛化能力证据。"
+      ],
+      "strict_tests": [
+        {
+          "command": "git status --short",
+          "expect_exit_code": 0,
+          "assertions": ["stdout 为空。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\g01-full",
+          "expect_exit_code": 0,
+          "assertions": ["当前回归测试全部通过。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python scripts\\check_plane_selection_baseline.py component-simplify",
+          "expect_exit_code": 0,
+          "assertions": ["报告主/参考面数为 2834/525 与 89/40，并将其仅作为数据集基线。"]
+        }
+      ],
+      "completion_commit": "chore: inventory generic plane selection migration",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["用户未处理的外部工作区改动。"]
+    },
+    {
+      "id": "G02_remove_frozen_template_path",
+      "priority": 2,
+      "depends_on": ["G01_preflight_and_deprecation_inventory"],
+      "pass": false,
+      "goal": "从生产代码、CLI、契约和测试中彻底移除冻结模板选面路线，恢复 pipeline 对通用 FacesDocument 输入的统一处理。",
+      "changes": [
+        "删除冻结模板构建/校验/运行时选面模块、脚本、模板文件、专属测试和专属受管产物契约；删除 templates/component-simplify/。",
+        "删除 pipeline 对 component-simplify、faces.selected.json、template SHA、主 STEP SHA 或受管模板目录的专属强制逻辑及候选元数据字段。",
+        "保留并整理可泛化的 exact_face_overlap、STEP 解析、法向/距离计算和通用候选生成能力；历史 DEVLOG/旧计划可以保留为历史记录，但现行 CLI/契约不得暴露模板命令。",
+        "确保运行时没有读取人工 surface_reference STEP 的代码路径。"
+      ],
+      "strict_tests": [
+        {
+          "command": "rg -n \"plane-selection-template|frozen_template|template_plane_selection|build_plane_selection_template|select_template_planes|faces\\.selected|template_sha256|component-simplify.*template\" src scripts tests CLI.md docs/json_contract.md templates",
+          "expect_exit_code": 1,
+          "assertions": ["不存在冻结模板生产实现、CLI、测试或现行契约引用；历史记录文件不在搜索范围。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\g02-full",
+          "expect_exit_code": 0,
+          "assertions": ["保留的通用流程和测试全部通过。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m weld_core.pipeline tests\\fixtures\\two_layer.json .pytest_cache\\g02-candidates.json",
+          "expect_exit_code": 0,
+          "assertions": ["通用 FacesDocument 输入无需模板即可生成合法候选文档。"]
+        }
+      ],
+      "completion_commit": "refactor: remove frozen plane template path",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["G01 未通过。"]
+    },
+    {
+      "id": "G03_general_selection_contract_and_geometry",
+      "priority": 3,
+      "depends_on": ["G02_remove_frozen_template_path"],
+      "pass": false,
+      "goal": "落地不依赖具体零件身份的通用选面几何契约、数据模型和精确 pair-overlap API。",
+      "changes": [
+        "定义通用 selection 参数、pair 记录、face 记录、审计记录、拒绝原因和置信度/排序字段；不得包含 template、reference 或数据集特定字段。",
+        "实现两平面 face 的公共比较平面、修剪边界投影、OCP 布尔公共面积、双方覆盖率和诊断结果；AABB 只用于预筛。",
+        "实现候选 pair 的通用预筛：平面性、不同 part 策略、无向法向平行度、平面间隙、最小有效宽度及空间索引；全部阈值从通用配置读取。",
+        "以合成 OCP 几何覆盖正交、平行无重叠、边/点接触、部分重叠、不同间隙、同 part 排除和重叠去重。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_geometry.py --basetemp .pytest_cache\\g03-geometry",
+          "expect_exit_code": 0,
+          "assertions": ["所有合成几何的公共面积、覆盖率、通过/拒绝原因和去重结果精确正确。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\g03-full",
+          "expect_exit_code": 0,
+          "assertions": ["完整测试集通过。"]
+        }
+      ],
+      "completion_commit": "feat: add generic planar face selection geometry",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["G02 未通过。"]
+    },
+    {
+      "id": "G04_offline_reference_evaluation",
+      "priority": 4,
+      "depends_on": ["G03_general_selection_contract_and_geometry"],
+      "pass": false,
+      "goal": "建立仅在离线评测阶段加载人工参考 STEP 的单 CAD face 真值映射与指标报告。",
+      "changes": [
+        "新增评测 API/CLI：输入主 STEP、通用选面结果和显式 reference STEP，临时构建可审计真值并输出 evaluation JSON/Markdown。",
+        "参考到主 face 的映射使用 part、法向、平面距离和精确公共面积/覆盖率；歧义、零面积接触或低覆盖映射必须失败。",
+        "输出 face-level TP/FP/FN、precision/recall、逐 face 几何证据、逐 pair 指标及按 part 分层统计；评测产物登记到受管运行目录。",
+        "禁止评测标签被序列化为运行时模板、写入生产默认配置或被通用选择 API 接收。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_evaluation.py --basetemp .pytest_cache\\g04-evaluation",
+          "expect_exit_code": 0,
+          "assertions": ["一对一、歧义、擦边、低覆盖和 TP/FP/FN 的合成样例均符合评测契约。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\g04-full",
+          "expect_exit_code": 0,
+          "assertions": ["完整测试集通过。"]
+        },
+        {
+          "command": "rg -n \"surface_reference|component_simplify_surface\" src\\weld_core\\general_plane_selection.py scripts\\select_general_planes.py",
+          "expect_exit_code": 1,
+          "assertions": ["运行时通用选面实现不引用人工参考 STEP。"]
+        }
+      ],
+      "completion_commit": "feat: evaluate generic plane selection offline",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["G03 未通过。"]
+    },
+    {
+      "id": "G05_general_selection_runtime",
+      "priority": 5,
+      "depends_on": ["G04_offline_reference_evaluation"],
+      "pass": false,
+      "goal": "实现只依赖任意注册主 STEP 的通用选面命令，并生成完整、可审计的通用运行产物。",
+      "changes": [
+        "新增 `scripts/select_general_planes.py <part-id> --run-label <label>`；它只读取 raw manifest 中的 primary_model，核验该输入本身的 SHA-256 后执行通用几何选择。",
+        "输出 `faces.general-selected.json`、`pair_audit.json`、`selection_audit.json` 和受管 manifest；审计覆盖每个可处理主 face 和每个有效/拒绝 pair。",
+        "运行时不得限制 part_id、主 STEP SHA、面数量、面 index、人工标签数或参考文件路径；相同输入须稳定输出相同的 face/pair 顺序。",
+        "在合成数据与 component-simplify 数据集上运行；后者只用于后续评测命令，不得改变该命令的代码路径。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_runtime.py --basetemp .pytest_cache\\g05-runtime",
+          "expect_exit_code": 0,
+          "assertions": ["不同 part-id 的合成输入均可运行；输出稳定、审计完整，且运行时不读取参考文件。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python scripts\\select_general_planes.py component-simplify --run-label generic-regression",
+          "expect_exit_code": 0,
+          "assertions": ["创建新的受管运行目录，并只登记 primary_model 输入和通用选面产物。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\g05-full",
+          "expect_exit_code": 0,
+          "assertions": ["完整测试集通过。"]
+        }
+      ],
+      "completion_commit": "feat: select planar faces from generic geometry",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["G04 未通过。"]
+    },
+    {
+      "id": "G06_dataset_regression_and_pipeline",
+      "priority": 6,
+      "depends_on": ["G05_general_selection_runtime"],
+      "pass": false,
+      "goal": "建立“输入 STEP → 通用选面 → 离线参考评测 → 候选生成”的回归流程，并如实报告 component-simplify 单数据集结果。",
+      "changes": [
+        "新增受管编排或明确 CLI 顺序：通用选面后显式运行离线评测，再将通用选面输出交给 pipeline；生产选择和 pipeline 不得接收 reference STEP。",
+        "pipeline 接受通用 `faces.general-selected.json`，在 candidates 元数据中记录通用选择来源和运行参数，但不写 template SHA、固定模型 SHA 或样本标签信息。",
+        "将 component-simplify 的人工参考面作为回归真值，生成并登记 TP/FP/FN、precision/recall、逐 part 诊断和阈值；结果无论达标与否都必须如实保留。",
+        "新增至少两个不同几何分布的合成/小型独立零件夹具，验证算法不依赖 component-simplify identity；真实多零件泛化门槛在额外数据集到位后执行。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_runtime.py tests\\test_general_plane_selection_evaluation.py tests\\test_pipeline.py --basetemp .pytest_cache\\g06-targeted",
+          "expect_exit_code": 0,
+          "assertions": ["通用选择、离线评测和下游 pipeline 可组合运行；测试覆盖多个非 component-simplify 输入。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python scripts\\evaluate_general_plane_selection.py component-simplify --run-dir data\\component-simplify\\<generic-regression-run-id>",
+          "expect_exit_code": 0,
+          "assertions": ["报告 component-simplify 的正式 face-level TP/FP/FN、precision/recall 和逐面诊断；仅以结果衡量，不允许模板式强制通过。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m weld_core.pipeline data\\component-simplify\\<generic-regression-run-id>\\faces.general-selected.json data\\component-simplify\\<generic-regression-run-id>\\candidates.json",
+          "expect_exit_code": 0,
+          "assertions": ["成功生成 candidates，且所有关联 face 均来自通用选面输出。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\g06-full",
+          "expect_exit_code": 0,
+          "assertions": ["完整测试集通过。"]
+        }
+      ],
+      "completion_commit": "feat: run generic plane selection regression",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["G05 未通过。"]
+    },
+    {
+      "id": "G07_documentation_and_generalization_gate",
+      "priority": 7,
+      "depends_on": ["G06_dataset_regression_and_pipeline"],
+      "pass": false,
+      "goal": "完成通用选面契约、CLI、数据集边界和泛化门槛的文档收尾，且不夸大单数据集结果。",
+      "changes": [
+        "更新 docs/json_contract.md：通用选面、pair 审计、离线评测和候选元数据的字段；删除模板术语和模板哈希约束。",
+        "更新 CLI.md：通用选面、离线评测和回归命令；明确运行时不读取人工参考、component-simplify 仅为评测数据集及主模型变化不应被拒绝。",
+        "更新 DEVLOG.md 和本 JSON：记录通用算法的实际单数据集指标、未解决的失败模式、数据集划分和至少两个独立验证零件的泛化门槛。",
+        "新增或更新数据集说明，区分参数开发集、验证集和保留测试集；在多零件门槛达标前，禁止在 README/报告中使用“已泛化”表述。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m json.tool docs\\ALG_updatev2.json > NUL",
+          "expect_exit_code": 0,
+          "assertions": ["ALG_updatev2.json 为有效 JSON，G01-G07 均为 pass=true。"]
+        },
+        {
+          "command": "rg -n \"frozen template|冻结模板|plane-selection-template|faces\\.selected|template_sha256\" README.md CLI.md docs src scripts tests templates",
+          "expect_exit_code": 1,
+          "assertions": ["现行文档、生产代码和测试中不存在冻结模板路线；历史记录文件不在搜索范围。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\g07-full",
+          "expect_exit_code": 0,
+          "assertions": ["完整测试集通过。"]
+        },
+        {
+          "command": "git diff --check",
+          "expect_exit_code": 0,
+          "assertions": ["无空白错误。"]
+        },
+        {
+          "command": "git status --short",
+          "expect_exit_code": 0,
+          "assertions": ["提交后 stdout 为空。"]
+        }
+      ],
+      "completion_commit": "docs: finalize generic plane selection workflow",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["G06 未通过。", "缺少至少两个独立的、未参与调参的验证零件时不得声称泛化达标。"]
+    }
+  ]
+}
