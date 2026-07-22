@@ -7,6 +7,7 @@ Usage:
 from __future__ import annotations
 
 import sys
+import json
 from pathlib import Path
 
 from .config import WeldParams
@@ -59,6 +60,29 @@ def run(faces_doc: FacesDocument, params: WeldParams | None = None) -> Candidate
     )
 
 
+def _infer_general_selection_source(faces_path: Path) -> dict:
+    if faces_path.name != "faces.general-selected.json":
+        return {}
+    run_dir = faces_path.resolve().parent
+    manifest_path = run_dir / "manifest.json"
+    if not manifest_path.is_file():
+        return {"kind": "general_planar_selection", "faces_artifact": faces_path.name}
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {"kind": "general_planar_selection", "faces_artifact": faces_path.name}
+    artifacts = manifest.get("artifacts", {})
+    if "faces.general-selected" not in artifacts:
+        return {}
+    return {
+        "kind": "general_planar_selection",
+        "part_id": manifest.get("part_id", ""),
+        "run_id": manifest.get("run_id", ""),
+        "faces_artifact": "faces.general-selected",
+        "parameters": manifest.get("parameters", {}).get("general_selection", {}),
+    }
+
+
 def main(argv: list[str]) -> int:
     if not argv:
         print(__doc__)
@@ -70,6 +94,7 @@ def main(argv: list[str]) -> int:
     except (OSError, ValueError) as exc:
         print(f"[FAIL] {exc}", file=sys.stderr)
         return 1
+    doc.meta.selection_source = _infer_general_selection_source(faces_path)
     dump_document(doc, out_path)
     from .data_layout import register_managed_artifact
     register_managed_artifact(out_path, "candidates")

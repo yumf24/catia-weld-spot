@@ -78,6 +78,7 @@ class CandidatesMeta(BaseModel):
     source: str = ""
     core_version: str = SCHEMA_VERSION
     params: dict = Field(default_factory=dict)
+    selection_source: dict = Field(default_factory=dict)
 
 
 class CandidatesDocument(BaseModel):

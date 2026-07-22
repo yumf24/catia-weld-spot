@@ -248,7 +248,7 @@
       "id": "G06_dataset_regression_and_pipeline",
       "priority": 6,
       "depends_on": ["G05_general_selection_runtime"],
-      "pass": false,
+      "pass": true,
       "goal": "建立“输入 STEP → 通用选面 → 离线参考评测 → 候选生成”的回归流程，并如实报告 component-simplify 单数据集结果。",
       "changes": [
         "新增受管编排或明确 CLI 顺序：通用选面后显式运行离线评测，再将通用选面输出交给 pipeline；生产选择和 pipeline 不得接收 reference STEP。",

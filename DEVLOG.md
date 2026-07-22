@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-07-22 16:33:29 +08:00 - G06 通用选面回归与 pipeline 串联
+**做了什么**
+- 新增 `scripts/run_general_plane_selection_regression.py`，按“通用选面 → 显式离线参考评测 → pipeline 候选生成”顺序创建受管回归运行；生产选面与 pipeline 仍只消费 `primary_model` 和 `faces.general-selected.json`。
+- `CandidatesMeta` 新增 `selection_source`，pipeline 在受管 `faces.general-selected.json` 输入下记录通用选面来源、run id 和通用参数；不写入 reference、template、SHA 或样本标签。
+- 新增 `tests/test_general_plane_selection_regression.py`，并扩展 `tests/test_pipeline.py` 覆盖通用选面输入元数据和无模板/无参考追溯。
+- 在 `component-simplify` 上生成受管运行 `data/component-simplify/20260722-163200-generic-regression/`；该运行解析 525 个平面 face，选中 19 个 face，生成 15 个候选。
+- `docs/ALG_updatev2.json` 中 `G06_dataset_regression_and_pipeline` 标记为通过。
+**验证结果**
+- `.venv\Scripts\python -m pytest tests\test_general_plane_selection_runtime.py tests\test_general_plane_selection_evaluation.py tests\test_pipeline.py tests\test_general_plane_selection_regression.py --basetemp .pytest_cache\g06-targeted`：**17 passed**。
+- `.venv\Scripts\python scripts\run_general_plane_selection_regression.py component-simplify --run-label generic-regression`：成功创建通用回归运行；离线参考评测 **TP/FP/FN=17/2/23，precision=89.47%，recall=42.50%**；候选生成 **15** 个。
+
+---
+
 ## 2026-07-22 16:25:00 +08:00 - G05 通用选面运行时
 **做了什么**
 - 实现 `scripts/select_general_planes.py <part-id> --run-label <label>`：命令只验证并读取 raw manifest 的 `primary_model`，执行通用 planar face pair 几何选择，不读取 `surface_reference` 或任何参考标签。

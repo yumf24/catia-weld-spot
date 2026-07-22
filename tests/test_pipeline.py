@@ -24,6 +24,7 @@ def test_pipeline_runs_and_returns_document():
     result = run(doc)
     assert result.meta.source == "two_layer_sample"
     assert "max_normal_angle_deg" in result.meta.params
+    assert result.meta.selection_source == {}
     # The fixture's two faces overlap in a 90x45mm rectangle -> long axis
     # 90mm gets 3 evenly-spaced points at 45mm spacing (see test_points.py).
     assert len(result.candidates) == 3
@@ -84,6 +85,42 @@ def test_cli_accepts_managed_faces_document_without_dataset_specific_provenance(
     result = load_faces(faces_path)
     candidates = json.loads(output.read_text(encoding="utf-8"))
     assert {face for candidate in candidates["candidates"] for face in candidate["faces"]} <= {face.id for face in result.faces}
-    assert set(candidates["meta"]) == {"source", "core_version", "params"}
+    assert set(candidates["meta"]) == {"source", "core_version", "params", "selection_source"}
+    assert candidates["meta"]["selection_source"] == {}
     manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["artifacts"]["candidates"]["path"] == "candidates.json"
+
+
+def test_cli_records_generic_selection_source_without_reference_or_template_metadata(tmp_path):
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    faces_path = run_dir / "faces.general-selected.json"
+    dump_document(load_faces(FIXTURE), faces_path)
+    (run_dir / "manifest.json").write_text(
+        json.dumps(
+            {
+                "part_id": "any-part",
+                "run_id": "run",
+                "parameters": {"general_selection": {"max_plane_gap_mm": 0.2}},
+                "artifacts": {"faces.general-selected": {"path": "faces.general-selected.json"}},
+            }
+        ),
+        encoding="utf-8",
+    )
+    output = run_dir / "candidates.json"
+
+    assert main([str(faces_path), str(output)]) == 0
+
+    candidates = json.loads(output.read_text(encoding="utf-8"))
+    source = candidates["meta"]["selection_source"]
+    assert source == {
+        "kind": "general_planar_selection",
+        "part_id": "any-part",
+        "run_id": "run",
+        "faces_artifact": "faces.general-selected",
+        "parameters": {"max_plane_gap_mm": 0.2},
+    }
+    serialized = json.dumps(source)
+    assert "surface_reference" not in serialized
+    assert "template" not in serialized
+    assert "sha256" not in serialized
