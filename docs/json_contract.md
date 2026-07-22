@@ -55,6 +55,7 @@ data/<part-id>/<run-id>/manifest.json
 | `meta.source` | str | 来源零件名 |
 | `meta.core_version` | str | 核心版本 |
 | `meta.params` | obj | 本次运行的阈值参数 |
+| `meta.selection_source` | obj | 可选追溯信息；当输入是受管 `faces.general-selected.json` 时，记录 `kind="general_planar_selection"`、`part_id`、`run_id`、`faces_artifact` 和通用选面 `parameters`，不包含评测参考、旧资产哈希或样本标签 |
 | `candidates[].id` | str | 如 `wc_001` |
 | `candidates[].position` | [x,y,z] | 建点坐标（中间厚度） |
 | `candidates[].faces` | str[] | 关联面 id |
@@ -62,6 +63,53 @@ data/<part-id>/<run-id>/manifest.json
 | `candidates[].spacing_mm` | float | 点间距 |
 | `candidates[].region_bbox` | {min,max} | 候选区域包围盒 |
 | `candidates[].reason` | str | 生成原因 |
+
+## faces.general-selected.json（通用选面 → 核心输入）
+
+由 `scripts/select_general_planes.py <part-id>` 生成，schema 仍是 `FacesDocument`，可直接作为
+`python -m weld_core.pipeline` 输入。它只包含通过至少一个有效通用 face pair 支持的单个 planar
+CAD face；`faces[].reason` 固定为 `generic_planar_selection`。运行时输入只来自 raw manifest
+中的 `primary_model`。
+
+## pair_audit.json（通用选面 pair 审计）
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `format_version` | int | 当前为 1 |
+| `part_id` / `run_id` | str | 所属受管运行 |
+| `parameters` | obj | 通用选面阈值 |
+| `pairs[].id` | str | `face_a_id::face_b_id` |
+| `pairs[].accepted` / `reason` | bool / str? | pair 是否通过及拒绝原因 |
+| `pairs[].normal_angle_deg` / `plane_gap_mm` | float? | 无向法向夹角和平面间隙 |
+| `pairs[].aabb_overlap_width_mm` / `aabb_overlap_height_mm` | float? | 投影 AABB 预筛重叠尺寸 |
+| `pairs[].common_area_mm2` | float | 精确投影公共面积 |
+| `pairs[].coverage_a` / `coverage_b` | float | 双方覆盖率 |
+| `pairs[].score` | float | 通用排序分数 |
+
+## selection_audit.json（通用选面 face 审计）
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `source.role` | str | 固定为 `primary_model` |
+| `parameters` | obj | 通用选面阈值 |
+| `total_planar_faces` / `selected_face_count` | int | 可处理平面数 / 选中面数 |
+| `selected_faces[].face_id` | str | 选中的主 STEP CAD face |
+| `selected_faces[].supporting_pair_ids` | str[] | 支持该 face 的有效 pair |
+| `rejected_faces[].face_id` / `reason` | str | 未选中 face 及原因 |
+
+## general_plane_selection_evaluation.json（离线参考评测）
+
+由 `scripts/evaluate_general_plane_selection.py` 生成。该文件只属于离线评测阶段：输入必须显式给出
+参考 STEP 或从 raw manifest 读取 `surface_reference`，输出不得作为生产选面配置或 pipeline 输入。
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `thresholds` | obj | 参考映射阈值：法向、平面距离、source/reference 覆盖率 |
+| `truth_mapping.summary` | obj | 参考 face 到主 STEP face 的唯一映射统计和通过状态 |
+| `truth_mapping.reference_faces[]` | obj[] | 每个参考 face 的候选 source face、几何证据和失败原因 |
+| `summary.true_positives` / `false_positives` / `false_negatives` | int | face-level 指标 |
+| `summary.precision` / `recall` | float | face-level 精确率和召回率 |
+| `true_positive_faces` / `false_positive_faces` / `false_negative_faces` | obj[] | 逐 face 诊断 |
 
 ## ground_truth.json（真实焊点，评测用 → 核心输入）
 

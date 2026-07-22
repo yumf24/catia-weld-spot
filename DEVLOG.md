@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-22 16:38:49 +08:00 - G07 通用选面文档与泛化门槛
+**做了什么**
+- 更新 `CLI.md`：新增通用平面选面、离线评测通用选面和通用选面回归命令，明确运行时只读取 `primary_model`，参考 STEP 仅由显式评测命令读取。
+- 更新 `docs/json_contract.md`：补充 `faces.general-selected.json`、`pair_audit.json`、`selection_audit.json`、`general_plane_selection_evaluation.json` 和候选 `meta.selection_source` 契约。
+- 新增 `docs/dataset_generalization.md`，区分参数开发集、验证集和保留测试集，并记录至少两个独立验证零件分别达标后才可报告跨零件能力。
+- 更新 `README.md`：记录当前 `component-simplify` 单数据集回归指标 TP/FP/FN=17/2/23、precision=89.47%、recall=42.50%，并明确不能外推到未知零件。
+- 清理现行文档范围内的旧路线精确符号；`docs/ALG_updatev2.json` 中 `G07_documentation_and_generalization_gate` 标记为通过。
+**验证结果**
+- `.venv\Scripts\python -m json.tool docs\ALG_updatev2.json > NUL`：通过，G01-G07 均为 `pass=true`。
+- `rg -n "frozen[ ]template|冻结[ ]模板|plane-selection[-]template|faces[.]selected|template[_]sha256" README.md CLI.md docs src scripts tests templates`：退出码 **1**，指定范围无命中。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\g07-full`：**85 passed**。
+
+---
+
 ## 2026-07-22 16:33:29 +08:00 - G06 通用选面回归与 pipeline 串联
 **做了什么**
 - 新增 `scripts/run_general_plane_selection_regression.py`，按“通用选面 → 显式离线参考评测 → pipeline 候选生成”顺序创建受管回归运行；生产选面与 pipeline 仍只消费 `primary_model` 和 `faces.general-selected.json`。

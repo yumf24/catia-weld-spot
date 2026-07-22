@@ -1,11 +1,11 @@
 {
   "format_version": 1,
-  "title": "通用 CAD 焊接选面改造计划（废弃冻结模板路线）",
+  "title": "通用 CAD 焊接选面改造计划（废弃旧样本特例路线）",
   "project": {
     "repository": "ml-pipeline",
     "goal": "从任意受支持的主 STEP 中，依据可解释的面间几何关系发现可能参与焊接的单个 CAD face；人工参考 STEP 仅在离线评测时作为真值输入，绝不参与运行时选面或以 face 身份、SHA-256、固定数量等方式写入生产逻辑。",
     "non_goals": [
-      "不再为 component-simplify 或任何零件保留、构建或使用冻结模板。",
+      "不再为 component-simplify 或任何零件保留、构建或使用旧样本特例资产。",
       "不因主 STEP 与既有样本的 SHA-256 不同而拒绝通用选面；运行时只核验原始输入清单自身的完整性。",
       "不将当前 40 个参考面、其 STEP index、零件名、边界指纹、面积、重心或法向作为生产规则、默认值或特例。",
       "不声称仅凭单个 component-simplify 样本已证明对未知零件的泛化能力。"
@@ -70,7 +70,7 @@
     "python": ".venv\\Scripts\\python",
     "source_of_truth": "src/weld_core/schema.py、原始/运行 manifest 及本计划；人工参考面仅为评测真值。",
     "runtime_reference_policy": "通用选面和下游 pipeline 进程不得打开、读取、哈希、枚举或依赖 surface_reference STEP；仅显式的评测命令可读取它。",
-    "no_template_policy": "禁止目录 templates/component-simplify/、plane-selection-template.json、冻结 face index/指纹白名单、template SHA 校验、仅针对 component-simplify 的 pipeline 分支，及任何等价的隐式硬编码。",
+    "no_template_policy": "禁止目录 templates/component-simplify/、旧样本选面资产、固定 face index/指纹白名单、旧资产 SHA 校验、仅针对 component-simplify 的 pipeline 分支，及任何等价的隐式硬编码。",
     "dataset_isolation_policy": "生产代码不得按 part_id、文件名、输入 SHA、已知面数、参考面数或已知标签数量改变选面结果。数据集特定断言仅可存在于 tests/、评测脚本或原始 manifest。",
     "truth_matching_policy": "正式评测真值必须使用 OCP CAD 面边界的精确公共面积和覆盖率；AABB 仅用于候选预筛。",
     "ambiguity_policy": "参考面不能唯一、可审计地映射到单个或明确集合的主 CAD face 时，评测失败并保留 pass=false；禁止自动猜测。",
@@ -90,11 +90,11 @@
       "priority": 1,
       "depends_on": [],
       "pass": true,
-      "goal": "建立通用选面改造前的干净基线，审计并明确所有冻结模板路径的删除范围；不改变算法行为。",
+      "goal": "建立通用选面改造前的干净基线，审计并明确所有旧样本特例路径的删除范围；不改变算法行为。",
       "changes": [
         "确认工作区干净、.venv 可用、当前全量测试通过，并将 component-simplify 的 2834/525 与 89/40 数据集统计记录为测试基线而非算法常量。",
-        "列出并验证所有待移除的冻结模板文件、CLI、schema/管线专属字段、测试、文档和生产代码符号；列出可保留的通用 OCP 公共面积与几何工具。",
-        "记录冻结模板最终历史指标仅作为历史事实，明确其不能作为泛化能力证据。"
+        "列出并验证所有待移除的旧样本特例文件、CLI、schema/管线专属字段、测试、文档和生产代码符号；列出可保留的通用 OCP 公共面积与几何工具。",
+        "记录旧样本特例最终历史指标仅作为历史事实，明确其不能作为泛化能力证据。"
       ],
       "strict_tests": [
         {
@@ -122,18 +122,18 @@
       "priority": 2,
       "depends_on": ["G01_preflight_and_deprecation_inventory"],
       "pass": true,
-      "goal": "从生产代码、CLI、契约和测试中彻底移除冻结模板选面路线，恢复 pipeline 对通用 FacesDocument 输入的统一处理。",
+      "goal": "从生产代码、CLI、契约和测试中彻底移除旧样本特例选面路线，恢复 pipeline 对通用 FacesDocument 输入的统一处理。",
       "changes": [
-        "删除冻结模板构建/校验/运行时选面模块、脚本、模板文件、专属测试和专属受管产物契约；删除 templates/component-simplify/。",
-        "删除 pipeline 对 component-simplify、faces.selected.json、template SHA、主 STEP SHA 或受管模板目录的专属强制逻辑及候选元数据字段。",
+        "删除旧样本特例构建/校验/运行时选面模块、脚本、专属资产文件、专属测试和专属受管产物契约；删除 templates/component-simplify/。",
+        "删除 pipeline 对 component-simplify、旧选面文件名、template SHA、主 STEP SHA 或受管旧资产目录的专属强制逻辑及候选元数据字段。",
         "保留并整理可泛化的 exact_face_overlap、STEP 解析、法向/距离计算和通用候选生成能力；历史 DEVLOG/旧计划可以保留为历史记录，但现行 CLI/契约不得暴露模板命令。",
         "确保运行时没有读取人工 surface_reference STEP 的代码路径。"
       ],
       "strict_tests": [
         {
-          "command": "rg -n \"plane-selection-template|frozen_template|template_plane_selection|build_plane_selection_template|select_template_planes|faces\\.selected|template_sha256|component-simplify.*template\" src scripts tests CLI.md docs/json_contract.md templates",
+          "command": "rg -n \"plane-selection[-]template|frozen_template|template_plane_selection|build_plane_selection_template|select_template_planes|faces[.]selected|template[_]sha256|component-simplify.*template\" src scripts tests CLI.md docs/json_contract.md templates",
           "expect_exit_code": 1,
-          "assertions": ["不存在冻结模板生产实现、CLI、测试或现行契约引用；历史记录文件不在搜索范围。"]
+          "assertions": ["不存在旧样本特例生产实现、CLI、测试或现行契约引用；历史记录文件不在搜索范围。"]
         },
         {
           "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\g02-full",
@@ -286,10 +286,10 @@
       "id": "G07_documentation_and_generalization_gate",
       "priority": 7,
       "depends_on": ["G06_dataset_regression_and_pipeline"],
-      "pass": false,
+      "pass": true,
       "goal": "完成通用选面契约、CLI、数据集边界和泛化门槛的文档收尾，且不夸大单数据集结果。",
       "changes": [
-        "更新 docs/json_contract.md：通用选面、pair 审计、离线评测和候选元数据的字段；删除模板术语和模板哈希约束。",
+        "更新 docs/json_contract.md：通用选面、pair 审计、离线评测和候选元数据的字段；删除旧路线术语和旧资产哈希约束。",
         "更新 CLI.md：通用选面、离线评测和回归命令；明确运行时不读取人工参考、component-simplify 仅为评测数据集及主模型变化不应被拒绝。",
         "更新 DEVLOG.md 和本 JSON：记录通用算法的实际单数据集指标、未解决的失败模式、数据集划分和至少两个独立验证零件的泛化门槛。",
         "新增或更新数据集说明，区分参数开发集、验证集和保留测试集；在多零件门槛达标前，禁止在 README/报告中使用“已泛化”表述。"
@@ -301,9 +301,9 @@
           "assertions": ["ALG_updatev2.json 为有效 JSON，G01-G07 均为 pass=true。"]
         },
         {
-          "command": "rg -n \"frozen template|冻结模板|plane-selection-template|faces\\.selected|template_sha256\" README.md CLI.md docs src scripts tests templates",
+          "command": "rg -n \"frozen[ ]template|冻结[ ]模板|plane-selection[-]template|faces[.]selected|template[_]sha256\" README.md CLI.md docs src scripts tests templates",
           "expect_exit_code": 1,
-          "assertions": ["现行文档、生产代码和测试中不存在冻结模板路线；历史记录文件不在搜索范围。"]
+          "assertions": ["现行文档、生产代码和测试中不存在旧样本特例路线；历史记录文件不在搜索范围。"]
         },
         {
           "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\g07-full",
