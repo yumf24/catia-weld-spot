@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-07-22 15:37:00 +08:00 — component-simplify 当前平面算法复测
+
+**做了什么**
+- 新建受管运行 `data/component-simplify/20260722-153636-result-analysis/`，以当前冻结模板执行选面、精确 CAD 面评测和下游候选生成。
+- 在项目根目录新增 `RESULT.md`，记录输入 SHA、阈值、逐阶段命令、审计统计、精确几何指标、候选结果、产物索引和适用边界。
+
+**验证结果**
+- 525 个主 STEP 平面中选中 40 个、排除 485 个；精确验收 TP/FP/FN 为 **40/0/0**，precision/recall 均为 **100.00%**。
+- 40 个通过面最大法向夹角为 **0.0003008°**、最大平面距离为 **0.0000005584 mm**、最低 source 覆盖率为 **99.978%**；均优于正式阈值。
+- 核心流程消费 `faces.selected.json`，生成 **13** 个 two-layer 候选；`.venv\Scripts\python -m pytest --basetemp .pytest_cache\result-full`：**72 passed**。
+
+---
+
 ## 2026-07-22 15:32:00 +08:00 — S09 冻结模板选面文档与收尾
 
 **做了什么**
