@@ -1,4 +1,4 @@
-"""Evaluate frozen template selections against the one-time reference STEP.
+"""Evaluate selected planar faces against an explicit offline reference STEP.
 
 This module deliberately works with OCCT faces, not projected bounding boxes.
 The reference STEP is only consumed by this evaluation path.

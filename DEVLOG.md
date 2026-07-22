@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-22 16:06:41 +08:00 — G02 移除冻结模板运行路径
+
+**做了什么**
+- 删除模板构建、模板选面、模板评测脚本，以及 `weld_core` 中的模板构建/运行时选择模块、模板文件和专属测试。
+- `weld_core.pipeline` 恢复为统一消费任意 `FacesDocument`，不再按 `component-simplify`、受管选面文件名、模板哈希或主 STEP 哈希改变行为；受管目录中只登记通用 `candidates` 产物。
+- `CandidatesMeta` 删除模板追溯字段；`CLI.md` 与 `docs/json_contract.md` 删除当前模板命令和候选元数据契约暴露，保留 STEP/OCP 几何与下游候选生成能力。
+- `docs/ALG_updatev2.json` 中 `G02_remove_frozen_template_path` 标记为通过。
+
+**验证结果**
+- `rg -n "plane-selection-template|frozen_template|template_plane_selection|build_plane_selection_template|select_template_planes|faces\.selected|template_sha256|component-simplify.*template" src scripts tests CLI.md docs/json_contract.md templates`：退出码 **1**，指定范围无命中。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\g02-full`：**62 passed**。
+- `.venv\Scripts\python -m weld_core.pipeline tests\fixtures\two_layer.json .pytest_cache\g02-candidates.json`：成功生成 **3** 个候选。
+
+---
+
 ## 2026-07-22 16:01:19 +08:00 — G01 通用选面迁移基线与清点
 
 **做了什么**

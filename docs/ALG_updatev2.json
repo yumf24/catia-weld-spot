@@ -121,7 +121,7 @@
       "id": "G02_remove_frozen_template_path",
       "priority": 2,
       "depends_on": ["G01_preflight_and_deprecation_inventory"],
-      "pass": false,
+      "pass": true,
       "goal": "从生产代码、CLI、契约和测试中彻底移除冻结模板选面路线，恢复 pipeline 对通用 FacesDocument 输入的统一处理。",
       "changes": [
         "删除冻结模板构建/校验/运行时选面模块、脚本、模板文件、专属测试和专属受管产物契约；删除 templates/component-simplify/。",
