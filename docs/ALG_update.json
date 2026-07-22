@@ -54,7 +54,7 @@
       "id": "S01_preflight_baseline",
       "priority": 1,
       "depends_on": [],
-      "pass": false,
+      "pass": true,
       "goal": "建立可重复、可追溯的改造前基线，并确认后续步骤可在干净工作树中执行。",
       "changes": [
         "不修改算法行为；新增或扩展只读基线检查，使其报告 raw manifest SHA-256、主/参考面数和平面数。",

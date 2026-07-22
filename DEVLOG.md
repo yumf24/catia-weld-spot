@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-22 14:40:20 +08:00 — S01 选面改造前基线预检
+
+**做了什么**
+- 新增只读 `scripts/check_plane_selection_baseline.py`：先核验 `component-simplify` 原始清单的 SHA-256 与文件大小，再报告主 STEP 和人工参考 STEP 的面数/平面面数；不创建运行目录、不读取或修改任何算法产物。
+- 新增本地回归测试，验证报告包含两个已核验输入，并固定主模型 `2834/525`、参考模型 `89/40` 的面/平面数基线。
+- `docs/ALG_update.json` 中 S01 标记为通过。
+
+**验证结果**
+- 原始输入哈希核验通过：主模型 `8c79d336…c15287856`，参考模型 `d035d1f9…728d6a2ff`；报告面/平面数分别为 `2834/525` 和 `89/40`。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\basetemp`：**46 passed**。
+- `.venv\Scripts\python -m pytest tests\test_step_geometry.py --basetemp .pytest_cache\basetemp`：**5 passed**。
+
+---
+
 ## 2026-07-22 13:50:57 +08:00 — component-simplify CATIA 运行时复核
 
 **做了什么**
