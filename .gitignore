@@ -3,9 +3,7 @@ logs/
 *.log
 
 # Large binary CAD inputs (STEP / CATIA parts) — keep out of git
-data/*.step
-data/*.stp
-data/*.zip
+data/
 *.CATPart
 *.CATProduct
 *.stl

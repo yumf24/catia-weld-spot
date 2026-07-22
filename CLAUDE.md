@@ -1,28 +1,44 @@
-# CLAUDE.md — 项目约定
+# CLAUDE.md — Agent 指南
 
-## 会话流程（强制）
-- **每次 fresh session 开始，先阅读 `DEVLOG.md`** 熟悉当前进度与未决问题，再动手。
-- **每推进一步（完成任务/阶段/重要决策）后，立刻更新 `DEVLOG.md`**：追加带日期的条目，记录做了什么、结论、下一步。
-- 业务算法思路见 `PLAN.md`，数据契约见 `docs/json_contract.md`。
+> 本文件为 **ml-pipeline** 项目唯一 Agent 指南。`AGENTS.md` 仅链接本文件，不维护独立内容。
+
+## Agents-first 模式
+- 本仓库采用 Agents-first 开发模式。
+- 人类仅负责高层算法、架构与设计决策。
+- Agents 负责所有具体实现、修改、重构、测试和维护。
+
+## Session 初始化（强制）
+- 每次 fresh session 开始时，必须先阅读 `DEVLOG.md` 中最近的项目进展。
+- 每次 fresh session 开始时，必须查看最近的 Git commit 信息。
+- 业务算法思路见 `docs/PLAN.md`，数据契约见 `docs/json_contract.md`。
+
+## 任务完成（强制）
+- 每次完成任务后，必须更新 `DEVLOG.md`。
+- 每次完成任务后，必须提交 Git commit。
+- 每次完成任务后，必须确保 working tree 保持干净。
+
+## DEVLOG 维护规范
+- 内容保持精炼、准确、简短。
+- 按时间倒序排列，最新在前。
+- 每条记录必须包含完整日期和时间。
+- 仅保留近期且仍有价值的项目进展。
+- 当文件超过 500 行时，必须删除过时记录并压缩至合理长度。
+
+## 文档结构
+- 长期项目文档统一放在 `docs/` 下。
+- 当前长期文档包括 `docs/PLAN.md`、`docs/ARCHITECTURE.md`、`docs/json_contract.md`。
 
 ## 项目要点
 - 目标：CATIA V5 零件上自动粗筛贴合区域并生成候选焊点（V1 不漏检为先，人工复核）。
-- 架构：三层解耦 —— `catia/`(pycatia 提取+回写) ↔ JSON 契约 ↔ `src/weld_core/`(纯 Python 算法核心)。
-- **`weld_core` 严禁 import pycatia/pywin32**：即使现在开发和运行都在同一台 Windows 机上，
-  这条也保留——保证核心算法能脱离运行中的 CATIA 单独跑 `pytest`，不与提取/回写层耦合。
-- 开发环境：Windows + 运行中的 CATIA V5（`catia/` 层的硬依赖）。
+- 架构：三层解耦 —— `catia/`(Windows/pycatia 提取+回写) ↔ JSON 契约 ↔ `src/weld_core/`(纯 Python 算法核心)。
+- **`weld_core` 严禁 import pycatia/pywin32**，须保持跨平台可测。
+- 开发机：现阶段 Mac（离线开发核心）；后续迁到装有 CATIA 的 Windows 机做集成。
 
 ## 环境
-- 项目本地 `.venv`（本机无 conda，不用 `environment*.yml`）：
-  `python -m venv .venv` → `pip install pycatia pywin32 numpy "pydantic>=2"` → `pip install -e .`。
-- 装完 pywin32 需跑一次 `python .venv/Scripts/pywin32_postinstall.py -install` 注册 COM。
+- 核心：conda env `weld-core`（Python 3.11，numpy/pydantic/pytest，无 CATIA）。
+- CATIA：conda env `weld-catia`（Windows，pycatia+pywin32，需运行中的 CATIA V5）。
 - 不改动系统/全局 Python。
 
 ## 验证
-- 改动 `weld_core` 后跑 `pytest`（须全绿），不需要 CATIA 打开。
-- CATIA 侧改动先用 `scripts/check_env_catia.py`（需 CATIA 已打开）确认能连上，再用真实零件验证。
-- `catia/extract_faces.py` 每次运行会在 `logs/` 生成耗时/吞吐性能日志（已在 `.gitignore`）。
-
-## Git
-- 仓库已 `git init` 并有提交历史。大体积 CAD 输入（`.step`/`.CATPart`/`.CATProduct`）和运行产物
-  （`logs/`）已在 `.gitignore`，不会误入库；无需为此重新初始化或调整忽略规则。
+- 改动 `weld_core` 后跑 `pytest`（须全绿）。
+- CATIA 侧改动在 Windows 上用 `scripts/check_env_catia.py` + 真实零件验证。
