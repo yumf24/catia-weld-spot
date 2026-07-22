@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-07-22 11:51:44 +08:00 — 本地核心开发环境安装完成
+
+**做了什么**
+- 在仓库内创建 `.venv`，用 editable dev 模式安装 `weld-core` 及当前项目依赖。
+- 已安装并验证核心依赖：`numpy 2.4.6`、`pydantic 2.13.4`、`pytest 9.1.1`、`cadquery 2.8.0`。
+- 未改动系统/全局 Python。
+
+**验证结果**
+- `.venv\Scripts\python scripts\check_env_core.py` 通过。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\basetemp` 通过：37 passed。
+
+**备注**
+- 直接运行 pytest 会因默认临时目录 `C:\Users\admin\AppData\Local\Temp\pytest-of-admin` 权限受限报错；在当前沙箱环境需显式使用仓库内 `--basetemp .pytest_cache\basetemp`。
+
+---
+
 ## 2026-07-17 — 新增 CLI.md：汇总全部命令行入口
 
 **做了什么**
