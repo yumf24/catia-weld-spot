@@ -56,7 +56,7 @@
       "id": "EA01_error_analysis_baseline",
       "priority": 1,
       "depends_on": [],
-      "pass": false,
+      "pass": true,
       "goal": "固定当前平面选面错误分析基线，确认受管运行产物、输入 SHA、参数、面数和指标均可复现。",
       "changes": [
         "记录 component-simplify 当前回归运行目录和指标基线。",

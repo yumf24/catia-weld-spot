@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-22 17:11:00 +08:00 - EA01 平面选面错误分析基线
+
+**做了什么**
+- 核验 `component-simplify` 受管回归运行 `data/component-simplify/20260722-163200-generic-regression/`，确认评测、pair 审计、selection 审计和通用选面产物均存在。
+- 核验主/参考 STEP 输入 SHA-256 以及 `2834/525`、`89/40` 的 face/planar face 基线；离线评测指标为 TP/FP/FN=`17/2/23`、precision=`0.8947368421052632`、recall=`0.425`。
+- 将 `docs/TODO.json` 中 `EA01_error_analysis_baseline` 标记为通过；未改动生产选面参数或运行时逻辑。
+
+**验证结果**
+- `.venv\Scripts\python -m json.tool docs\TODO.json > $null`：通过。
+- `.venv\Scripts\python scripts\check_plane_selection_baseline.py component-simplify`：通过。
+- 逐项检查受管产物及 `general_plane_selection_evaluation.json` 指标：通过。
+
+---
+
 ## 2026-07-22 17:10:00 +08:00 - Add plane selection error-analysis TODO
 **What changed**
 - Added `docs/TODO.json`, an ALG-style staged TODO plan for face-level generic plane selection error analysis.
