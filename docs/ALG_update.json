@@ -91,7 +91,7 @@
       "id": "S02_exact_face_overlap",
       "priority": 2,
       "depends_on": ["S01_preflight_baseline"],
-      "pass": false,
+      "pass": true,
       "goal": "提供以 OCP 精确 CAD 边界为准的共面 face 公共面积与覆盖率计算。",
       "changes": [
         "在 weld_core 中新增可复用的精确 face-overlap API，输入两个 OCP face 和已校验的共面条件，输出公共面积、source 覆盖率、reference 覆盖率与可诊断失败原因。",

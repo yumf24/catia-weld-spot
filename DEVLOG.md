@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-22 14:44:29 +08:00 — S02 CAD face 精确公共面积
+
+**做了什么**
+- 新增 `weld_core.exact_face_overlap`：以 OCP `BRepAlgoAPI_Common` 和 `BRepGProp.SurfaceProperties` 计算两个已完成共面校验的 CAD face 的公共面积、源/参考双向覆盖率和可诊断拒绝原因。
+- 正式匹配前强制法向夹角不大于 `0.5°`、平面距离不大于 `0.05 mm`；擦边、点接触和零面积公共形状均不能通过。
+- 多个参考面覆盖同一源面时，先对公共形状做 OCP 融合，再测量并集面积，避免重叠区域重复累计。
+- 新增 9 项合成 OCP 回归：完全/95%/部分重合、边界或点接触、非共面及超阈值拒绝、参考面重叠并集。
+- `docs/ALG_update.json` 中 S02 标记为通过。
+
+**验证结果**
+- `.venv\Scripts\python -m pytest tests\test_exact_face_overlap.py --basetemp .pytest_cache\basetemp`：**9 passed**。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\basetemp`：**55 passed**。
+
+---
+
 ## 2026-07-22 14:40:20 +08:00 — S01 选面改造前基线预检
 
 **做了什么**
