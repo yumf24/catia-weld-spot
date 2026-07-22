@@ -16,6 +16,25 @@ data/<part-id>/<run-id>/manifest.json
 原始清单、运行时输入哈希、执行参数、状态和 `artifacts` 路径。路径均为仓库相对路径，不写入本机绝对
 路径。`component-simplify` 的 `surface_reference` 是平面提取验证基准，不是算法派生产物。
 
+## 冻结选面模板与运行时产物（component-simplify）
+
+`templates/component-simplify/plane-selection-template.json` 是受版本控制的冻结模板，只适用于其
+`source_sha256` 精确对应的 `primary_model` STEP。模板由
+`scripts/build_plane_selection_template.py` 在构建时读取人工 `surface_reference`；日常选面运行
+绝不读取该参考 STEP。任何主 STEP SHA、face index 或边界指纹不一致都会失败，且不得写出部分
+选面结果；输入改版后必须重新构建并验收模板。
+
+- 模板顶层字段：`format_version`、`part_id`、`source_sha256`、`reference_sha256`、`thresholds`、
+  `selected_faces` 与 `label_build_summary`。
+- 每项 `selected_faces` 同时记录 `part`、`step_face_index`、面积、重心、法向、
+  `boundary_fingerprint`（顶点数和顶点 SHA-256）、source/reference 覆盖率和参考面追溯信息；
+  `(part, step_face_index)` 必须唯一，source 覆盖率不得低于 0.95。
+- `faces.selected.json` 是符合 `FacesDocument` 的运行时单 CAD face 输入。它只包含已通过模板身份和
+  指纹校验的平面，face 的 `reason` 为 `selected_from_frozen_template`。
+- `selection_audit.json` 包含 `format_version`、`part_id`、`template_source_sha256`、`summary` 和
+  `faces`；后者逐一记录全部主 STEP 平面 face 的 id、part、index、`selected`/`excluded` 状态及原因。
+  成功运行时，未入模板的平面以 `not_in_frozen_template` 明确排除。
+
 ## plane_selection_evaluation.json（冻结模板的精确验收）
 
 由 `scripts/evaluate_template_plane_selection.py <part-id> --run-dir <run-dir>` 生成；该命令仅在

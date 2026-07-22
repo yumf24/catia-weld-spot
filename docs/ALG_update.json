@@ -340,7 +340,7 @@
       "id": "S09_documentation_and_closeout",
       "priority": 9,
       "depends_on": ["S08_acceptance_run"],
-      "pass": false,
+      "pass": true,
       "goal": "完成对外契约、CLI、开发记录和计划状态的收尾。",
       "changes": [
         "更新 docs/json_contract.md：模板、faces.selected.json、selection_audit.json、plane_selection_evaluation.json 的字段和哈希约束。",

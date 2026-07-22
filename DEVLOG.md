@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-22 15:32:00 +08:00 — S09 冻结模板选面文档与收尾
+
+**做了什么**
+- 更新 `docs/json_contract.md`：补充冻结模板、`faces.selected.json` 和 `selection_audit.json` 的字段、身份/哈希约束及输入改版后的重建要求；明确人工参考 STEP 仅可用于模板构建和评测。
+- 更新 `CLI.md`：加入模板构建、运行时选面和精确评测入口，说明 SHA 不匹配时的失败行为、验收阈值与 component-simplify 核心流程必须消费 `faces.selected.json` 的约束。
+- `docs/ALG_update.json` 中 S09 标记为通过；S01–S09 均已完成。该冻结模板仅适用于已登记的主 STEP SHA，原始人工参考仅作构建/评测用途，任何 STEP 改版均必须重新构建和验收模板。
+
+**验证结果**
+- `.venv\Scripts\python -m json.tool docs\ALG_update.json > NUL`：JSON 有效，S01–S09 的 `pass` 均为 `true`。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\s09-full`：全部测试通过。
+- `git diff --check`：通过。
+
+---
+
 ## 2026-07-22 15:26:00 +08:00 — S08 component-simplify 端到端验收运行
 
 **做了什么**
