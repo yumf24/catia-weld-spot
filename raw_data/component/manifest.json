@@ -1,0 +1,18 @@
+{
+  "format_version": 1,
+  "part_id": "component",
+  "purpose": "主装配体原始零件及真实焊点标注",
+  "registered_at": "2026-07-22T00:00:00+08:00",
+  "inputs": {
+    "primary_model": {
+      "path": "component.step",
+      "sha256": "67e94056eb93510f4d9aae41eb4083d7c1d0d764cd7062d68bdbd6dc7a73891f",
+      "size_bytes": 226881030
+    },
+    "ground_truth_markers": {
+      "path": "SPOT.step",
+      "sha256": "9bd18a2825569c78c4bd1a8058b8c178919a85d56652f0fff1d47f4837bbb463",
+      "size_bytes": 4634784
+    }
+  }
+}

@@ -110,7 +110,7 @@ Links
    （pycatia 确认支持）把装配体导出成 STEP，再用 `cadquery`（内含 `OCP`，即 OpenCASCADE 的
    Python 绑定，Windows + Python 3.9–3.12 有官方 pip wheel，本机 `.venv` 装了 `cadquery==2.8.0`
    验证通过）离线解析：
-   - `cq.importers.importStep(path)` 解析 `data/component.step`（226MB，55 个真实零件，
+   - `cq.importers.importStep(path)` 解析 `raw_data/component/component.step`（226MB，55 个真实零件，
      10366 面 vs pycatia COM 数出的 10706 面，~3% 差异属正常）耗时约 47s，一次性成本，
      不是逐面 COM 调用那种量级（COM 观测约 3~4 faces/sec，全量要 45~70 分钟）。
    - `Face.Vertices()` 直接给出真实顶点，不经过任何 `,sel` 式作用域搜索，完全可靠——
@@ -166,7 +166,7 @@ CATIA ──①extract(COM，面积/法向/零件号)──▶ faces.json ──
 | **P2 核心** | 离线实现筛选/布点/过滤 | faces.json→candidates.json | 合成夹具单测全绿 | **完成**（真实装配体验证：0.47s 跑通，产出 192 个候选/41 组零件配对，间距全部落在 20-70mm） | 三层板分类未做（留待后续，见 DEVLOG）；`body` 字段仍占位 |
 | **P3 回写** | 建 Weld_Candidates | candidates.json→CATIA 点集 | 位置一致；重复运行幂等 | **完成**（真实会话验证：坐标/参数精确匹配，幂等性验证通过——不用删除类 API，改成按 id 原地更新点坐标，详见 DEVLOG） | `Selection.Delete`/`Products.remove`+`Document.close` 在这套环境里均不可靠，已避开，改用"找到则更新、找不到则新建、多余的标记 stale 不删除"策略 |
 | **P4 集成** | 端到端+调参+日志+文档 | 真实零件→全链路 | 无明显漏检；一键复现 | **完成**（`catia/export_step.py` + `scripts/run_full_pipeline.py` 一键跑通 extract→export→enrich→core→write 全链路，对着真正的原生 `.CATProduct` 验证；过程中发现并修复候选点 id 跨会话不稳定的问题，详见 DEVLOG） | 漏检高→放宽阈值/加边采样；调参决策仍待工程师人工复核后反馈，本阶段未改动 `WeldParams` 默认值 |
-| **P5 评测** | 用真实焊点（`data/SPOT.step`）量化候选点漏检/误检 | ground_truth.json + candidates.json → evaluation.json | 合成夹具单测全绿；真实数据出具 recall/precision | **完成**（`weld_core.evaluate` + `scripts/extract_ground_truth.py`；真实评测：286 个真实焊点 vs 200 候选，10mm 容忍度下 recall 22.7%/precision 32.5%，20mm 容忍度 recall 48.3%——即使放宽容忍度到接近 20mm 最小点间距上限，仍有约一半真实焊点找不到对应候选，说明当前 V1 阈值/算法离"不漏检"目标有明显差距，见 DEVLOG） | 真实焊点标记的实例名（如 `04021210-R60_WP`）不对应装配体真实 PartNumber，评测按纯 3D 距离匹配，不按零件配对 |
+| **P5 评测** | 用真实焊点（`raw_data/component/SPOT.step`）量化候选点漏检/误检 | ground_truth.json + candidates.json → evaluation.json | 合成夹具单测全绿；真实数据出具 recall/precision | **完成**（`weld_core.evaluate` + `scripts/extract_ground_truth.py`；真实评测：286 个真实焊点 vs 200 候选，10mm 容忍度下 recall 22.7%/precision 32.5%，20mm 容忍度 recall 48.3%——即使放宽容忍度到接近 20mm 最小点间距上限，仍有约一半真实焊点找不到对应候选，说明当前 V1 阈值/算法离"不漏检"目标有明显差距，见 DEVLOG） | 真实焊点标记的实例名（如 `04021210-R60_WP`）不对应装配体真实 PartNumber，评测按纯 3D 距离匹配，不按零件配对 |
 
 ## 里程碑
 - **M0** 环境就绪（完成）· **M1** 提取可用（完成，附带顶点限制）· **M1.5** 顶点补全

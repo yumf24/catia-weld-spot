@@ -1,0 +1,18 @@
+{
+  "format_version": 1,
+  "part_id": "component-simplify",
+  "purpose": "小零件及对应导出平面参考数据；用于验证平面提取、坐标和边界是否正确，不参与主装配体焊点评测",
+  "registered_at": "2026-07-22T00:00:00+08:00",
+  "inputs": {
+    "primary_model": {
+      "path": "component_simplify.step",
+      "sha256": "8c79d3364640245c035702cd382aad0022a0740280f74f72212a5b6c15287856",
+      "size_bytes": 34543311
+    },
+    "surface_reference": {
+      "path": "component_simplify_surface.step",
+      "sha256": "d035d1f9106d870b2bbe21c0aacf7e09bd05250baefe66bf788e677728d6a2ff",
+      "size_bytes": 1350607
+    }
+  }
+}

@@ -7,6 +7,8 @@ and not something CI/unit tests should depend on).
 
 from __future__ import annotations
 
+from pathlib import Path
+
 import pytest
 
 OCP = pytest.importorskip("OCP")
@@ -69,7 +71,7 @@ def test_parse_step_faces_groups_by_part_name(tmp_path):
 
 
 def test_parse_step_spheres_merges_two_marker_balls_into_two_points(tmp_path):
-    """Mirrors data/SPOT.step's shape: two separate weld-spot marker balls.
+    """Mirrors raw_data/component/SPOT.step's shape: two marker balls.
 
     A single BRepPrimAPI_MakeSphere shape is already one solid (its faces
     all share one analytic center), so two spheres at different locations
@@ -106,3 +108,21 @@ def test_parse_step_spheres_merges_two_marker_balls_into_two_points(tmp_path):
     assert centers[0] == pytest.approx((0.0, 0.0, 0.0), abs=1e-6)
     assert centers[1] == pytest.approx((100.0, 0.0, 0.0), abs=1e-6)
     assert all(s.radius == pytest.approx(3.0) for s in spheres)
+
+
+@pytest.mark.skipif(
+    not (Path(__file__).resolve().parents[1] / "raw_data" / "component-simplify" / "component_simplify.step").is_file(),
+    reason="local component-simplify validation assets are gitignored",
+)
+def test_component_simplify_reference_step_is_a_stable_planarity_fixture():
+    """Validate that the registered small-part/reference STEP pair is intact."""
+    root = Path(__file__).resolve().parents[1] / "raw_data" / "component-simplify"
+    model = sg.parse_step_faces(str(root / "component_simplify.step"))
+    reference = sg.parse_step_faces(str(root / "component_simplify_surface.step"))
+    model_faces = [face for faces in model.values() for face in faces]
+    reference_faces = [face for faces in reference.values() for face in faces]
+
+    assert len(model_faces) == 2834
+    assert sum(face.is_planar for face in model_faces) == 525
+    assert len(reference_faces) == 89
+    assert sum(face.is_planar for face in reference_faces) == 40

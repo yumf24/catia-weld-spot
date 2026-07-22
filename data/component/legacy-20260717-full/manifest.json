@@ -1,0 +1,15 @@
+{
+  "format_version": 1,
+  "part_id": "component",
+  "run_id": "legacy-20260717-full",
+  "status": "historical",
+  "raw_manifest": "raw_data/component/manifest.json",
+  "raw_inputs": [
+    {"role": "primary_model", "path": "raw_data/component/component.step", "sha256": "67e94056eb93510f4d9aae41eb4083d7c1d0d764cd7062d68bdbd6dc7a73891f"}
+  ],
+  "artifacts": {
+    "faces": {"path": "faces.json"},
+    "faces_enriched": {"path": "faces.enriched.json"},
+    "candidates": {"path": "candidates.json"}
+  }
+}

@@ -2,7 +2,7 @@
 
 Pure Python/numpy, no pycatia/pywin32 — matches ``weld_core``'s independence
 requirement. Ground truth is produced offline by
-``scripts/extract_ground_truth.py`` (from ``data/SPOT.step``'s weld-spot
+``scripts/extract_ground_truth.py`` (from ``raw_data/component/SPOT.step``'s weld-spot
 marker balls) into a ``ground_truth.json`` (see ``weld_core.schema.
 GroundTruthDocument``); candidates come from the normal pipeline's
 ``candidates.json``.
@@ -45,6 +45,7 @@ from .schema import (
     load_candidates,
     load_ground_truth,
 )
+from .data_layout import register_managed_artifact
 
 # Sensible default: bigger than the marker ball radius (3mm) and the
 # expected placement error of the region-midpoint layout, far smaller than
@@ -157,6 +158,7 @@ def main(argv: list[str]) -> int:
         candidates_source=str(args.candidates),
     )
     dump_document(doc, out_path)
+    register_managed_artifact(out_path, "evaluation")
     _print_report(doc, ground_truth)
     print(f"\nwrote {out_path}")
     return 0

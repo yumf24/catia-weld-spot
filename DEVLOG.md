@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-07-22 12:23:14 +08:00 — 原始 CAD 与运行产物目录解耦、可追溯清单落地
+
+**做了什么**
+- 新增 `raw_data/<part-id>/` 与 `data/<part-id>/<run-id>/` 目录契约；`raw_data` 登记不可变原始输入，`data` 每次运行单独建目录。两类 `manifest.json` 记录输入角色、SHA-256、参数、状态和产物索引。
+- 新增 `weld_core.data_layout`：校验安全的 part/run 标识、核验原始输入哈希、创建不冲突的时间戳运行目录、登记产物、查询最新运行；新增只读 `scripts/inspect_run.py` 用于反向定位原始数据和结果。
+- `scripts/run_full_pipeline.py` 改为接受 `part-id`，自动输出至受管运行目录；新增 `--run-label` 和仅随 `--write` 可用的 `--save-native`。原生 CATIA 输出及同目录生成的 CATPart 文件清单会写入运行清单。
+- 独立真实焊点提取和评测命令在输出位于运行目录时自动登记 `ground_truth`/`evaluation` 产物，保留任意路径调试兼容性。
+- 迁移本地历史数据：`component.step`/`SPOT.step` 进入 `raw_data/component/`；`component_simplify.step`/`component_simplify_surface.step` 进入独立 `raw_data/component-simplify/`，明确其为平面提取正确性验证基准；历史 JSON 按端到端、全量、零件过滤、真实焊点提取分入各自历史运行目录。已删除原 `data/` 根目录的 CATIA 临时锁/零字节文件。
+- 更新 `.gitignore`、README、CLI、PLAN、JSON 契约与路径注释；新增小零件/平面参考 STEP 的 OCP 回归校验。
+
+**验证结果**
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\basetemp`：**41 passed**（含小零件参考数据的 2834/525 与 89/40 面/平面基准）。
+- `scripts/inspect_run.py component legacy-20260717-e2e` 正确显示原始输入及历史产物；两份原始清单 SHA-256 核验通过。
+- `py_compile` 与 `git diff --check` 通过；文档和代码中的现行旧 `data/...` 路径引用已清除（DEVLOG 历史记录除外）。
+
+---
+
 ## 2026-07-22 11:54:57 +08:00 — CLAUDE.md 补充 fresh session 环境要求
 
 **做了什么**

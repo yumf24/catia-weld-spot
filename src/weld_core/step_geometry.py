@@ -3,7 +3,7 @@
 Solves the vertex-extraction gap documented in DEVLOG.md ("CATIA COM
 Selection.Search face-scoping is unreliable, faces[].vertices is always
 empty"). This module reads a STEP export of the same document (see
-``Document.ExportData`` in pycatia, used manually to produce ``data/*.step``
+``Document.ExportData`` in pycatia, producing a managed run's ``component.stp``
 for now) and returns, per CATIA PartNumber, the real face vertices/area/
 centroid/planarity — entirely offline, no CATIA/pycatia/pywin32 involved.
 
@@ -234,7 +234,7 @@ def parse_step_faces(path: str) -> dict[str, list[StepFace]]:
 
 @dataclass
 class MarkerSphere:
-    """One weld-spot marker ball found in a STEP file (e.g. ``data/SPOT.step``).
+    """One weld-spot marker ball found in a STEP file (e.g. ``raw_data/component/SPOT.step``).
 
     ``label`` is the STEP/XCAF instance name the marker was found under —
     informational only (see ``parse_step_spheres`` docstring: it does not
@@ -248,7 +248,7 @@ class MarkerSphere:
 
 
 # Weld-spot marker balls are exported as >=2 faces sharing one analytic
-# sphere center (see parse_step_spheres docstring). On data/SPOT.step the two
+# sphere center (see parse_step_spheres docstring). On raw_data/component/SPOT.step the two
 # hemisphere centers of the same marker agreed on X/Z to ~0.002mm and the
 # sphere.Location() each hemisphere's adaptor reports is exactly identical
 # (both derive from the same analytic sphere), so a generous-but-still-far-
@@ -273,7 +273,7 @@ def parse_step_spheres(path: str, dedupe_tol_mm: float = _SPHERE_DEDUPE_TOL_MM) 
     """Parse a STEP file for spherical marker faces and return one entry per
     unique sphere, in the assembly's global frame.
 
-    Built for ``data/SPOT.step``: real weld-spot locations marked as small
+    Built for ``raw_data/component/SPOT.step``: real weld-spot locations marked as small
     (r=3mm) ball geometry, one weld point per ball. Unlike ``parse_step_faces``'s
     vertex-plane-fit planarity check, sphere detection here uses OCCT's
     analytic surface type (``BRepAdaptor_Surface.GetType() ==

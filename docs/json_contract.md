@@ -3,6 +3,19 @@
 提取层、算法核心、回写层通过两份 JSON 文件交换数据。字段定义以
 `src/weld_core/schema.py`（pydantic 模型）为准，本文件为说明。
 
+## 目录清单（跨文件追溯）
+
+业务 JSON 的 `meta.source` 只表示其直接输入；原始零件和运行产物的对应关系以目录清单为准：
+
+```text
+raw_data/<part-id>/manifest.json
+data/<part-id>/<run-id>/manifest.json
+```
+
+原始清单的 `inputs` 按角色登记相对路径、SHA-256 和文件大小。运行清单记录 `part_id`、`run_id`、
+原始清单、运行时输入哈希、执行参数、状态和 `artifacts` 路径。路径均为仓库相对路径，不写入本机绝对
+路径。`component-simplify` 的 `surface_reference` 是平面提取验证基准，不是算法派生产物。
+
 ## faces.json（提取层输出 → 核心输入）
 
 | 字段 | 类型 | 说明 |
@@ -40,7 +53,7 @@
 
 ## ground_truth.json（真实焊点，评测用 → 核心输入）
 
-由 `scripts/extract_ground_truth.py` 离线解析焊点标记球 STEP 文件（如 `data/SPOT.step`）
+由 `scripts/extract_ground_truth.py` 离线解析焊点标记球 STEP 文件（如 `raw_data/component/SPOT.step`）
 产出，不需要 CATIA 运行；解析逻辑见 `weld_core.step_geometry.parse_step_spheres`
 （每个真实焊点在这类文件里以一个 r=3mm 的球标记，球被导出成 2 个半球面，
 按球心去重合并成 1 个点）。

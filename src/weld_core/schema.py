@@ -89,7 +89,7 @@ class CandidatesDocument(BaseModel):
 
 class GroundTruthPoint(BaseModel):
     """A single real (ground-truth) weld point, e.g. parsed from a
-    weld-spot marker STEP file such as ``data/SPOT.step``."""
+    weld-spot marker STEP file such as ``raw_data/component/SPOT.step``."""
 
     id: str
     position: Vec3

@@ -2,8 +2,14 @@
 logs/
 *.log
 
-# Large binary CAD inputs (STEP / CATIA parts) — keep out of git
-data/
+# Local CAD inputs and generated pipeline runs — keep out of git
+# Layout: raw_data/<part-id>/ and data/<part-id>/<run-id>/.
+raw_data/**
+!raw_data/**/
+!raw_data/**/manifest.json
+data/**
+!data/**/
+!data/**/manifest.json
 *.CATPart
 *.CATProduct
 *.stl
