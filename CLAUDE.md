@@ -10,7 +10,7 @@
 ## Session 初始化（强制）
 - 每次 fresh session 开始时，必须先阅读 `DEVLOG.md` 中最近的项目进展。
 - 每次 fresh session 开始时，必须查看最近的 Git commit 信息。
-- 每次 fresh session 开始时，必须先启用仓库内 `.venv`；命令使用 `.venv\Scripts\python`。
+- 每次 fresh session 开始时，必须先启用仓库内 `.venv`；命令使用 `.venv\Scripts\python`，环境安装和开发都使用`.venv`环境。
 - 业务算法思路见 `docs/PLAN.md`，数据契约见 `docs/json_contract.md`。
 
 ## 任务完成（强制）
@@ -34,11 +34,6 @@
 - 架构：三层解耦 —— `catia/`(Windows/pycatia 提取+回写) ↔ JSON 契约 ↔ `src/weld_core/`(纯 Python 算法核心)。
 - **`weld_core` 严禁 import pycatia/pywin32**，须保持跨平台可测。
 - 开发机：现阶段 Mac（离线开发核心）；后续迁到装有 CATIA 的 Windows 机做集成。
-
-## 环境
-- 核心：仓库内 `.venv`（无 CATIA）；命令用 `.venv\Scripts\python -m ...`。
-- CATIA：conda env `weld-catia`（Windows，pycatia+pywin32，需运行中的 CATIA V5）。
-- 不改动系统/全局 Python。
 
 ## 验证
 - 改动 `weld_core` 后跑 `pytest`（须全绿）。
