@@ -12,6 +12,13 @@ from pathlib import Path
 from typing import Any
 
 
+_REPORT_RECOMMENDATIONS = {
+    "plane_gap": "Investigate a larger or layered plane-gap strategy before changing production defaults.",
+    "projected_aabb": "Diagnose whether projected-AABB rejection reflects true non-overlap or a pre-filter limitation.",
+    "same_part_policy": "Evaluate same-part pairs separately, with precision impact measured offline.",
+}
+
+
 class ErrorAnalysisInputError(ValueError):
     """Raised when evaluation and audit artifacts cannot be joined safely."""
 
@@ -327,6 +334,89 @@ def classify_false_positives(joined: dict[str, Any]) -> list[dict[str, Any]]:
             }
         )
     return classifications
+
+
+def build_error_analysis_report(joined: dict[str, Any], pair_audit: dict[str, Any]) -> dict[str, Any]:
+    """Build a deterministic, human-reviewable offline error-analysis report."""
+
+    false_negatives = classify_false_negatives(joined, pair_audit)
+    false_positives = classify_false_positives(joined)
+    fn_reason_counts: dict[str, int] = {}
+    for item in false_negatives:
+        stage = item["failure_stage"]
+        fn_reason_counts[stage] = fn_reason_counts.get(stage, 0) + 1
+    ranked_fn_reasons = [
+        {
+            "failure_stage": stage,
+            "count": count,
+            "recommended_direction": _REPORT_RECOMMENDATIONS.get(
+                stage, "Review the supporting audit evidence before changing selection behavior."
+            ),
+        }
+        for stage, count in sorted(fn_reason_counts.items(), key=lambda item: (-item[1], item[0]))
+    ]
+    return {
+        "format_version": 1,
+        "scope": "offline_evaluation_only",
+        "summary": joined["summary"],
+        "false_negative_reason_ranking": ranked_fn_reasons,
+        "optimization_priority": [
+            "plane_gap_strategy",
+            "projected_aabb_diagnosis",
+            "same_part_pair_policy_evaluation",
+        ],
+        "false_negatives": false_negatives,
+        "false_positives": false_positives,
+    }
+
+
+def render_error_analysis_markdown(report: dict[str, Any]) -> str:
+    """Render the compact Markdown companion for an error-analysis report."""
+
+    summary = report.get("summary")
+    if not isinstance(summary, dict):
+        raise ErrorAnalysisInputError("error-analysis report summary must be an object")
+    true_positives = summary.get("true_positives")
+    false_positives = summary.get("false_positives")
+    false_negatives = summary.get("false_negatives")
+    if not all(isinstance(value, int) and value >= 0 for value in (true_positives, false_positives, false_negatives)):
+        raise ErrorAnalysisInputError("error-analysis report summary must contain non-negative TP/FP/FN counts")
+    precision = summary.get("precision")
+    recall = summary.get("recall")
+    if not isinstance(precision, (int, float)):
+        precision = true_positives / (true_positives + false_positives) if true_positives + false_positives else 0.0
+    if not isinstance(recall, (int, float)):
+        recall = true_positives / (true_positives + false_negatives) if true_positives + false_negatives else 0.0
+    lines = [
+        "# General plane selection error analysis",
+        "",
+        "Scope: offline evaluation only. This report does not change production selection parameters.",
+        "",
+        "## Face-level baseline",
+        "",
+        "| TP | FP | FN | Precision | Recall |",
+        "| ---: | ---: | ---: | ---: | ---: |",
+        f"| {true_positives} | {false_positives} | {false_negatives} | {precision:.2%} | {recall:.2%} |",
+        "",
+        "## False-negative root causes",
+        "",
+        "| Rank | Failure stage | Faces | Recommended direction |",
+        "| ---: | --- | ---: | --- |",
+    ]
+    for rank, item in enumerate(report.get("false_negative_reason_ranking", []), start=1):
+        lines.append(
+            f"| {rank} | {item['failure_stage']} | {item['count']} | {item['recommended_direction']} |"
+        )
+    lines.extend(["", "## Recommended optimization order", ""])
+    for rank, item in enumerate(report.get("optimization_priority", []), start=1):
+        lines.append(f"{rank}. `{item}`")
+    lines.extend(["", "## False positives", ""])
+    for item in report.get("false_positives", []):
+        lines.append(
+            f"- `{item['face_id']}`: {item['false_positive_reason']} "
+            f"({len(item['supporting_pairs'])} accepted supporting pair(s))."
+        )
+    return "\n".join(lines) + "\n"
 
 
 def load_and_join_error_analysis(

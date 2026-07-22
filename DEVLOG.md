@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-07-22 17:30:00 +08:00 - EA05 plane-selection error-analysis report
+
+**What changed**
+- Added deterministic offline JSON and Markdown reports with TP/FP/FN, precision/recall, FN root-cause ranking, FP explanations, and evidence-ordered optimization directions.
+- The analysis CLI writes `general_plane_selection_error_analysis.json` and `.md` beside the selected run (or `--output-dir`) and registers both in its manifest.
+- The controlled `component-simplify` report has `plane_gap=18`, `projected_aabb=3`, and `same_part_policy=2`; production parameters are unchanged.
+
+**Verification**
+- `.venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py`: **10 passed**.
+- `.venv\\Scripts\\python scripts\\analyze_general_plane_selection_errors.py component-simplify --run-dir data\\component-simplify\\20260722-163200-generic-regression`: passed and registered both artifacts.
+
+---
+
 ## 2026-07-22 17:22:15 +08:00 - EA04 归类平面选面 false positives
 
 **做了什么**

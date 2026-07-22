@@ -141,7 +141,7 @@
       "id": "EA05_generate_human_report",
       "priority": 5,
       "depends_on": ["EA04_classify_false_positives"],
-      "pass": false,
+      "pass": true,
       "goal": "生成 JSON 与 Markdown 错误分析报告，使人工复盘能直接看到主要根因和优化顺序。",
       "changes": [
         "输出 general_plane_selection_error_analysis.json 和 Markdown 报告。",

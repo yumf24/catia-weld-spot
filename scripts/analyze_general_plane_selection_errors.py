@@ -6,7 +6,13 @@ import sys
 from pathlib import Path
 
 from weld_core.data_layout import find_run
-from weld_core.general_plane_selection_error_analysis import ErrorAnalysisInputError, load_and_join_error_analysis
+from weld_core.data_layout import register_managed_artifact
+from weld_core.general_plane_selection_error_analysis import (
+    ErrorAnalysisInputError,
+    build_error_analysis_report,
+    load_and_join_error_analysis,
+    render_error_analysis_markdown,
+)
 
 
 def _repo_path(value: str) -> Path:
@@ -29,20 +35,38 @@ def _resolve_paths(args: argparse.Namespace) -> tuple[Path, Path, Path]:
     return values["evaluation"], values["pair_audit"], values["selection_audit"]
 
 
+def _write_report(report: dict, output_dir: Path) -> tuple[Path, Path]:
+    output_dir.mkdir(parents=True, exist_ok=True)
+    json_path = output_dir / "general_plane_selection_error_analysis.json"
+    markdown_path = output_dir / "general_plane_selection_error_analysis.md"
+    json_path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    markdown_path.write_text(render_error_analysis_markdown(report), encoding="utf-8")
+    register_managed_artifact(json_path, "general_plane_selection_error_analysis", kind="json")
+    register_managed_artifact(markdown_path, "general_plane_selection_error_analysis_markdown", kind="markdown")
+    return json_path, markdown_path
+
+
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Join offline generic plane-selection evaluation and audit artifacts.")
+    parser = argparse.ArgumentParser(description="Generate an offline generic plane-selection error-analysis report.")
     parser.add_argument("part_id", nargs="?")
     parser.add_argument("--run-dir")
     parser.add_argument("--evaluation")
     parser.add_argument("--pair-audit")
     parser.add_argument("--selection-audit")
+    parser.add_argument("--output-dir")
     args = parser.parse_args(argv)
     try:
-        result = load_and_join_error_analysis(*_resolve_paths(args))
+        evaluation_path, pair_audit_path, selection_audit_path = _resolve_paths(args)
+        joined = load_and_join_error_analysis(evaluation_path, pair_audit_path, selection_audit_path)
+        pair_audit = json.loads(pair_audit_path.read_text(encoding="utf-8"))
+        result = build_error_analysis_report(joined, pair_audit)
+        output_dir = _repo_path(args.output_dir) if args.output_dir else evaluation_path.parent
+        json_path, markdown_path = _write_report(result, output_dir)
     except (ErrorAnalysisInputError, OSError, ValueError) as exc:
         print(f"[FAIL] {exc}", file=sys.stderr)
         return 1
-    print(json.dumps(result, indent=2, ensure_ascii=False))
+    print(f"[OK] wrote {json_path}")
+    print(f"[OK] wrote {markdown_path}")
     return 0
 
 

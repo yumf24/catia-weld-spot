@@ -6,10 +6,12 @@ import pytest
 
 from weld_core.general_plane_selection_error_analysis import (
     ErrorAnalysisInputError,
+    build_error_analysis_report,
     classify_false_negatives,
     classify_false_positives,
     join_error_analysis,
     load_and_join_error_analysis,
+    render_error_analysis_markdown,
 )
 
 
@@ -238,3 +240,23 @@ def test_fp_classification_retains_multiple_supports_and_identifies_non_truth_pa
     assert extra["supporting_pairs"][1]["counterpart_is_truth_face"] is False
     other = next(row for row in result if row["face_id"] == "other-selected")
     assert other["false_positive_reason"] == "accepted_pair_not_in_offline_truth"
+
+
+def test_report_ranks_fn_reasons_and_makes_gap_the_first_recommendation():
+    evaluation, pair_audit, selection_audit = _artifacts()
+    pair_audit["pairs"][1].update({"reason": "plane_gap_exceeds_threshold", "part_a": "one", "part_b": "two"})
+
+    report = build_error_analysis_report(join_error_analysis(evaluation, pair_audit, selection_audit), pair_audit)
+    markdown = render_error_analysis_markdown(report)
+
+    assert report["summary"] == evaluation["summary"]
+    assert report["false_negative_reason_ranking"] == [
+        {
+            "failure_stage": "plane_gap",
+            "count": 1,
+            "recommended_direction": "Investigate a larger or layered plane-gap strategy before changing production defaults.",
+        }
+    ]
+    assert report["optimization_priority"][:2] == ["plane_gap_strategy", "projected_aabb_diagnosis"]
+    assert "| 1 | plane_gap | 1 |" in markdown
+    assert "This report does not change production selection parameters." in markdown
