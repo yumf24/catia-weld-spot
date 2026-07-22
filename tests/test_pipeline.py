@@ -1,12 +1,13 @@
 """Schema + pipeline tests."""
 
 import copy
+import json
 from pathlib import Path
 
 import pytest
 
-from weld_core.pipeline import run
-from weld_core.schema import FacesDocument, load_faces
+from weld_core.pipeline import main, run
+from weld_core.schema import FacesDocument, dump_document, load_faces
 
 FIXTURE = Path(__file__).parent / "fixtures" / "two_layer.json"
 
@@ -70,3 +71,18 @@ def test_candidate_ids_stable_regardless_of_input_face_order():
     forward_by_id = {c.id: c.position for c in result_forward.candidates}
     reversed_by_id = {c.id: c.position for c in result_reversed.candidates}
     assert forward_by_id == reversed_by_id
+
+
+def test_component_simplify_cli_requires_selected_faces_and_records_provenance(tmp_path):
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    faces_path = run_dir / "faces.selected.json"
+    dump_document(load_faces(FIXTURE), faces_path)
+    (run_dir / "manifest.json").write_text(json.dumps({"part_id": "component-simplify", "run_id": "run", "raw_inputs": [{"role": "primary_model", "sha256": "a" * 64}], "parameters": {"template_sha256": "b" * 64}, "artifacts": {"selected_faces": {"path": "faces.selected.json"}}}))
+    output = run_dir / "candidates.json"
+    assert main([str(faces_path), str(output)]) == 0
+    result = load_faces(faces_path)  # Input remains the selected set used by every candidate.
+    candidates = json.loads(output.read_text(encoding="utf-8"))
+    assert {face for candidate in candidates["candidates"] for face in candidate["faces"]} <= {face.id for face in result.faces}
+    assert candidates["meta"]["template_sha256"] == "b" * 64
+    assert main([str(run_dir / "faces.enriched.json"), str(output)]) == 1

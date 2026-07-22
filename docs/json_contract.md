@@ -67,6 +67,8 @@ data/<part-id>/<run-id>/manifest.json
 | `meta.source` | str | 来源零件名 |
 | `meta.core_version` | str | 核心版本 |
 | `meta.params` | obj | 本次运行的阈值参数 |
+| `meta.selected_faces_source` | str | 冻结模板路径时固定为 `faces.selected.json`；通用流程为空 |
+| `meta.template_sha256` / `primary_step_sha256` | str | component-simplify 冻结模板与已核验主 STEP 的 SHA-256；通用流程为空 |
 | `candidates[].id` | str | 如 `wc_001` |
 | `candidates[].position` | [x,y,z] | 建点坐标（中间厚度） |
 | `candidates[].faces` | str[] | 关联面 id |

@@ -78,6 +78,9 @@ class CandidatesMeta(BaseModel):
     source: str = ""
     core_version: str = SCHEMA_VERSION
     params: dict = Field(default_factory=dict)
+    selected_faces_source: str = ""
+    template_sha256: str = ""
+    primary_step_sha256: str = ""
 
 
 class CandidatesDocument(BaseModel):

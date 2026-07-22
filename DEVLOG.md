@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-07-22 15:23:00 +08:00 — S07 冻结模板选面接入核心流程
+
+**做了什么**
+- `weld_core.pipeline` 在 component-simplify 的受管运行目录中强制只接受登记的 `faces.selected.json`；误传 `faces.enriched.json` 或缺失冻结模板追溯信息会以非零退出。
+- 候选输出的 `meta` 新增 selected-face 来源、冻结模板 SHA-256 和主 STEP SHA-256；受管 `candidates.json` 同步登记到运行清单。通用 `faces.json` 流程保持兼容且不写模板专属元数据。
+- `docs/ALG_update.json` 中 S07 标记为通过，并补充候选元数据契约。
+
+**验证结果**
+- `.venv\Scripts\python -m pytest tests\test_pipeline.py tests\test_template_plane_selection.py --basetemp .pytest_cache\s07-targeted`：**8 passed**（原通用流程、冻结模板输入强制、候选 face 范围和追溯字段）。
+- `.venv\Scripts\python -m weld_core.pipeline data\component-simplify\20260722-151828-s06-evaluation\faces.selected.json data\component-simplify\20260722-151828-s06-evaluation\candidates.json`：生成 **13** 个候选；全部关联 face 均属于 40 个冻结选面。
+
+---
+
 ## 2026-07-22 15:18:00 +08:00 — S06 冻结模板的精确选面评测
 
 **做了什么**

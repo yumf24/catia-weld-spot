@@ -41,6 +41,12 @@
     "plane_selection_evaluation_report": {
       "path": "plane_selection_evaluation.md",
       "kind": "markdown"
+    },
+    "candidates": {
+      "path": "candidates.json",
+      "selected_faces_source": "faces.selected.json",
+      "template_sha256": "2c83bc2105ed87d4fec4756127f6933d2f49976f87126297a52b96782e0f0aca",
+      "primary_step_sha256": "8c79d3364640245c035702cd382aad0022a0740280f74f72212a5b6c15287856"
     }
   }
 }

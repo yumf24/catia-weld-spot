@@ -271,7 +271,7 @@
       "id": "S07_pipeline_integration",
       "priority": 7,
       "depends_on": ["S06_exact_selection_evaluation"],
-      "pass": false,
+      "pass": true,
       "goal": "确保核心配对和布点仅消费模板选中的 face。",
       "changes": [
         "为核心流程增加明确的 selected-faces 输入路径或受管编排命令。",
