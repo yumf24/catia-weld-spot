@@ -10,6 +10,7 @@
 ## Session 初始化（强制）
 - 每次 fresh session 开始时，必须先阅读 `DEVLOG.md` 中最近的项目进展。
 - 每次 fresh session 开始时，必须查看最近的 Git commit 信息。
+- 每次 fresh session 开始时，必须先启用仓库内 `.venv`；命令使用 `.venv\Scripts\python`。
 - 业务算法思路见 `docs/PLAN.md`，数据契约见 `docs/json_contract.md`。
 
 ## 任务完成（强制）
@@ -35,7 +36,7 @@
 - 开发机：现阶段 Mac（离线开发核心）；后续迁到装有 CATIA 的 Windows 机做集成。
 
 ## 环境
-- 核心：conda env `weld-core`（Python 3.11，numpy/pydantic/pytest，无 CATIA）。
+- 核心：仓库内 `.venv`（无 CATIA）；命令用 `.venv\Scripts\python -m ...`。
 - CATIA：conda env `weld-catia`（Windows，pycatia+pywin32，需运行中的 CATIA V5）。
 - 不改动系统/全局 Python。
 
