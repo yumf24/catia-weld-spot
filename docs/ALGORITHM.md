@@ -4,6 +4,8 @@
 
 术语：**面（face）**是 CAD 模型边界上的一个曲面片；**平面面**是可由一个平面表示的面。**AABB** 是与二维坐标轴平行的最小包围矩形，用于快速排除不可能重叠的面。**OCCT 公共区域**是 OpenCASCADE 对两个 CAD 面求真实交叠边界和面积的计算。
 
+两条选面链路只需要跑通其中一条即可，产生faces___.json之后输入到后续处理。
+
 ```mermaid
 flowchart TD
     subgraph STEP["通用 STEP 选面链"]
