@@ -1,90 +1,52 @@
-# 候选焊点算法
+# 候选焊点算法流程
 
-本文只描述当前代码实际会执行的几何处理。当前有两条可进入候选生成核心的输入链：通用选面链从已登记的主 STEP 文件生成 `faces.general-selected.json`；CATIA 全流程链生成 `faces.json` 并富化为 `faces.enriched.json` 后直接进入核心。后者**不会**再执行通用选面，也不存在 `faces.selected.json` 这个产物。
+当前代码有两条真实的输入链。通用 STEP 选面链从原始数据登记的 `primary_model` STEP 文件生成 `faces.general-selected.json`；CATIA 全流程链从活动 CATIA 文档生成 `faces.json`，导出 `component.stp` 补齐顶点后得到 `faces.enriched.json`。两条链在候选生成核心汇合；代码中没有 `faces.selected.json`，CATIA 全流程也不会在富化后调用通用选面。
 
-术语：**面（face）**是 CAD 模型边界上的一个曲面片；**平面面**是可由一个平面表示的面。**AABB**（axis-aligned bounding box）是与二维坐标轴平行的最小包围矩形，仅用作快速粗筛。**OCCT boolean common** 是 OpenCASCADE 对两个 CAD 形状求真实公共区域的布尔运算。
+术语：**面（face）**是 CAD 模型边界上的一个曲面片；**平面面**是可由一个平面表示的面。**AABB** 是与二维坐标轴平行的最小包围矩形，用于快速排除不可能重叠的面。**OCCT 公共区域**是 OpenCASCADE 对两个 CAD 面求真实交叠边界和面积的计算。
 
 ```mermaid
 flowchart TD
-    S1["S1 原始 STEP（primary_model）\n读取 XCAF 装配、累积实例变换，得到全局 StepFace"]
-    S2["S2 所有 CAD 平面面（内存 GeneralPlaneFace）\n顶点拟合判平面；保留 OCCT shape"]
-    S3["S3 几何平面识别与筛选\n枚举面 pair：排同件/角度/间隙/AABB；投影后求精确公共面积\n→ faces.general-selected.json + pair_audit.json + selection_audit.json"]
-    S4["S4 核心输入\nfaces.general-selected.json；或 CATIA 支路的 faces.enriched.json"]
-    S5["S5 面配对\n仅 planar、非 manual_review、有顶点；异件、近似平行、近距离、投影 AABB 重叠"]
-    S6["S6 重叠区域\n中间平面上的 AABB 交集；窄于最小宽度则丢弃"]
-    S7["S7 布点与过滤\n沿长轴等距布点；剔除区域外点和跨 pair 近重复点"]
-    S8["S8 候选焊点\n按面对与坐标排序后重编号 → candidates.json"]
-    S1 --> S2 --> S3 --> S4 --> S5 --> S6 --> S7 --> S8
+    subgraph STEP["通用 STEP 选面链"]
+        direction LR
+        A1["输入：primary_model STEP<br/>解析全局 CAD 面<br/>目的：取得可靠顶点与面形状"]
+        A2["输入：全部平面面<br/>几何配对与精确重叠筛选<br/>目的：留下可能贴合的面"]
+        A3["输出：faces.general-selected.json<br/>同时写 pair_audit.json、selection_audit.json<br/>目的：提供可追溯的核心输入"]
+        A1 --> A2 --> A3
+    end
+
+    subgraph CATIA["CATIA 顶点富化链"]
+        direction LR
+        B1["输入：活动 CATIA 文档<br/>提取所有面 → faces.json<br/>目的：取得 COM 面属性"]
+        B2["输入：活动 CATIA 文档<br/>导出 → component.stp<br/>目的：供 STEP 几何解析"]
+        B3["输入：faces.json + component.stp<br/>匹配并补齐顶点 → faces.enriched.json<br/>目的：让面能参与投影计算"]
+        B1 --> B3
+        B2 --> B3
+    end
+
+    C1["输入：两条链的面文件<br/>过滤合格面并寻找面配对<br/>目的：定位相近的异件平面"]
+    C2["输入：每个合格 face pair<br/>计算中面上的 AABB 交集<br/>目的：确定可布点区域"]
+    C3["输入：有效重叠区域<br/>沿长轴布点并去重<br/>目的：形成稳定候选集合"]
+    C4["输出：candidates.json<br/>按面 ID 和坐标稳定编号<br/>目的：交付候选焊点"]
+    D1["可选输出：CATIA Weld_Candidates<br/>创建/更新点，旧点标记 stale<br/>触发：--write"]
+
+    A3 --> C1
+    B3 --> C1
+    C1 --> C2 --> C3 --> C4
+    C4 -. "--write" .-> D1
 ```
 
-## S1：读取原始 CAD 几何
+## 步骤说明
 
-- 输入：受管原始数据的 `primary_model` STEP 文件；或活动 CATIA 文档（全流程支路）。
-- 输出：通用选面支路得到按零件名分组的 `StepFace`；CATIA 支路得到 `faces.json` 和同一文档导出的 `component.stp`。
-- 核心处理：`parse_step_faces` 用 XCAF 遍历 STEP 装配树，累积实例位置后将面转到装配全局坐标。它提取去重顶点、面积、重心和 OCCT 面形状；以顶点加两个曲面内部采样点做平面拟合，最大残差不超过 `0.01 mm` 才标为平面面。CATIA 提取支路则遍历 `Topology.CGMFace`，读取面积、平面、法向和重心；无法读取平面即标为非平面。
-- 存在原因：后续的投影、间隙和重叠计算必须使用同一全局坐标系的面几何；CATIA COM 本身不能可靠地逐面枚举顶点。
-- 修改或生成的数据、状态、文件：通用选面创建受管运行；全流程写入 `faces.json`（所有已扫描 CAD 面，顶点为空、`manual_review=true`）及 `component.stp`。两条受管入口任一异常均把运行清单标记为 `failed` 后重新抛出。
-- 关键代码：`src/weld_core/step_geometry.py:parse_step_faces`、`_face_to_step_face`、`catia/extract_faces.py:extract_faces`、`catia/export_step.py:export_step`、`scripts/run_full_pipeline.py:main`。
-
-## S2：CATIA 面顶点富化（仅 CATIA 全流程支路）
-
-- 输入：`faces.json`、同一文档导出的 `component.stp`。
-- 输出：`faces.enriched.json`；每个成功匹配的平面面补入 STEP 顶点并解除人工复核标记。
-- 核心处理：按 `part` 分组，将 COM 平面面与 STEP 面组成候选组合。候选需同时满足重心距离不超过 `1.0 mm`、法向无向夹角不超过 `2°`、相对面积差不超过 `5%`；按“距离 + 角度×0.1 + 面积差×10”升序贪心做一对一匹配。匹配到的 STEP 面仍须通过平面判定，才复制顶点并设 `manual_review=false`。
-- 存在原因：候选生成中的二维投影与 AABB 重叠需要顶点；原始 COM 提取故意不提供不可靠的顶点数据。
-- 修改或生成的数据、状态、文件：原 `FacesDocument` 就地修改。STEP 缺少零件时写入该面原因；无候选或 STEP 面非平面时保留/设为 `manual_review=true`，这些面不会进入 S5；写出 `faces.enriched.json`。
-- 关键代码：`scripts/enrich_faces_with_step.py:enrich_faces_document`、`_match_cost`、`_match_part_group`。
-
-## S3：通用平面选面（STEP 选面支路）
-
-- 输入：S1 的所有 `StepFace` 平面面及其 OCCT 形状、`GeneralSelectionParams`。
-- 输出：`faces.general-selected.json`、`pair_audit.json`、`selection_audit.json`。
-- 核心处理：先转为稳定编号的 `GeneralPlaneFace`，枚举全部无序 face pair。默认拒绝同一零件；再依次拒绝法向无向夹角大于 `0.5°`、平面间隙大于 `0.2 mm`、投影 AABB 无交或有效宽度小于 `0.1 mm` 的 pair。通过粗筛后，将第二面沿第一面法向平移至同一平面，以 OCCT 公共区域计算真实公共面积和双方覆盖率；公共面积至少 `1.0 mm²` 且两面覆盖率均至少 `0.05` 才接受。接受 pair 的两张面进入结果；同一面被多个 pair 支持时只保留一次，并记录全部支持 pair。
-- 存在原因：用廉价几何条件缩小组合数量，再用 CAD 边界的精确公共面积避免把 AABB 相交但实际不相交的面选入。
-- 修改或生成的数据、状态、文件：输出选中面的 `FacesDocument`（顶点已具备、`manual_review=false`、原因为 `generic_planar_selection`）；审计文件保留每一对的接受/拒绝原因和量测值，并记录未被任何接受 pair 支持的面。投影或布尔运算异常会转为该 pair 的拒绝原因，而非中断整次 pair 枚举；运行级异常将运行标为失败。
-- 关键代码：`src/weld_core/general_plane_selection.py:general_faces_from_step_groups`、`select_general_planar_faces`、`evaluate_pair`、`exact_projected_pair_overlap`、`run_registered_general_plane_selection`；`src/weld_core/exact_face_overlap.py:exact_face_overlap`。
-
-## S4：选择候选生成的面集
-
-- 输入：`faces.general-selected.json`（通用选面链）或 `faces.enriched.json`（CATIA 全流程链）。
-- 输出：传给 `weld_core.pipeline.run` 的 `FacesDocument`。
-- 核心处理：两条链在此汇合；`run_full_pipeline.py` 实际传入富化后的全部面，通用选面回归/命令行则传入选中面。核心不按零件名、模板、参考 STEP 或历史标签改变算法。
-- 存在原因：既支持无 CATIA 的 STEP 通用选面输入，也保留活动 CATIA 文档的提取—富化全流程。
-- 修改或生成的数据、状态、文件：此步不改面数据。命令行从 `faces.general-selected.json` 读取时，会在最终候选元数据中附上该选面受管运行的来源；读取或数据校验失败时命令返回失败且不写候选文件。
-- 关键代码：`src/weld_core/pipeline.py:main`、`run`、`_infer_general_selection_source`、`scripts/run_full_pipeline.py:main`。
-
-## S5：配对可焊平面面
-
-- 输入：S4 的面集、`WeldParams`。
-- 输出：满足条件的 `(face_a, face_b)` 列表。
-- 核心处理：先只保留 `surface_type="planar"`、`manual_review=false` 且有顶点的面。以法向量矩阵乘法一次计算所有无序对的无向夹角；对角度不超过 `5°` 的 pair，再依次排除同零件、平面间隙大于 `0.1 mm`、以及投影到第一面平面后二维 AABB 无交的 pair。
-- 存在原因：只让几何数据完整且来自不同零件、位置相近的近似平行面进入区域和布点计算；矩阵化角度筛选减少大量 Python 双层循环。
-- 修改或生成的数据、状态、文件：不改输入文件；不符合任一条件的面或 pair 被丢弃，不产生单独审计文件。
-- 关键代码：`src/weld_core/pipeline.py:run`、`src/weld_core/pairing.py:find_mating_pairs`、`src/weld_core/config.py:WeldParams`。
-
-## S6：构造配对重叠区域
-
-- 输入：S5 的每一 face pair、顶点和参数。
-- 输出：每对一个 `Region`，或 `None`。
-- 核心处理：以第一面法向计算第二面有符号间隙，并把区域平面放在两面之间的中面。把两面的顶点投影到该平面，取两个二维 AABB 的交集；交集任一尺寸小于 `5.0 mm` 时返回 `None`，否则保存面 ID、中面、法向、二维包围盒、绝对间隙和法向夹角。
-- 存在原因：候选点应位于两层面之间并限制在共同的可焊宽度内。
-- 修改或生成的数据、状态、文件：仅创建临时 `Region`；无二维交或宽度不足的 pair 不进入 S7。
-- 关键代码：`src/weld_core/region.py:build_region`、`src/weld_core/geometry.py:project_to_plane`、`aabb_overlap_2d`。
-
-## S7：布点与去重
-
-- 输入：S6 的每个 `Region`、间距参数。
-- 输出：未编号的 `Candidate` 列表。
-- 核心处理：取区域较长轴。长边小于 `20.0 mm` 时只在二维中心放一点；否则点数为 `max(2, ceil(长边/70.0)+1)`，在长轴两端间均匀布点，另一轴固定为中心，因此相邻间距不超过 `70.0 mm`。点反投影到中面，并由区域四角反投影得到三维 `region_bbox`。过滤先剔除超出自身 `region_bbox` 的点，再按生成顺序剔除与已保留点距离小于 `20.0 mm` 的跨 pair 近重复点。
-- 存在原因：在每块有效搭接区域提供覆盖长边的候选点，并消除相邻面分割导致的重复候选。
-- 修改或生成的数据、状态、文件：创建候选的位置、关联面、间距、区域包围盒和生成原因；被过滤候选不会写出。
-- 关键代码：`src/weld_core/points.py:layout_points`、`_region_bbox_3d`、`src/weld_core/filtering.py:filter_candidates`。
-
-## S8：稳定编号并写出候选
-
-- 输入：S7 保留的候选、来源 `part` 和 `WeldParams`。
-- 输出：`candidates.json` 中的 `CandidatesDocument`。
-- 核心处理：按无序面 ID 对、再按三维坐标排序，依次改写为 `wc_001`、`wc_002`……；排序不依赖 CATIA 提取时的面发现顺序。候选元数据写入参数；若输入为受管通用选面文件，还写入 S4 所述的选面来源。
-- 存在原因：相同物理候选在输入面顺序变化时仍获得稳定 ID，供后续 CATIA 回写按 ID 更新。
-- 修改或生成的数据、状态、文件：生成并序列化候选文件；全流程把它登记为受管运行的 `candidates` 产物。候选生成函数本身不写文件，写入由 `pipeline.main` 或 `run_full_pipeline.py` 完成。
-- 关键代码：`src/weld_core/pipeline.py:run`、`main`、`src/weld_core/schema.py:CandidatesDocument`、`dump_document`。
+| 步骤 | 输入 → 输出 | 核心处理与原因 | 条件、状态与关键代码 |
+| --- | --- | --- | --- |
+| A1 STEP 面解析 | 原始清单的 `primary_model` STEP → 按零件分组的内存 `StepFace` | 用 XCAF 遍历装配并累积实例变换，提取全局顶点、面积、重心和 OCCT 面形状；顶点加两个曲面内部采样点拟合平面。这样后续几何计算都在同一装配坐标系中进行。 | 最大平面拟合残差不超过 `0.01 mm` 才是平面面；解析失败使受管运行标为 `failed`。`src/weld_core/step_geometry.py:parse_step_faces`、`_face_to_step_face`。 |
+| A2 通用平面选面 | `StepFace` 平面面 → 接受的面 ID 与逐 pair 审计 | 枚举无序面 pair，先以同件、法向、间隙和投影 AABB 粗筛，再把第二面投影到第一面平面并计算 OCCT 真实公共面积和双方覆盖率。先粗后精可减少布尔运算，同时避免仅 AABB 相交造成的误选。 | 默认拒绝同一零件；阈值依次为夹角 `0.5°`、间隙 `0.2 mm`、有效宽度 `0.1 mm`、公共面积 `1.0 mm²`、双方覆盖率 `0.05`。投影/布尔异常记录为该 pair 的拒绝原因，继续枚举其余 pair。`src/weld_core/general_plane_selection.py:evaluate_pair`、`select_general_planar_faces`、`src/weld_core/exact_face_overlap.py:exact_face_overlap`。 |
+| A3 写出选面结果 | 接受的面和审计 → `faces.general-selected.json`、`pair_audit.json`、`selection_audit.json` | 将每张被至少一个接受 pair 支持的面写成候选生成可读的 `FacesDocument`，并保存所有接受/拒绝理由。这样输出既可直接使用，也可回溯选面依据。 | 选中面设为 `manual_review=false`，原因设为 `generic_planar_selection`；同一面只写一次但保留全部支持 pair。`src/weld_core/general_plane_selection.py:run_registered_general_plane_selection`、`selected_faces_document`。 |
+| B1 CATIA 面提取 | 活动 CATIA 文档 → `faces.json` | 遍历 `Topology.CGMFace`，读取面积、平面、法向和重心。此文件提供 CATIA 所见的全部面属性。 | COM 无法可靠枚举逐面顶点，所以所有面初始为 `vertices=[]`、`manual_review=true`；无法读取平面时标为 `non_planar`。`catia/extract_faces.py:extract_faces`。 |
+| B2 导出 STEP | 活动 CATIA 文档 → `component.stp` | 通过 CATIA 导出同一文档的 STEP 文件，供 B3 取得可靠的拓扑顶点。 | 只在 CATIA 全流程中生成；导出异常使该运行失败。`catia/export_step.py:export_step`、`scripts/run_full_pipeline.py:main`。 |
+| B3 顶点富化 | `faces.json` + `component.stp` → `faces.enriched.json` | 按零件分组，以重心距离、法向夹角和面积差构成候选，再按综合代价贪心做一对一 COM/STEP 面匹配；成功的 STEP 平面面向 COM 面写入顶点。这样仅可信的面能进入候选核心。 | 阈值：重心距离 `1.0 mm`、夹角 `2°`、相对面积差 `5%`。STEP 缺零件、无匹配或匹配面非平面时保留/设为 `manual_review=true` 并写原因。`scripts/enrich_faces_with_step.py:enrich_faces_document`、`_match_part_group`。 |
+| C1 合格面与配对 | `faces.general-selected.json` **或** `faces.enriched.json` → face pair 列表 | 只保留平面、非人工复核且有顶点的面；以矩阵计算全部法向夹角，再排除同件、间隙过大和投影 AABB 无交的 pair。这样只向后传递有足够几何证据的近似贴合面。 | 核心参数为夹角不超过 `5°`、间隙不超过 `0.1 mm`；拒绝的 pair 不写独立文件。`src/weld_core/pipeline.py:run`、`src/weld_core/pairing.py:find_mating_pairs`。 |
+| C2 重叠区域 | 每个 face pair → `Region` 或无结果 | 在两面之间建立中面，将两组顶点投影到该平面，取二维 AABB 交集。候选点放在中面可代表两层贴合位置。 | 无交集或交集任一尺寸小于 `5.0 mm` 时返回 `None`，该 pair 不再布点。`src/weld_core/region.py:build_region`。 |
+| C3 布点与去重 | `Region` → 未编号 `Candidate` 列表 | 沿区域长轴布点：长边小于 `20.0 mm` 时取中心一点，否则均匀布点且相邻距离不超过 `70.0 mm`；再剔除区域包围盒外点及跨 pair 距离小于 `20.0 mm` 的近重复点。这样覆盖有效区域并避免相邻面分割产生重复候选。 | 为每个保留点生成位置、关联面、间距、三维区域包围盒和原因。`src/weld_core/points.py:layout_points`、`src/weld_core/filtering.py:filter_candidates`。 |
+| C4 候选文件 | 保留候选 → `candidates.json` | 按无序面 ID 对、再按坐标排序，编号为 `wc_001`、`wc_002`……，并写入来源和参数。排序不依赖 CATIA 的面发现顺序，保证同一物理候选的 ID 稳定。 | 通用选面文件作为输入时，元数据附带选面来源；文件由 `pipeline.main` 或全流程入口写出并登记为 `candidates` 产物。`src/weld_core/pipeline.py:run`、`main`。 |
+| D1 可选 CATIA 回写 | `candidates.json` / 内存候选 → CATIA `Weld_Candidates` 零件与点集 | 创建或复用候选零件和几何集，按稳定 ID 新建点或更新点的坐标及信息参数。此步骤把算法结果显示到活动 CAD 文档，但不改变 `candidates.json`。 | 仅传入 `--write` 时执行；本轮不存在的旧点不删除，而是标记为 `stale`。`scripts/run_full_pipeline.py:main`、`catia/write_candidates.py:write_candidates`。 |
