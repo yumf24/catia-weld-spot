@@ -121,7 +121,7 @@
       "id": "EA04_classify_false_positives",
       "priority": 4,
       "depends_on": ["EA03_classify_false_negatives"],
-      "pass": false,
+      "pass": true,
       "goal": "解释每个 FP 为什么被选中但不在离线 truth 中。",
       "changes": [
         "为每个 FP 汇总 accepted supporting pairs。",

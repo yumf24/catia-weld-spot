@@ -276,6 +276,59 @@ def classify_false_negatives(joined: dict[str, Any], pair_audit: dict[str, Any])
     return classifications
 
 
+def classify_false_positives(joined: dict[str, Any]) -> list[dict[str, Any]]:
+    """Explain selected faces absent from the offline truth mapping.
+
+    The validated join has already ensured that every supporting pair is
+    accepted and contains its selected face.  This function retains every
+    support (rather than choosing one) because multiple supports are evidence
+    for a false positive's selection.
+    """
+
+    truth_face_ids = {
+        face["face_id"]
+        for face in joined.get("faces", [])
+        if isinstance(face, dict) and face.get("is_truth_face") and isinstance(face.get("face_id"), str)
+    }
+    classifications: list[dict[str, Any]] = []
+    for face in joined.get("faces", []):
+        if not isinstance(face, dict) or face.get("classification") != "false_positive":
+            continue
+        face_id = face.get("face_id")
+        supporting_pairs = face.get("supporting_pairs")
+        if not isinstance(face_id, str) or not isinstance(supporting_pairs, list) or not supporting_pairs:
+            raise ErrorAnalysisInputError("joined false-positive face must have a face_id and supporting pairs")
+        supports: list[dict[str, Any]] = []
+        for pair in supporting_pairs:
+            if not isinstance(pair, dict) or not pair.get("accepted"):
+                raise ErrorAnalysisInputError(f"false-positive face {face_id!r} has invalid supporting pair")
+            counterpart_face_id, counterpart_part = _counterpart(pair, face_id)
+            supports.append(
+                {
+                    "pair_id": pair["id"],
+                    "counterpart_face_id": counterpart_face_id,
+                    "counterpart_part": counterpart_part,
+                    "counterpart_is_truth_face": counterpart_face_id in truth_face_ids,
+                    "common_area_mm2": pair.get("common_area_mm2"),
+                    "coverage_a": pair.get("coverage_a"),
+                    "coverage_b": pair.get("coverage_b"),
+                    "score": pair.get("score"),
+                }
+            )
+        has_truth_support = any(support["counterpart_is_truth_face"] for support in supports)
+        classifications.append(
+            {
+                "face_id": face_id,
+                "is_unknown_predicted_face": True,
+                "false_positive_reason": (
+                    "accepted_pair_connects_offline_truth" if has_truth_support else "accepted_pair_not_in_offline_truth"
+                ),
+                "supporting_pairs": supports,
+            }
+        )
+    return classifications
+
+
 def load_and_join_error_analysis(
     evaluation_path: str | Path,
     pair_audit_path: str | Path,

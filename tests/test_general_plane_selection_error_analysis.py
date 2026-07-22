@@ -7,6 +7,7 @@ import pytest
 from weld_core.general_plane_selection_error_analysis import (
     ErrorAnalysisInputError,
     classify_false_negatives,
+    classify_false_positives,
     join_error_analysis,
     load_and_join_error_analysis,
 )
@@ -175,3 +176,65 @@ def test_fn_classification_uses_same_part_when_no_deeper_geometry_evidence_exist
 
     assert result[0]["failure_stage"] == "same_part_policy"
     assert result[0]["recommended_recovery"] == "evaluate_same_part_pair_policy"
+
+
+def test_fp_classification_explains_single_support_connected_to_truth():
+    evaluation, pair_audit, selection_audit = _artifacts()
+    pair_audit["pairs"][0].update(
+        {"part_a": "truth-part", "part_b": "extra-part", "common_area_mm2": 12.0, "coverage_a": 0.8, "coverage_b": 0.7, "score": 6.72}
+    )
+
+    result = classify_false_positives(join_error_analysis(evaluation, pair_audit, selection_audit))
+
+    assert result == [
+        {
+            "face_id": "extra-selected",
+            "is_unknown_predicted_face": True,
+            "false_positive_reason": "accepted_pair_connects_offline_truth",
+            "supporting_pairs": [
+                {
+                    "pair_id": "accepted",
+                    "counterpart_face_id": "truth-selected",
+                    "counterpart_part": "truth-part",
+                    "counterpart_is_truth_face": True,
+                    "common_area_mm2": 12.0,
+                    "coverage_a": 0.8,
+                    "coverage_b": 0.7,
+                    "score": 6.72,
+                }
+            ],
+        }
+    ]
+
+
+def test_fp_classification_retains_multiple_supports_and_identifies_non_truth_pairs():
+    evaluation, pair_audit, selection_audit = _artifacts()
+    pair_audit["pairs"].append(
+        {
+            "id": "accepted-extra",
+            "face_a_id": "extra-selected",
+            "face_b_id": "other-selected",
+            "part_a": "extra-part",
+            "part_b": "other-part",
+            "accepted": True,
+            "common_area_mm2": 3.0,
+            "coverage_a": 0.2,
+            "coverage_b": 0.3,
+            "score": 0.18,
+        }
+    )
+    selection_audit["selected_faces"][1]["supporting_pair_ids"].append("accepted-extra")
+    selection_audit["selected_faces"].append({"face_id": "other-selected", "supporting_pair_ids": ["accepted-extra"]})
+    selection_audit["selected_face_count"] = 3
+    selection_audit["total_planar_faces"] = 6
+    selection_audit["rejected_faces"].append({"face_id": "other-rejected-2", "reason": "no_accepted_pair"})
+    evaluation["false_positive_faces"].append({"face_id": "other-selected"})
+    evaluation["summary"]["false_positives"] = 2
+
+    result = classify_false_positives(join_error_analysis(evaluation, pair_audit, selection_audit))
+
+    extra = next(row for row in result if row["face_id"] == "extra-selected")
+    assert len(extra["supporting_pairs"]) == 2
+    assert extra["supporting_pairs"][1]["counterpart_is_truth_face"] is False
+    other = next(row for row in result if row["face_id"] == "other-selected")
+    assert other["false_positive_reason"] == "accepted_pair_not_in_offline_truth"

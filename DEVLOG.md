@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-07-22 17:22:15 +08:00 - EA04 归类平面选面 false positives
+
+**做了什么**
+- 为每个 FP 汇总全部 accepted supporting pairs，保留公共面积、双方 coverage、score、对侧 face/part 以及对侧是否属于离线 truth。
+- 将 FP 明确标为离线 truth 未知的预测面；区分 accepted pair 是否连接 truth face，或完全不在离线 truth 中。
+- 未修改运行时选面逻辑、默认参数或 pipeline。
+
+**验证结果**
+- `.venv\Scripts\python -m pytest tests\test_general_plane_selection_error_analysis.py -k fp`：**3 passed**。
+- 实际受管回归中的 2 个 FP 均各有 1 个 supporting pair，均为 `accepted_pair_not_in_offline_truth`。
+
+---
+
 ## 2026-07-22 17:20:02 +08:00 - EA03 归类平面选面 false negatives
 
 **做了什么**
