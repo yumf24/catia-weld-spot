@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-22 15:26:00 +08:00 — S08 component-simplify 端到端验收运行
+
+**做了什么**
+- 创建独立受管运行目录 `data/component-simplify/20260722-152546-acceptance/`，依次完成冻结模板选面、精确选面评测和候选点生成；运行清单为 `completed`，登记选面、审计、评测及候选产物。
+- 验收仅以注册主 STEP/OCP 作为选面几何真值；人工参考 STEP 仅由评测命令读取。主/参考 SHA、冻结模板路径和 SHA、参数与正式指标均写入受管清单及产物。
+- `docs/ALG_update.json` 中 S08 标记为通过。
+
+**验证结果**
+- `.venv\Scripts\python scripts\select_template_planes.py component-simplify --run-label acceptance`：选中 **40** 个冻结 face。
+- `.venv\Scripts\python scripts\evaluate_template_plane_selection.py component-simplify --run-dir data\component-simplify\20260722-152546-acceptance`：**precision 100.00%，recall 100.00%**。
+- `.venv\Scripts\python -m weld_core.pipeline ...\faces.selected.json ...\candidates.json`：生成 **13** 个候选；`scripts\inspect_run.py` 确认四项必需产物均已登记。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\s08-full`：**72 passed**。
+
+---
+
 ## 2026-07-22 15:23:00 +08:00 — S07 冻结模板选面接入核心流程
 
 **做了什么**

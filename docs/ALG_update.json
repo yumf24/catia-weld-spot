@@ -303,7 +303,7 @@
       "id": "S08_acceptance_run",
       "priority": 8,
       "depends_on": ["S07_pipeline_integration"],
-      "pass": false,
+      "pass": true,
       "goal": "完成当前基准零件的端到端离线受管验收运行。",
       "changes": [
         "创建独立 data/component-simplify/<run-id>，依次登记模板选择、精确评测和 candidates 产物。",
