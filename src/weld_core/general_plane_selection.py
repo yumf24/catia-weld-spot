@@ -9,7 +9,11 @@ CAD-boundary overlap.
 
 from __future__ import annotations
 
+import json
+from dataclasses import asdict
 from dataclasses import dataclass, field
+from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import numpy as np
@@ -26,6 +30,7 @@ from .geometry import (
     point_to_plane_distance,
     project_to_plane,
 )
+from .schema import FaceRecord, FacesDocument, FacesMeta, dump_document
 from .step_geometry import StepFace
 
 _ZERO_AREA_MM2 = 1e-9
@@ -54,6 +59,7 @@ class GeneralPlaneFace:
     centroid: tuple[float, float, float]
     vertices: tuple[tuple[float, float, float], ...]
     shape: Any = field(compare=False, repr=False)
+    area_mm2: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -307,7 +313,159 @@ def general_faces_from_step_groups(groups: dict[str, list[StepFace]]) -> list[Ge
                     plane_origin=face.centroid,
                     centroid=face.centroid,
                     vertices=tuple(face.vertices),
+                    area_mm2=face.area,
                     shape=face.shape,
                 )
             )
     return faces
+
+
+def _params_dict(params: GeneralSelectionParams) -> dict[str, Any]:
+    return asdict(params)
+
+
+def _write_json(path: Path, value: dict[str, Any]) -> None:
+    path.write_text(json.dumps(value, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+
+
+def selected_faces_document(
+    part_id: str,
+    selected_faces: list[GeneralPlaneFace],
+    *,
+    warnings: list[str] | None = None,
+) -> FacesDocument:
+    """Serialize selected generic CAD faces as the pipeline's FacesDocument."""
+
+    records = [
+        FaceRecord(
+            id=face.id,
+            part=face.part,
+            body="",
+            surface_type="planar",
+            area=face.area_mm2,
+            normal=face.normal,
+            plane_origin=face.plane_origin,
+            centroid=face.centroid,
+            vertices=list(face.vertices),
+            manual_review=False,
+            reason="generic_planar_selection",
+        )
+        for face in sorted(selected_faces, key=lambda item: item.id)
+    ]
+    return FacesDocument(
+        meta=FacesMeta(
+            part=part_id,
+            unit="mm",
+            context="product",
+            warnings=warnings or [],
+        ),
+        faces=records,
+    )
+
+
+def run_registered_general_plane_selection(
+    part_id: str,
+    *,
+    run_label: str = "generic-selection",
+    params: GeneralSelectionParams | None = None,
+    raw_root: Path | None = None,
+    data_root: Path | None = None,
+    now: datetime | None = None,
+) -> Path:
+    """Run generic selection from a registered primary STEP and write artifacts.
+
+    Only the raw manifest's ``primary_model`` role is validated and consumed.
+    Reference/evaluation-only inputs may exist in the same raw manifest but are
+    intentionally absent from the created run's raw input registration.
+    """
+
+    from .data_layout import RAW_DATA_ROOT, DATA_ROOT, create_run, load_raw_manifest, update_run_manifest
+    from .step_geometry import parse_step_faces
+
+    params = params or GeneralSelectionParams()
+    raw_root = raw_root or RAW_DATA_ROOT
+    data_root = data_root or DATA_ROOT
+    run_dir: Path | None = None
+    try:
+        run_dir, manifest = create_run(
+            part_id,
+            run_label,
+            parameters={"general_selection": _params_dict(params)},
+            raw_root=raw_root,
+            data_root=data_root,
+            input_roles=["primary_model"],
+            now=now,
+        )
+        raw_manifest = load_raw_manifest(part_id, raw_root)
+        primary_info = raw_manifest["inputs"]["primary_model"]
+        primary_step = (raw_root / part_id / primary_info["path"]).resolve()
+
+        all_faces = general_faces_from_step_groups(parse_step_faces(str(primary_step)))
+        result = select_general_planar_faces(all_faces, params)
+        selected_id_set = set(result.selected_face_ids)
+        selected_faces = [face for face in all_faces if face.id in selected_id_set]
+
+        faces_path = run_dir / "faces.general-selected.json"
+        pair_audit_path = run_dir / "pair_audit.json"
+        selection_audit_path = run_dir / "selection_audit.json"
+
+        dump_document(selected_faces_document(part_id, selected_faces), faces_path)
+        _write_json(
+            pair_audit_path,
+            {
+                "format_version": 1,
+                "part_id": part_id,
+                "run_id": manifest["run_id"],
+                "parameters": _params_dict(params),
+                "pairs": [asdict(audit) for audit in result.pair_audits],
+            },
+        )
+        _write_json(
+            selection_audit_path,
+            {
+                "format_version": 1,
+                "part_id": part_id,
+                "run_id": manifest["run_id"],
+                "source": {
+                    "role": "primary_model",
+                    "path": str(primary_step),
+                    "sha256": manifest["raw_inputs"][0]["sha256"],
+                },
+                "parameters": _params_dict(params),
+                "total_planar_faces": len(all_faces),
+                "selected_face_count": len(selected_faces),
+                "selected_faces": [
+                    {
+                        "face_id": face_id,
+                        "supporting_pair_ids": list(result.supporting_pair_ids_by_face[face_id]),
+                    }
+                    for face_id in result.selected_face_ids
+                ],
+                "rejected_faces": [
+                    {"face_id": face.id, "reason": "no_accepted_pair"}
+                    for face in sorted(all_faces, key=lambda item: item.id)
+                    if face.id not in selected_id_set
+                ],
+            },
+        )
+
+        from .data_layout import register_artifact
+
+        register_artifact(run_dir, "faces.general-selected", faces_path, kind="faces_document")
+        register_artifact(run_dir, "pair_audit", pair_audit_path, kind="json")
+        register_artifact(run_dir, "selection_audit", selection_audit_path, kind="json")
+        update_run_manifest(
+            run_dir,
+            status="completed",
+            completed_at=datetime.now().astimezone().isoformat(timespec="seconds"),
+        )
+        return run_dir
+    except Exception as exc:
+        if run_dir is not None:
+            update_run_manifest(
+                run_dir,
+                status="failed",
+                error=str(exc),
+                failed_at=datetime.now().astimezone().isoformat(timespec="seconds"),
+            )
+        raise

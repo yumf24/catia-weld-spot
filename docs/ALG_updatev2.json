@@ -215,7 +215,7 @@
       "id": "G05_general_selection_runtime",
       "priority": 5,
       "depends_on": ["G04_offline_reference_evaluation"],
-      "pass": false,
+      "pass": true,
       "goal": "实现只依赖任意注册主 STEP 的通用选面命令，并生成完整、可审计的通用运行产物。",
       "changes": [
         "新增 `scripts/select_general_planes.py <part-id> --run-label <label>`；它只读取 raw manifest 中的 primary_model，核验该输入本身的 SHA-256 后执行通用几何选择。",

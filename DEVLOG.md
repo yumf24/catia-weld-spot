@@ -5,7 +5,19 @@
 
 ---
 
-## 2026-07-22 16:17:56 +08:00 — G04 离线参考评测
+## 2026-07-22 16:25:00 +08:00 - G05 通用选面运行时
+**做了什么**
+- 实现 `scripts/select_general_planes.py <part-id> --run-label <label>`：命令只验证并读取 raw manifest 的 `primary_model`，执行通用 planar face pair 几何选择，不读取 `surface_reference` 或任何参考标签。
+- 新增通用运行产物写出：`faces.general-selected.json`、`pair_audit.json`、`selection_audit.json`，并在受管 `manifest.json` 中登记三项产物；审计记录所有可处理平面 face、所有 pair 的接受/拒绝原因、支持 pair 追踪和运行参数。
+- 新增 `tests/test_general_plane_selection_runtime.py`，覆盖合成输入的 primary-only 运行、稳定输出顺序、manifest 登记和完整审计；`docs/ALG_updatev2.json` 中 `G05_general_selection_runtime` 标记为通过。
+- 在 `component-simplify` 上生成受管运行 `data/component-simplify/20260722-162343-generic-regression/`；该运行只登记 `primary_model`，解析 525 个平面 face，审计 137550 个 pair，其中 10 个 accepted pair，最终选中 19 个 face。
+**验证结果**
+- `.venv\Scripts\python -m pytest tests\test_general_plane_selection_runtime.py --basetemp .pytest_cache\g05-runtime`：**2 passed**。
+- `.venv\Scripts\python scripts\select_general_planes.py component-simplify --run-label generic-regression`：成功创建通用选面受管运行。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\g05-full`：**82 passed**。
+---
+
+## 2026-07-22 16:17:56 +08:00 - G04 离线参考评测
 
 **做了什么**
 - 新增 `weld_core.general_plane_selection_evaluation`，仅在显式离线评测输入中使用参考 CAD face，构建 source face 真值映射并输出 TP/FP/FN、precision/recall 和逐 face 诊断。
