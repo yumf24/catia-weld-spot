@@ -170,6 +170,87 @@ def render_controlled_parameter_sweep_markdown(report: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def build_optimization_recommendation_backlog(
+    error_report: dict[str, Any], sweep_report: dict[str, Any]
+) -> dict[str, Any]:
+    """Convert offline error evidence into a deliberately non-runtime backlog."""
+
+    rankings = error_report.get("false_negative_reason_ranking")
+    cases = sweep_report.get("cases")
+    if error_report.get("scope") != "offline_evaluation_only" or not isinstance(rankings, list):
+        raise ErrorAnalysisInputError("invalid offline error-analysis report for backlog")
+    if sweep_report.get("scope") != "offline_evaluation_only" or not isinstance(cases, list):
+        raise ErrorAnalysisInputError("invalid offline parameter-sweep report for backlog")
+    reasons = {item.get("failure_stage"): item.get("count") for item in rankings if isinstance(item, dict)}
+
+    def find_case(gap: float, same_part: bool, coverage: float) -> dict[str, Any]:
+        for case in cases:
+            if not isinstance(case, dict):
+                continue
+            params = case.get("parameters")
+            if isinstance(params, dict) and (
+                params.get("max_plane_gap_mm") == gap
+                and params.get("allow_same_part_pairs") is same_part
+                and params.get("min_face_coverage") == coverage
+            ):
+                return case
+        raise ErrorAnalysisInputError(f"sweep report missing required case gap={gap}, same_part={same_part}, coverage={coverage}")
+
+    baseline = find_case(0.2, False, 0.05)
+    expanded_gap = find_case(1.5, False, 0.05)
+    same_part = find_case(1.5, True, 0.05)
+    return {
+        "format_version": 1,
+        "scope": "offline_planning_only",
+        "production_defaults_changed": False,
+        "recommendations": [
+            {
+                "id": "layered_plane_gap_strategy",
+                "target_error_cluster": "plane_gap",
+                "evidence": {
+                    "false_negative_count": reasons.get("plane_gap", 0),
+                    "baseline_case": baseline,
+                    "offline_candidate_case": expanded_gap,
+                },
+                "expected_recall_impact": "Validate a layered gap policy; the selected offline case measures its recall effect.",
+                "precision_risk": "Larger gaps can select additional non-truth faces; retain the baseline precision gate in evaluation.",
+                "implementation_scope": "Investigate a general layered gap policy without dataset-specific identifiers or runtime default changes.",
+                "acceptance_tests": [
+                    "Add geometry fixtures for near-gap pairs at every layer boundary.",
+                    "Require offline precision/recall comparison against the 0.2 mm baseline before any default change.",
+                ],
+            },
+            {
+                "id": "projected_aabb_pre_filter_diagnosis",
+                "target_error_cluster": "projected_aabb",
+                "evidence": {"false_negative_count": reasons.get("projected_aabb", 0)},
+                "expected_recall_impact": "Determine whether the rejected faces are recoverable geometry rather than assuming a recall gain.",
+                "precision_risk": "Relaxing a coarse pre-filter may increase expensive exact-overlap calls and false-positive exposure.",
+                "implementation_scope": "Instrument or refine the generic projected-AABB pre-filter only after geometric diagnosis.",
+                "acceptance_tests": [
+                    "Add projected-boundary fixtures that distinguish genuine non-overlap from pre-filter false rejection.",
+                    "Verify the changed pre-filter preserves exact-overlap rejection for disjoint faces.",
+                ],
+            },
+            {
+                "id": "same_part_pair_policy_evaluation",
+                "target_error_cluster": "same_part_policy",
+                "evidence": {
+                    "false_negative_count": reasons.get("same_part_policy", 0),
+                    "offline_candidate_case": same_part,
+                },
+                "expected_recall_impact": "Measure same-part recovery separately from cross-part policy changes.",
+                "precision_risk": "The offline same-part case is a high-risk expansion and must not be enabled by default.",
+                "implementation_scope": "Evaluate a generic, explicit same-part policy with separate acceptance gates; do not add part-specific exceptions.",
+                "acceptance_tests": [
+                    "Add same-part planar-pair fixtures for both intended and unintended overlaps.",
+                    "Require a separate offline precision gate before enabling same-part pairs in production.",
+                ],
+            },
+        ],
+    }
+
+
 _FN_REASON_DETAILS = {
     "overlap_area_below_threshold": (
         "overlap_area",

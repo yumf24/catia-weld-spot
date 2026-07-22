@@ -181,7 +181,7 @@
       "id": "EA07_optimization_recommendation_backlog",
       "priority": 7,
       "depends_on": ["EA06_controlled_parameter_sweep"],
-      "pass": false,
+      "pass": true,
       "goal": "基于错误分析和扫描结果生成下一轮优化 backlog。",
       "changes": [
         "每条建议包含 target_error_cluster、evidence、expected_recall_impact、precision_risk、implementation_scope 和 acceptance_tests。",

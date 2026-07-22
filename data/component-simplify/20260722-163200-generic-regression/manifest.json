@@ -63,6 +63,10 @@
     "general_plane_selection_parameter_sweep_markdown": {
       "path": "general_plane_selection_parameter_sweep.md",
       "kind": "markdown"
+    },
+    "general_plane_selection_optimization_backlog": {
+      "path": "general_plane_selection_optimization_backlog.json",
+      "kind": "json"
     }
   },
   "completed_at": "2026-07-22T16:32:14+08:00"

@@ -8,6 +8,7 @@ from weld_core.general_plane_selection_error_analysis import (
     ErrorAnalysisInputError,
     build_error_analysis_report,
     build_controlled_parameter_sweep,
+    build_optimization_recommendation_backlog,
     classify_false_negatives,
     classify_false_positives,
     join_error_analysis,
@@ -293,3 +294,31 @@ def test_sweep_generates_complete_fixed_28_case_matrix_without_changing_defaults
     assert {case["parameters"]["max_plane_gap_mm"] for case in report["cases"]} == {0.2, 0.3, 0.5, 0.8, 1.0, 1.5, 3.0}
     assert all(case["parameters"].items() >= default_params.items() for case in report["cases"])
     assert "| Gap (mm) |" in render_controlled_parameter_sweep_markdown(report)
+
+
+def test_backlog_orders_gap_aabb_and_same_part_with_required_evidence_and_risk():
+    error_report = {
+        "scope": "offline_evaluation_only",
+        "false_negative_reason_ranking": [
+            {"failure_stage": "plane_gap", "count": 18},
+            {"failure_stage": "projected_aabb", "count": 3},
+            {"failure_stage": "same_part_policy", "count": 2},
+        ],
+    }
+    sweep_report = build_controlled_parameter_sweep(
+        lambda _params: {
+            "summary": {
+                "predicted_faces": 10, "truth_faces": 8, "true_positives": 7,
+                "false_positives": 3, "false_negatives": 1, "precision": 0.7,
+                "recall": 0.875, "passed": True,
+            }
+        }
+    )
+
+    backlog = build_optimization_recommendation_backlog(error_report, sweep_report)
+
+    assert backlog["scope"] == "offline_planning_only"
+    assert [row["target_error_cluster"] for row in backlog["recommendations"]] == [
+        "plane_gap", "projected_aabb", "same_part_policy"
+    ]
+    assert all(row["evidence"] and row["precision_risk"] and row["acceptance_tests"] for row in backlog["recommendations"])

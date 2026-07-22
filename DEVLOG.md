@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-07-22 18:12:00 +08:00 - EA07 平面选面优化建议 backlog
+
+**做了什么**
+- 新增离线 backlog 生成器，消费受管错误分析报告和 28 组参数扫描，输出每项建议的目标错误簇、证据、预期 recall 影响、precision 风险、通用实现范围和验收测试。
+- 实际 `component-simplify` backlog 将方向固定排序为：layered gap 策略、projected-AABB 预筛诊断、same-part 策略评估；明确同件策略是高 precision 风险的独立实验，不会自动进入生产。
+- 生成 `general_plane_selection_optimization_backlog.json` 并登记到受管 run manifest；未改动生产阈值或运行时逻辑。
+
+**验证结果**
+- `.venv\Scripts\python -m pytest tests\test_general_plane_selection_error_analysis.py`：**12 passed**。
+- backlog JSON 可解析，且三项建议均包含 `evidence`、`precision_risk` 和非空 `acceptance_tests`。
+
+---
+
 ## 2026-07-22 18:05:00 +08:00 - EA06 受控平面选面参数扫描
 
 **做了什么**
