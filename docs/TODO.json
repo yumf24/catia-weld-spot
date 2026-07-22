@@ -161,7 +161,7 @@
       "id": "EA06_controlled_parameter_sweep",
       "priority": 6,
       "depends_on": ["EA05_generate_human_report"],
-      "pass": false,
+      "pass": true,
       "goal": "在诊断报告之后执行固定参数扫描，用离线指标验证优化方向排序。",
       "changes": [
         "实现固定扫描矩阵：max_plane_gap_mm=[0.2,0.3,0.5,0.8,1.0,1.5,3.0]、allow_same_part_pairs=[false,true]、min_face_coverage=[0.02,0.05]。",

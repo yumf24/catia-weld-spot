@@ -8,8 +8,13 @@ runtime selector or pipeline.
 from __future__ import annotations
 
 import json
+from dataclasses import asdict
+from itertools import product
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
+
+from .general_plane_selection import GeneralPairAudit, GeneralPlaneFace, GeneralSelectionParams, select_general_planar_faces
+from .general_plane_selection_evaluation import evaluate_general_plane_selection
 
 
 _REPORT_RECOMMENDATIONS = {
@@ -18,9 +23,151 @@ _REPORT_RECOMMENDATIONS = {
     "same_part_policy": "Evaluate same-part pairs separately, with precision impact measured offline.",
 }
 
+_SWEEP_MAX_PLANE_GAP_MM = (0.2, 0.3, 0.5, 0.8, 1.0, 1.5, 3.0)
+_SWEEP_ALLOW_SAME_PART_PAIRS = (False, True)
+_SWEEP_MIN_FACE_COVERAGE = (0.02, 0.05)
+
 
 class ErrorAnalysisInputError(ValueError):
     """Raised when evaluation and audit artifacts cannot be joined safely."""
+
+
+def controlled_parameter_sweep_cases() -> list[GeneralSelectionParams]:
+    """Return the fixed 7 x 2 x 2 offline diagnostic sweep matrix.
+
+    All thresholds not explicitly varied retain their production defaults.  The
+    returned parameter objects are used only by the offline analysis command;
+    this function never mutates a runtime default.
+    """
+
+    return [
+        GeneralSelectionParams(
+            max_plane_gap_mm=max_plane_gap_mm,
+            allow_same_part_pairs=allow_same_part_pairs,
+            min_face_coverage=min_face_coverage,
+        )
+        for max_plane_gap_mm, allow_same_part_pairs, min_face_coverage in product(
+            _SWEEP_MAX_PLANE_GAP_MM,
+            _SWEEP_ALLOW_SAME_PART_PAIRS,
+            _SWEEP_MIN_FACE_COVERAGE,
+        )
+    ]
+
+
+def build_controlled_parameter_sweep(
+    evaluate_case: Callable[[GeneralSelectionParams], dict[str, Any]],
+) -> dict[str, Any]:
+    """Evaluate every fixed sweep case and return a portable offline report.
+
+    ``evaluate_case`` makes the matrix and report contract unit-testable
+    without requiring CAD geometry.  It must return an evaluation result with
+    a ``summary`` object, as produced by ``evaluate_general_plane_selection``.
+    """
+
+    rows: list[dict[str, Any]] = []
+    summary_fields = (
+        "predicted_faces",
+        "truth_faces",
+        "true_positives",
+        "false_positives",
+        "false_negatives",
+        "precision",
+        "recall",
+        "passed",
+    )
+    for params in controlled_parameter_sweep_cases():
+        result = evaluate_case(params)
+        summary = result.get("summary") if isinstance(result, dict) else None
+        if not isinstance(summary, dict) or any(field not in summary for field in summary_fields):
+            raise ErrorAnalysisInputError("parameter sweep case returned no complete evaluation summary")
+        rows.append({"parameters": asdict(params), "summary": {field: summary[field] for field in summary_fields}})
+    return {
+        "format_version": 1,
+        "scope": "offline_evaluation_only",
+        "matrix": {
+            "max_plane_gap_mm": list(_SWEEP_MAX_PLANE_GAP_MM),
+            "allow_same_part_pairs": list(_SWEEP_ALLOW_SAME_PART_PAIRS),
+            "min_face_coverage": list(_SWEEP_MIN_FACE_COVERAGE),
+        },
+        "case_count": len(rows),
+        "cases": rows,
+    }
+
+
+def run_controlled_parameter_sweep(
+    source_faces: list[GeneralPlaneFace], reference_faces: list[GeneralPlaneFace]
+) -> dict[str, Any]:
+    """Run the fixed selection sweep against explicit offline reference faces.
+
+    Exact CAD overlap is invariant across this matrix.  It is therefore
+    measured once using the most permissive matrix row and the resulting audit
+    is replayed for every row.  This avoids 28 identical OCP boolean passes
+    while retaining each row's original decision order and thresholds.
+    """
+
+    base_selection = select_general_planar_faces(
+        source_faces,
+        GeneralSelectionParams(max_plane_gap_mm=max(_SWEEP_MAX_PLANE_GAP_MM), allow_same_part_pairs=True, min_face_coverage=min(_SWEEP_MIN_FACE_COVERAGE)),
+    )
+
+    def evaluate_case(params: GeneralSelectionParams) -> dict[str, Any]:
+        selected_ids = _selected_ids_from_sweep_audit(base_selection.pair_audits, params)
+        return evaluate_general_plane_selection(source_faces, reference_faces, selected_ids)
+
+    return build_controlled_parameter_sweep(evaluate_case)
+
+
+def _selected_ids_from_sweep_audit(
+    audits: tuple[GeneralPairAudit, ...], params: GeneralSelectionParams
+) -> tuple[str, ...]:
+    """Replay threshold decisions from the single permissive sweep audit."""
+
+    selected: set[str] = set()
+    for audit in audits:
+        if audit.part_a == audit.part_b and not params.allow_same_part_pairs:
+            continue
+        if audit.normal_angle_deg is None or audit.normal_angle_deg > params.max_normal_angle_deg:
+            continue
+        if audit.plane_gap_mm is None or audit.plane_gap_mm > params.max_plane_gap_mm:
+            continue
+        if audit.aabb_overlap_width_mm is None or audit.aabb_overlap_height_mm is None:
+            continue
+        if min(audit.aabb_overlap_width_mm, audit.aabb_overlap_height_mm) < params.min_effective_width_mm:
+            continue
+        if audit.common_area_mm2 < params.min_overlap_area_mm2:
+            continue
+        if min(audit.coverage_a, audit.coverage_b) < params.min_face_coverage:
+            continue
+        selected.update((audit.face_a_id, audit.face_b_id))
+    return tuple(sorted(selected))
+
+
+def render_controlled_parameter_sweep_markdown(report: dict[str, Any]) -> str:
+    """Render a compact comparison table for the controlled sweep."""
+
+    cases = report.get("cases")
+    if report.get("scope") != "offline_evaluation_only" or not isinstance(cases, list):
+        raise ErrorAnalysisInputError("invalid controlled parameter sweep report")
+    lines = [
+        "# General plane selection parameter sweep",
+        "",
+        "Scope: offline evaluation only. This diagnostic does not change production selection parameters.",
+        "",
+        "| Gap (mm) | Same-part pairs | Min coverage | TP | FP | FN | Precision | Recall |",
+        "| ---: | :---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+    ]
+    for case in cases:
+        params, summary = case["parameters"], case["summary"]
+        lines.append(
+            "| {gap:g} | {same_part} | {coverage:g} | {tp} | {fp} | {fn} | {precision:.2%} | {recall:.2%} |".format(
+                gap=params["max_plane_gap_mm"],
+                same_part="true" if params["allow_same_part_pairs"] else "false",
+                coverage=params["min_face_coverage"],
+                tp=summary["true_positives"], fp=summary["false_positives"], fn=summary["false_negatives"],
+                precision=summary["precision"], recall=summary["recall"],
+            )
+        )
+    return "\n".join(lines) + "\n"
 
 
 _FN_REASON_DETAILS = {

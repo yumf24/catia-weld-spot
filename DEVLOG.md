@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-07-22 18:05:00 +08:00 - EA06 受控平面选面参数扫描
+
+**做了什么**
+- 新增固定离线扫描矩阵：`max_plane_gap_mm=[0.2,0.3,0.5,0.8,1.0,1.5,3.0]`、`allow_same_part_pairs=[false,true]`、`min_face_coverage=[0.02,0.05]`，共 28 组；其他参数保持 `GeneralSelectionParams` 默认值。
+- 新增 `scripts/sweep_general_plane_selection_parameters.py`，将 JSON 和 Markdown 扫描摘要写入受管运行目录并登记 manifest；扫描只读取显式离线 reference，不改生产默认阈值或运行时逻辑。
+- 精确重叠几何按最宽松组合只计算一次，其余参数行重放同一审计的阈值决策，避免重复计算不变的 CAD overlap。
+
+**验证结果**
+- `.venv\Scripts\python -m pytest tests\test_general_plane_selection_error_analysis.py -k sweep`：**1 passed**；合成 fixture 覆盖完整 28 组矩阵和默认参数不变约束。
+- `component-simplify` 的完整 28 组离线扫描已写入 `20260722-163200-generic-regression`：跨件、gap=1.5 mm、coverage=0.05 得到 TP/FP/FN=`30/6/10`（precision=`83.33%`、recall=`75.00%`）；启用 same-part 可到 recall=`100%`，但 precision 仅 `18.87%`，因此只作后续单独策略评估证据。
+
+---
+
 ## 2026-07-22 17:30:00 +08:00 - EA05 plane-selection error-analysis report
 
 **What changed**

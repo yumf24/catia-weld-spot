@@ -7,11 +7,13 @@ import pytest
 from weld_core.general_plane_selection_error_analysis import (
     ErrorAnalysisInputError,
     build_error_analysis_report,
+    build_controlled_parameter_sweep,
     classify_false_negatives,
     classify_false_positives,
     join_error_analysis,
     load_and_join_error_analysis,
     render_error_analysis_markdown,
+    render_controlled_parameter_sweep_markdown,
 )
 
 
@@ -260,3 +262,34 @@ def test_report_ranks_fn_reasons_and_makes_gap_the_first_recommendation():
     assert report["optimization_priority"][:2] == ["plane_gap_strategy", "projected_aabb_diagnosis"]
     assert "| 1 | plane_gap | 1 |" in markdown
     assert "This report does not change production selection parameters." in markdown
+
+
+def test_sweep_generates_complete_fixed_28_case_matrix_without_changing_defaults():
+    default_params = {
+        "max_normal_angle_deg": 0.5,
+        "min_overlap_area_mm2": 1.0,
+        "min_effective_width_mm": 0.1,
+    }
+
+    def evaluate_case(params):
+        return {
+            "summary": {
+                "predicted_faces": 10,
+                "truth_faces": 8,
+                "true_positives": 7,
+                "false_positives": 3,
+                "false_negatives": 1,
+                "precision": 0.7,
+                "recall": 0.875,
+                "passed": True,
+            }
+        }
+
+    report = build_controlled_parameter_sweep(evaluate_case)
+
+    assert report["scope"] == "offline_evaluation_only"
+    assert report["case_count"] == 28
+    assert len(report["cases"]) == 28
+    assert {case["parameters"]["max_plane_gap_mm"] for case in report["cases"]} == {0.2, 0.3, 0.5, 0.8, 1.0, 1.5, 3.0}
+    assert all(case["parameters"].items() >= default_params.items() for case in report["cases"])
+    assert "| Gap (mm) |" in render_controlled_parameter_sweep_markdown(report)

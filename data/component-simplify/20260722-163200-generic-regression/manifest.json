@@ -55,6 +55,14 @@
     "general_plane_selection_error_analysis_markdown": {
       "path": "general_plane_selection_error_analysis.md",
       "kind": "markdown"
+    },
+    "general_plane_selection_parameter_sweep": {
+      "path": "general_plane_selection_parameter_sweep.json",
+      "kind": "json"
+    },
+    "general_plane_selection_parameter_sweep_markdown": {
+      "path": "general_plane_selection_parameter_sweep.md",
+      "kind": "markdown"
     }
   },
   "completed_at": "2026-07-22T16:32:14+08:00"
