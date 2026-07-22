@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-07-22 15:50:03 +08:00 — 新增算法流程说明文档
+
+**做了什么**
+- 新增 `docs/ALGORITHM.md`，基于当前 `catia/`、`scripts/` 与 `src/weld_core/` 实现梳理完整算法流程。
+- 文档按执行顺序覆盖受管运行、CATIA 面提取、STEP 顶点富化、冻结模板选面、核心配对/区域/布点/过滤、候选输出、CATIA 回写与评测分支，并补充 Mermaid 线性流程图。
+
+**验证结果**
+- 人工核对文档步骤与 `scripts/run_full_pipeline.py`、`scripts/select_template_planes.py`、`weld_core.pipeline`、`weld_core.template_plane_selection`、`weld_core.pairing/region/points/filtering` 等关键实现一致。
+- 本次仅更新文档，未运行 `pytest`。
+
+---
+
 ## 2026-07-22 15:37:00 +08:00 — component-simplify 当前平面算法复测
 
 **做了什么**
