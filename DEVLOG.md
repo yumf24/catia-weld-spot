@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-22 17:13:00 +08:00 - EA02 连接平面选面离线审计
+
+**做了什么**
+- 新增 `weld_core.general_plane_selection_error_analysis`，统一读取并严格连接离线 evaluation、pair audit 和 selection audit；输出逐 source face 的 TP/FP/FN 状态、选中状态与接受 supporting pair。
+- 任一 TP/FP/FN 集合、指标计数、selected/rejected 分区、pair 端点、supporting pair 或评测预测与选面审计不一致时均显式失败，避免错误分析静默使用不相容输入。
+- 新增 `scripts/analyze_general_plane_selection_errors.py`，支持 `<part-id>`/`--run-dir` 或三份显式审计路径；本步只读取离线产物，不修改生产选面或 pipeline。
+- 新增 `tests/test_general_plane_selection_error_analysis.py`，覆盖合成 TP/FP/FN join、unknown prediction、缺失 audit 和显式路径读取。
+
+**验证结果**
+- `.venv\Scripts\python -m pytest tests\test_general_plane_selection_error_analysis.py -k join`：**4 passed**。
+- `.venv\Scripts\python scripts\analyze_general_plane_selection_errors.py component-simplify`：成功连接实际受管回归，得到 525 个 source face，指标保持 TP/FP/FN=`17/2/23`。
+
+---
+
 ## 2026-07-22 17:11:00 +08:00 - EA01 平面选面错误分析基线
 
 **做了什么**

@@ -81,7 +81,7 @@
       "id": "EA02_join_audit_sources",
       "priority": 2,
       "depends_on": ["EA01_error_analysis_baseline"],
-      "pass": false,
+      "pass": true,
       "goal": "实现统一读取和 join 离线 evaluation、pair audit 与 selection audit 的错误分析入口。",
       "changes": [
         "新增 weld_core.general_plane_selection_error_analysis 模块，读取并校验 evaluation、pair_audit 和 selection_audit。",
