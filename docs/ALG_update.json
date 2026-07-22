@@ -235,7 +235,7 @@
       "id": "S06_exact_selection_evaluation",
       "priority": 6,
       "depends_on": ["S05_template_selection_runtime"],
-      "pass": false,
+      "pass": true,
       "goal": "以精确单 CAD face 标签计算正式 precision/recall，并替代 AABB 验证作为模板验收。",
       "changes": [
         "新增精确选择评测 API 与 CLI，输入模板选择结果和仅在评测时读取的人工参考。",

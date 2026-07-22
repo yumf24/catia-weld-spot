@@ -16,6 +16,18 @@ data/<part-id>/<run-id>/manifest.json
 原始清单、运行时输入哈希、执行参数、状态和 `artifacts` 路径。路径均为仓库相对路径，不写入本机绝对
 路径。`component-simplify` 的 `surface_reference` 是平面提取验证基准，不是算法派生产物。
 
+## plane_selection_evaluation.json（冻结模板的精确验收）
+
+由 `scripts/evaluate_template_plane_selection.py <part-id> --run-dir <run-dir>` 生成；该命令仅在
+评测时读取 `surface_reference` STEP，并用 OCCT CAD 面布尔公共面积，而非投影 AABB，核验
+`faces.selected.json` 中每个冻结选面。JSON 与 Markdown 报告均登记在该受管运行目录。
+
+- `summary`：单 CAD face 口径的 TP/FP/FN、precision、recall 和通过状态；通过条件为
+  precision `> 0.90` 且 recall `> 0.95`。
+- `selected_faces`：每个选面是 TP 还是 FP，以及其命中的参考面。
+- `reference_faces`：每个参考面的所有候选、公共面积、双向覆盖率、法向误差、平面距离和拒绝原因。
+- `false_positive_faces` / `false_negative_faces`：未命中的选面及参考面身份；歧义映射按 FN 处理，绝不猜测。
+
 ## plane_validation.json（平面提取正确性验证）
 
 由 `scripts/validate_plane_reference.py <part-id>` 生成。默认比较注册的

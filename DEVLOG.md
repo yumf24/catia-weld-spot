@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-07-22 15:18:00 +08:00 — S06 冻结模板的精确选面评测
+
+**做了什么**
+- 新增 `weld_core.exact_plane_selection_evaluation` 与 `scripts/evaluate_template_plane_selection.py`：仅在评测命令中读取人工 `surface_reference` STEP，以 OCCT 布尔公共 CAD 面积、法向、平面距离及 source 覆盖率计算单 CAD face 口径的 TP/FP/FN、precision 和 recall；投影 AABB 不参与任何通过判断。
+- 评测输出并登记 `plane_selection_evaluation.json` 与 Markdown 报告，逐参考面保留所有候选、公共面积、双向覆盖率、几何误差、拒绝原因和歧义状态；未命中或歧义不会被猜测为匹配。
+- `docs/ALG_update.json` 中 S06 标记为通过，并在 JSON 契约中记录评测产物及阈值。
+
+**验证结果**
+- `.venv\Scripts\python -m pytest tests\test_exact_plane_selection_evaluation.py --basetemp .pytest_cache\s06-unit`：**2 passed**（TP/FP/FN、95% 覆盖、法向和平面距离拒绝）。
+- `.venv\Scripts\python scripts\select_template_planes.py component-simplify --run-label s06-evaluation` 后执行精确评测：**precision 100.00%，recall 100.00%**；运行目录 `data/component-simplify/20260722-151828-s06-evaluation/` 已登记选面、审计和评测产物。
+
+---
+
 ## 2026-07-22 15:15:00 +08:00 — S05 冻结模板运行时选面
 
 **做了什么**
