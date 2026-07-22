@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-22 16:01:19 +08:00 — G01 通用选面迁移基线与清点
+
+**做了什么**
+- 新增 `docs/generic_plane_selection_migration_inventory.md`，记录 G01 的干净基线、component-simplify 数据集统计、冻结模板链路待移除范围和可保留的通用 OCP/STEP 几何能力。
+- 明确 `2834/525` 与 `89/40` 仅是数据集回归事实，冻结模板历史 40 TP/0 FP/0 FN 仅是单数据集历史指标，不得作为生产常量、特例分支或泛化能力证据。
+- `docs/ALG_updatev2.json` 中 `G01_preflight_and_deprecation_inventory` 标记为通过；本步不改变算法行为。
+
+**验证结果**
+- `git status --short`：G01 开始前工作区干净。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\g01-full`：**72 passed**。
+- `.venv\Scripts\python scripts\check_plane_selection_baseline.py component-simplify`：主 STEP **2834 faces / 525 planar**，参考 STEP **89 faces / 40 planar**。
+
+---
+
 ## 2026-07-22 15:50:03 +08:00 — 新增算法流程说明文档
 
 **做了什么**

@@ -89,7 +89,7 @@
       "id": "G01_preflight_and_deprecation_inventory",
       "priority": 1,
       "depends_on": [],
-      "pass": false,
+      "pass": true,
       "goal": "建立通用选面改造前的干净基线，审计并明确所有冻结模板路径的删除范围；不改变算法行为。",
       "changes": [
         "确认工作区干净、.venv 可用、当前全量测试通过，并将 component-simplify 的 2834/525 与 89/40 数据集统计记录为测试基线而非算法常量。",
