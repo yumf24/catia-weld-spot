@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-07-22 17:10:00 +08:00 - Add plane selection error-analysis TODO
+**What changed**
+- Added `docs/TODO.json`, an ALG-style staged TODO plan for face-level generic plane selection error analysis.
+- The plan keeps all EA01-EA07 steps at `pass=false` and focuses on diagnosing the current `component-simplify` baseline TP/FP/FN=17/2/23 before any production optimization.
+- No implementation module, CLI, tests, parameter sweep, or runtime algorithm change is included in this final task output.
+**Verification**
+- `.venv\Scripts\python -m json.tool docs\TODO.json > $null`: passed.
+---
+
 ## 2026-07-22 16:58:28 +08:00 - 重构算法流程图可读性
 
 **做了什么**

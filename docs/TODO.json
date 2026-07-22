@@ -1,0 +1,216 @@
+{
+  "format_version": 1,
+  "title": "平面选面错误分析与优化方向 TODO",
+  "project": {
+    "repository": "ml-pipeline",
+    "goal": "对当前通用平面选面回归结果进行可审计错误分析，解释 component-simplify face-level TP/FP/FN=17/2/23 中的 23 个 FN 和 2 个 FP，并把下一步提升 recall 的优化方向按证据排序。",
+    "current_baseline": {
+      "part_id": "component-simplify",
+      "run_dir": "data/component-simplify/20260722-163200-generic-regression",
+      "primary_faces": 2834,
+      "primary_planar_faces": 525,
+      "reference_faces": 89,
+      "reference_planar_faces": 40,
+      "selected_faces": 19,
+      "candidates": 15,
+      "true_positives": 17,
+      "false_positives": 2,
+      "false_negatives": 23,
+      "precision": 0.8947368421052632,
+      "recall": 0.425
+    },
+    "analysis_focus": [
+      "以 face-level 平面选面错误为主，不把最终焊点 3D 评测混入主线。",
+      "优先解释 false negatives，precision 作为护栏而非首要目标。",
+      "参数扫描仅作为离线诊断证据，不自动改变生产默认阈值。",
+      "人工 reference STEP 与 truth mapping 仅可由离线评估/错误分析脚本使用。"
+    ],
+    "expected_initial_findings": {
+      "false_negative_best_pair_reasons": {
+        "plane_gap_exceeds_threshold": 18,
+        "projected_aabb_no_overlap": 3,
+        "same_part_excluded": 2
+      },
+      "recommended_direction_order": [
+        "研究 gap 阈值或分层 gap 策略。",
+        "诊断 projected AABB no-overlap 是否为真实无重叠或投影/预筛问题。",
+        "单独评估 same-part pair 策略。"
+      ]
+    }
+  },
+  "global_rules": {
+    "python": ".venv\\Scripts\\python",
+    "runtime_reference_policy": "生产通用选面和 pipeline 不得读取 reference STEP；错误分析只能消费离线 evaluation、pair_audit、selection_audit 等既有受管产物。",
+    "no_production_threshold_change": "TODO 完成前不得修改 GeneralSelectionParams 默认值；参数扫描结果只进入分析报告和 backlog。",
+    "dataset_isolation_policy": "不得将 component-simplify 的 face id、part id、SHA、已知数量或人工标签写入生产逻辑。",
+    "artifact_policy": "错误分析输出 general_plane_selection_error_analysis.json/.md；参数扫描输出 general_plane_selection_parameter_sweep.json/.md，并登记到 run manifest。",
+    "step_completion_policy": [
+      "每个步骤开始时 pass 必须为 false。",
+      "所有 strict_tests 通过后才可将该步骤 pass 改为 true。",
+      "完成步骤时必须更新 DEVLOG.md；实现、测试、DEVLOG.md 与本 TODO.json 的 pass 更新位于同一 commit。",
+      "提交前必须通过 git diff --check；提交后 git status --short 必须为空。"
+    ]
+  },
+  "steps": [
+    {
+      "id": "EA01_error_analysis_baseline",
+      "priority": 1,
+      "depends_on": [],
+      "pass": false,
+      "goal": "固定当前平面选面错误分析基线，确认受管运行产物、输入 SHA、参数、面数和指标均可复现。",
+      "changes": [
+        "记录 component-simplify 当前回归运行目录和指标基线。",
+        "确认 general_plane_selection_evaluation.json、pair_audit.json、selection_audit.json 和 faces.general-selected.json 均存在。",
+        "确认 TP/FP/FN=17/2/23、precision=0.8947368421052632、recall=0.425。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m json.tool docs\\TODO.json > $null",
+          "expect_exit_code": 0,
+          "assertions": ["TODO.json 为有效 JSON。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python scripts\\check_plane_selection_baseline.py component-simplify",
+          "expect_exit_code": 0,
+          "assertions": ["主 STEP 为 2834/525 faces/planar，参考 STEP 为 89/40 faces/planar。"]
+        }
+      ],
+      "completion_commit": "chore: baseline plane selection error analysis"
+    },
+    {
+      "id": "EA02_join_audit_sources",
+      "priority": 2,
+      "depends_on": ["EA01_error_analysis_baseline"],
+      "pass": false,
+      "goal": "实现统一读取和 join 离线 evaluation、pair audit 与 selection audit 的错误分析入口。",
+      "changes": [
+        "新增 weld_core.general_plane_selection_error_analysis 模块，读取并校验 evaluation、pair_audit 和 selection_audit。",
+        "新增 scripts/analyze_general_plane_selection_errors.py，支持从 run-dir 或显式路径读取输入。",
+        "预测 face、truth face、selected face 与 source face 状态不一致时显式失败。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k join",
+          "expect_exit_code": 0,
+          "assertions": ["合成 TP/FP/FN、unknown prediction 和缺失 audit 场景均被正确 join 或失败。"]
+        }
+      ],
+      "completion_commit": "feat: join plane selection error audits"
+    },
+    {
+      "id": "EA03_classify_false_negatives",
+      "priority": 3,
+      "depends_on": ["EA02_join_audit_sources"],
+      "pass": false,
+      "goal": "为每个 FN 找到最有诊断价值的失败 pair，并按可操作原因分类。",
+      "changes": [
+        "实现 FN 最佳失败 pair 排序，优先保留有几何证据的 pair。",
+        "输出 failure_stage、gap、AABB 尺寸、公共面积、coverage、对侧 face、part 分布和 recommended_recovery。",
+        "支持 gap、AABB、same-part、coverage、overlap area、normal angle 和 no evidence 分类。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k fn",
+          "expect_exit_code": 0,
+          "assertions": ["合成样例覆盖 gap、AABB 和 same-part 三类 FN。"]
+        }
+      ],
+      "completion_commit": "feat: classify plane selection false negatives"
+    },
+    {
+      "id": "EA04_classify_false_positives",
+      "priority": 4,
+      "depends_on": ["EA03_classify_false_negatives"],
+      "pass": false,
+      "goal": "解释每个 FP 为什么被选中但不在离线 truth 中。",
+      "changes": [
+        "为每个 FP 汇总 accepted supporting pairs。",
+        "输出 supporting pair 的公共面积、coverage、score、对侧 face 和是否连接 truth face。",
+        "识别 unknown predicted face 与 accepted pair not in offline truth。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k fp",
+          "expect_exit_code": 0,
+          "assertions": ["覆盖单 support FP、多 support FP 和 unknown predicted face。"]
+        }
+      ],
+      "completion_commit": "feat: classify plane selection false positives"
+    },
+    {
+      "id": "EA05_generate_human_report",
+      "priority": 5,
+      "depends_on": ["EA04_classify_false_positives"],
+      "pass": false,
+      "goal": "生成 JSON 与 Markdown 错误分析报告，使人工复盘能直接看到主要根因和优化顺序。",
+      "changes": [
+        "输出 general_plane_selection_error_analysis.json 和 Markdown 报告。",
+        "报告首屏包含 TP/FP/FN、precision、recall、FN 根因排行、FP 根因和推荐优化顺序。",
+        "明确当前 recall 低，优先处理 gap 相关 FN，其次 AABB/no-overlap，再评估 same-part。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python scripts\\analyze_general_plane_selection_errors.py component-simplify --run-dir data\\component-simplify\\20260722-163200-generic-regression",
+          "expect_exit_code": 0,
+          "assertions": ["生成错误分析 JSON/Markdown，FN 分类至少包含 gap=18、AABB=3、same-part=2。"]
+        }
+      ],
+      "completion_commit": "feat: report plane selection error analysis"
+    },
+    {
+      "id": "EA06_controlled_parameter_sweep",
+      "priority": 6,
+      "depends_on": ["EA05_generate_human_report"],
+      "pass": false,
+      "goal": "在诊断报告之后执行固定参数扫描，用离线指标验证优化方向排序。",
+      "changes": [
+        "实现固定扫描矩阵：max_plane_gap_mm=[0.2,0.3,0.5,0.8,1.0,1.5,3.0]、allow_same_part_pairs=[false,true]、min_face_coverage=[0.02,0.05]。",
+        "输出 general_plane_selection_parameter_sweep.json 和 Markdown 摘要。",
+        "扫描不修改 GeneralSelectionParams 默认值，不写入生产逻辑。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k sweep",
+          "expect_exit_code": 0,
+          "assertions": ["合成 fixture 生成完整 28 组扫描矩阵。"]
+        }
+      ],
+      "completion_commit": "feat: sweep plane selection analysis parameters"
+    },
+    {
+      "id": "EA07_optimization_recommendation_backlog",
+      "priority": 7,
+      "depends_on": ["EA06_controlled_parameter_sweep"],
+      "pass": false,
+      "goal": "基于错误分析和扫描结果生成下一轮优化 backlog。",
+      "changes": [
+        "每条建议包含 target_error_cluster、evidence、expected_recall_impact、precision_risk、implementation_scope 和 acceptance_tests。",
+        "默认排序为 gap 策略、AABB 投影诊断、same-part 策略评估。",
+        "backlog 仅作为优化计划输入，不自动修改生产算法。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py",
+          "expect_exit_code": 0,
+          "assertions": ["backlog JSON 有效，且每条建议都有 evidence、risk 和 acceptance_tests。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\ea-full",
+          "expect_exit_code": 0,
+          "assertions": ["完整测试集通过。"]
+        },
+        {
+          "command": "git diff --check",
+          "expect_exit_code": 0,
+          "assertions": ["无空白错误。"]
+        },
+        {
+          "command": "git status --short",
+          "expect_exit_code": 0,
+          "assertions": ["提交后工作区为空。"]
+        }
+      ],
+      "completion_commit": "feat: plan plane selection error optimization"
+    }
+  ]
+}
