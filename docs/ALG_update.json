@@ -198,7 +198,7 @@
       "id": "S05_template_selection_runtime",
       "priority": 5,
       "depends_on": ["S04_frozen_template_contract"],
-      "pass": false,
+      "pass": true,
       "goal": "在不读取人工参考 STEP 的前提下，按冻结模板自动输出主 STEP 的选中单 CAD face。",
       "changes": [
         "新增运行时选面 API 与 scripts/select_template_planes.py。",

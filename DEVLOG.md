@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-22 15:15:00 +08:00 — S05 冻结模板运行时选面
+
+**做了什么**
+- 新增 `weld_core.template_plane_selection` 与 `scripts/select_template_planes.py`：运行时仅读取注册的主 STEP，先严格核验主输入 SHA-256，再校验每个冻结的 part、稳定 STEP face index 与边界指纹；任何不一致均以非零退出且不写出选面结果。
+- 成功时输出符合 `FacesDocument` 的 `faces.selected.json` 与完整 `selection_audit.json`；审计覆盖全部 525 个主模型平面（40 个选中、485 个以 `not_in_frozen_template` 排除），并将两个产物登记到受管运行清单。
+- `data_layout` 支持运行只核验指定输入角色，避免模板运行时读取人工 `surface_reference` STEP；`docs/ALG_update.json` 中 S05 标记为通过。
+
+**验证结果**
+- `.venv\Scripts\python scripts\select_template_planes.py component-simplify --run-label template-selection`：成功选出 **40** 个 face；运行清单仅记录并校验 `primary_model`。
+- `.venv\Scripts\python -m pytest tests\test_template_plane_selection.py --basetemp .pytest_cache\s05-template-selection`：**4 passed**（稳定输出、索引/指纹/SHA 失配拒绝、完整排除审计）。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\s05-full`：**69 passed**。
+
+---
+
 ## 2026-07-22 15:10:00 +08:00 — S04 冻结选面模板契约
 
 **做了什么**

@@ -12,7 +12,7 @@ import json
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -84,12 +84,21 @@ def load_raw_manifest(part_id: str, root: Path = RAW_DATA_ROOT) -> dict[str, Any
     return manifest
 
 
-def verify_raw_inputs(part_id: str, root: Path = RAW_DATA_ROOT) -> list[dict[str, Any]]:
+def verify_raw_inputs(
+    part_id: str, root: Path = RAW_DATA_ROOT, roles: Iterable[str] | None = None
+) -> list[dict[str, Any]]:
     """Verify registered raw input files and return portable input records."""
     part_dir = raw_part_dir(part_id, root)
     manifest = load_raw_manifest(part_id, root)
+    requested_roles = set(roles) if roles is not None else None
+    if requested_roles is not None:
+        unknown = requested_roles - manifest["inputs"].keys()
+        if unknown:
+            raise DataLayoutError(f"raw manifest has no requested inputs: {', '.join(sorted(unknown))}")
     records: list[dict[str, Any]] = []
     for role, info in manifest["inputs"].items():
+        if requested_roles is not None and role not in requested_roles:
+            continue
         if not isinstance(info, dict) or not isinstance(info.get("path"), str):
             raise DataLayoutError(f"raw input {role!r} must contain a relative path")
         path = (part_dir / info["path"]).resolve()
@@ -136,9 +145,10 @@ def create_run(
     now: datetime | None = None,
     raw_root: Path = RAW_DATA_ROOT,
     data_root: Path = DATA_ROOT,
+    input_roles: Iterable[str] | None = None,
 ) -> tuple[Path, dict[str, Any]]:
     """Create one empty managed run after validating its raw inputs."""
-    raw_inputs = verify_raw_inputs(part_id, raw_root)
+    raw_inputs = verify_raw_inputs(part_id, raw_root, input_roles)
     run_id, run_dir = _next_run_dir(part_id, label, now or datetime.now(), data_root)
     run_dir.mkdir(parents=True)
     manifest: dict[str, Any] = {
