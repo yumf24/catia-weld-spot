@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-07-22 13:50:57 +08:00 — component-simplify CATIA 运行时复核
+
+**做了什么**
+- 按用户要求在仓库 `.venv` 安装 `pycatia 0.10.0` 与 `pywin32 312`；`scripts/check_env_catia.py` 已连接到运行中的 CATIA V5。
+- 在同一 COM 进程打开注册的 `component_simplify.step`，以不带 `--write` 的方式运行完整流程。CATIA 实际提取 3125 个面、375 个平面。
+- 导入的 STEP Product 在 CATIA `ExportData` 阶段报 COM 异常，故保留失败事实并使用已核验的注册 `primary_model` STEP 回退执行顶点补全、核心算法和运行时平面验证；生成 17 个候选点，未写回 CATIA。
+
+**验证结果**
+- 运行目录：`data/component-simplify/20260722-134641-plane-validation/`，状态 `completed_with_raw_step_fallback`。顶点补全 369/375（6 个未匹配）。
+- CATIA 运行时平面 vs 40 个参考平面：算法平面 375，39 个匹配算法面、336 个额外平面；36/40 个参考面匹配（recall **90.00%**，precision **10.40%**），未通过完整金标准。
+
+---
+
 ## 2026-07-22 12:44:33 +08:00 — component-simplify 平面参考验证落地
 
 **做了什么**

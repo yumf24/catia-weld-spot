@@ -1,0 +1,66 @@
+{
+  "format_version": 1,
+  "part_id": "component-simplify",
+  "run_id": "20260722-134641-plane-validation",
+  "created_at": "2026-07-22T13:46:41+08:00",
+  "status": "completed_with_raw_step_fallback",
+  "active_document": "component_simplify.CATProduct",
+  "raw_manifest": "raw_data\\component-simplify\\manifest.json",
+  "raw_inputs": [
+    {
+      "role": "primary_model",
+      "path": "raw_data\\component-simplify\\component_simplify.step",
+      "sha256": "8c79d3364640245c035702cd382aad0022a0740280f74f72212a5b6c15287856",
+      "size_bytes": 34543311
+    },
+    {
+      "role": "surface_reference",
+      "path": "raw_data\\component-simplify\\component_simplify_surface.step",
+      "sha256": "d035d1f9106d870b2bbe21c0aacf7e09bd05250baefe66bf788e677728d6a2ff",
+      "size_bytes": 1350607
+    }
+  ],
+  "parameters": {
+    "part_number": null,
+    "limit": null,
+    "weld_params": {
+      "max_normal_angle_deg": 5.0,
+      "max_gap_mm": 0.1,
+      "min_spacing_mm": 20.0,
+      "max_spacing_mm": 70.0,
+      "min_point_distance_mm": 20.0,
+      "min_face_width_mm": 5.0
+    },
+    "write": false,
+    "save_native": false
+  },
+  "artifacts": {
+    "faces": {
+      "path": "faces.json"
+    },
+    "plane_validation": {
+      "path": "plane_validation.json",
+      "source_kind": "faces_json"
+    },
+    "plane_validation_report": {
+      "path": "plane_validation.md",
+      "kind": "markdown"
+    },
+    "faces_enriched": {
+      "path": "faces.enriched.json",
+      "step_source": "raw_data/component-simplify/component_simplify.step",
+      "fallback_reason": "CATIA ExportData failed for imported STEP Product"
+    },
+    "candidates": {
+      "path": "candidates.json"
+    }
+  },
+  "error": "(-2147352567, '发生意外。', (0, 'CATIAProductDocument', '方法 ExportData 失败', None, 0, -2147467259), None)",
+  "failed_at": "2026-07-22T13:49:32+08:00",
+  "completed_at": "2026-07-22T13:50:57+08:00",
+  "recovery": {
+    "export_step": "failed for imported STEP Product; reused registered primary_model STEP",
+    "enrichment": "369/375 CATIA planar faces matched; 6 unmatched",
+    "write_to_catia": false
+  }
+}
