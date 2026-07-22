@@ -18,6 +18,11 @@ from OCP.GProp import GProp_GProps
 MAX_NORMAL_ANGLE_DEG = 0.5
 MAX_PLANE_DISTANCE_MM = 0.05
 _ZERO_AREA_MM2 = 1e-9
+# Independent STEP exports of the same face often differ at roughly 1e-6 mm
+# in their trimmed-edge representation.  OCCT's default boolean tolerance is
+# too small for that representation noise; this is deliberately much tighter
+# than the 0.05 mm coplanarity contract and is not an acceptance tolerance.
+_BOOLEAN_FUZZY_TOL_MM = 3e-3
 
 
 @dataclass(frozen=True)
@@ -57,6 +62,13 @@ def _empty(source_area: float, reference_area: float, reason: str) -> ExactFaceO
     return ExactFaceOverlap(0.0, 0.0, 0.0, source_area, reference_area, reason)
 
 
+def _common_shape(left: Any, right: Any) -> Any:
+    operation = BRepAlgoAPI_Common(left, right)
+    operation.SetFuzzyValue(_BOOLEAN_FUZZY_TOL_MM)
+    operation.Build()
+    return operation.Shape()
+
+
 def exact_face_overlap(pair: CoplanarFacePair) -> ExactFaceOverlap:
     """Measure exact common area, rejecting an invalid coplanar qualification.
 
@@ -74,7 +86,7 @@ def exact_face_overlap(pair: CoplanarFacePair) -> ExactFaceOverlap:
         return _empty(source_area, reference_area, "zero_area_input")
 
     try:
-        common = BRepAlgoAPI_Common(pair.source, pair.reference).Shape()
+        common = _common_shape(pair.source, pair.reference)
         common_area = surface_area_mm2(common)
     except Exception as exc:  # OCCT exposes algorithm failures as varied Python exceptions.
         return _empty(source_area, reference_area, f"boolean_common_failed:{type(exc).__name__}")
@@ -110,10 +122,13 @@ def source_union_coverage(pairs: Iterable[CoplanarFacePair]) -> ExactFaceOverlap
         reason = overlaps[0].reason or "zero_area_intersection"
         return _empty(source_area, 0.0, reason)
     try:
-        union = BRepAlgoAPI_Common(source, valid_pairs[0].reference).Shape()
+        union = _common_shape(source, valid_pairs[0].reference)
         for pair in valid_pairs[1:]:
-            common = BRepAlgoAPI_Common(source, pair.reference).Shape()
-            union = BRepAlgoAPI_Fuse(union, common).Shape()
+            common = _common_shape(source, pair.reference)
+            fuse = BRepAlgoAPI_Fuse(union, common)
+            fuse.SetFuzzyValue(_BOOLEAN_FUZZY_TOL_MM)
+            fuse.Build()
+            union = fuse.Shape()
         union_area = surface_area_mm2(union)
     except Exception as exc:
         return _empty(source_area, 0.0, f"boolean_union_failed:{type(exc).__name__}")

@@ -124,7 +124,7 @@
       "id": "S03_reference_face_labels",
       "priority": 3,
       "depends_on": ["S02_exact_face_overlap"],
-      "pass": false,
+      "pass": true,
       "goal": "将一次性人工参考转换为主 STEP 的单 CAD face 正标签，且所有标签均可审计。",
       "changes": [
         "新增标签构建逻辑：先按同 part、法向 <=0.5 度、平面距离 <=0.05 mm 预筛，再使用精确 source 覆盖率 >=0.95 选中源 face。",

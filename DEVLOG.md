@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-22 15:02:00 +08:00 — S03 精确参考面标签
+
+**做了什么**
+- 新增 `weld_core.plane_reference_labels`：按零件号、无向法向 ≤0.5°、平面距离 ≤0.05 mm 和精确 CAD 公共面积，给每个参考平面建立唯一的主 STEP 单 CAD face 标签，并保留全部候选、覆盖率、拒绝原因与歧义状态。
+- `StepFace` 保留仅供内存几何操作的 OCCT face；新增 `scripts/build_plane_selection_template.py` 的 `--dry-run` 标签构建入口，构建前核验两个注册原始输入的 SHA-256。
+- 为独立 STEP 导出的同一修剪面补充 0.003 mm OCP 布尔 fuzzy 容差（远小于 0.05 mm 平面契约）；法向/平面预检仍先执行，擦边和点接触仍不匹配。
+- 新增一对一、擦边、重叠歧义和来源切分的合成 OCP 回归；`docs/ALG_update.json` 中 S03 标记为通过。
+
+**验证结果**
+- `.venv\Scripts\python scripts\build_plane_selection_template.py component-simplify --dry-run`：**40/40** 参考平面建立唯一可审计标签。
+- `.venv\Scripts\python -m pytest tests\test_exact_face_overlap.py tests\test_plane_reference_labels.py --basetemp .pytest_cache\basetemp`：**13 passed**。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\s03-full-basetemp`：**59 passed**。
+
+---
+
 ## 2026-07-22 14:44:29 +08:00 — S02 CAD face 精确公共面积
 
 **做了什么**

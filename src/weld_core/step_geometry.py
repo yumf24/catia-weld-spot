@@ -34,6 +34,7 @@ Two pitfalls found and handled here (see PLAN.md "关键技术结论" #4):
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 import numpy as np
 
@@ -84,6 +85,9 @@ class StepFace:
     area: float = 0.0
     is_planar: bool = False
     max_residual: float = 0.0
+    # Kept in-memory only for exact CAD-boundary operations.  Consumers that
+    # serialize StepFace fields must deliberately omit this OCCT object.
+    shape: Any | None = field(default=None, repr=False, compare=False)
 
 
 def _name_of(label: TDF_Label) -> str:
@@ -149,6 +153,7 @@ def _face_to_step_face(face, part_name: str) -> StepFace:
         area=area,
         is_planar=is_planar,
         max_residual=float(residual),
+        shape=face,
     )
 
 
