@@ -15,6 +15,7 @@ from weld_core.plane_reference_labels import (  # noqa: E402
     build_reference_face_labels,
     indexed_planar_faces,
 )
+from weld_core.plane_selection_template import build_template  # noqa: E402
 from weld_core.step_geometry import parse_step_faces  # noqa: E402
 
 
@@ -31,14 +32,13 @@ def main() -> int:
     base = REPO_ROOT / "raw_data" / args.part_id
     source = base / manifest["inputs"]["primary_model"]["path"]
     reference = base / manifest["inputs"]["surface_reference"]["path"]
-    result = build_reference_face_labels(
-        indexed_planar_faces(parse_step_faces(str(source))),
-        indexed_planar_faces(parse_step_faces(str(reference))),
-    )
+    source_faces = indexed_planar_faces(parse_step_faces(str(source)))
+    result = build_reference_face_labels(source_faces, indexed_planar_faces(parse_step_faces(str(reference))))
     result.update({"part_id": args.part_id, "raw_inputs": raw_inputs})
     if args.output:
         args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(result, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        template = build_template(result, source_faces, raw_inputs)
+        args.output.write_text(json.dumps(template, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     summary = result["summary"]
     print(f"[{'PASS' if summary['passed'] else 'FAIL'}] labels={summary['selected_labels']}/{summary['reference_planar_faces']}")
     return 0 if summary["passed"] else 1

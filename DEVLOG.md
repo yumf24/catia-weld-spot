@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-22 15:10:00 +08:00 — S04 冻结选面模板契约
+
+**做了什么**
+- 新增 `weld_core.plane_selection_template`：将 S03 的精确审计标签冻结为版本化模板，并在反序列化时拒绝缺字段、重复 face 身份、错误 SHA、错误边界指纹及低覆盖率条目。
+- `scripts/build_plane_selection_template.py --output` 现在输出受控模板；已生成 `templates/component-simplify/plane-selection-template.json`，包含主/参考 SHA-256、阈值、40 个单 CAD face 的稳定索引、面积、重心、法向、边界顶点哈希、覆盖率和参考追溯。
+- 新增 6 项模板契约回归；`docs/ALG_update.json` 中 S04 标记为通过。
+
+**验证结果**
+- `.venv\Scripts\python scripts\build_plane_selection_template.py component-simplify --output templates\component-simplify\plane-selection-template.json`：**40/40** 标签并成功写入模板。
+- `.venv\Scripts\python -m pytest tests\test_plane_selection_template.py --basetemp .pytest_cache\s04-template-test`：**6 passed**。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\s04-full-basetemp`：**65 passed**。
+
+---
+
 ## 2026-07-22 15:02:00 +08:00 — S03 精确参考面标签
 
 **做了什么**

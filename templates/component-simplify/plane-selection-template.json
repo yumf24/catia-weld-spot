@@ -1,0 +1,940 @@
+{
+  "format_version": 1,
+  "part_id": "component-simplify",
+  "source_sha256": "8c79d3364640245c035702cd382aad0022a0740280f74f72212a5b6c15287856",
+  "reference_sha256": "d035d1f9106d870b2bbe21c0aacf7e09bd05250baefe66bf788e677728d6a2ff",
+  "thresholds": {
+    "normal_angle_deg_max": 0.5,
+    "plane_distance_mm_max": 0.05,
+    "source_coverage_min": 0.95
+  },
+  "selected_faces": [
+    {
+      "part": "4QN1HUUK58",
+      "step_face_index": 634,
+      "area_mm2": 283.35178905001385,
+      "centroid": [
+        -102.85573192160747,
+        -600.6471485961378,
+        450.78641542617953
+      ],
+      "normal": [
+        -0.08924887307253263,
+        0.6031699517891844,
+        0.7926037142948019
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 8,
+        "vertices_sha256": "74c34af08d710543578a56d04332fd10df708539024381bf2301d882f46715f9"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.000092613106439,
+      "reference_face_id": "4QN1HUUK58/step_face_0001",
+      "reference_face_index": 1
+    },
+    {
+      "part": "4QN1HUUK58",
+      "step_face_index": 744,
+      "area_mm2": 292.4068532614737,
+      "centroid": [
+        -101.26300476604729,
+        -572.5281444575935,
+        429.5672501552138
+      ],
+      "normal": [
+        -0.08924887521523961,
+        0.603169950410323,
+        0.7926037151028394
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 6,
+        "vertices_sha256": "2a0cc43a8cff51e460f678426b1d9e294f7b2438bf0da1da7e136978dd12210a"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0000766937326915,
+      "reference_face_id": "4QN1HUUK58/step_face_0004",
+      "reference_face_index": 4
+    },
+    {
+      "part": "4QN1HUUK58",
+      "step_face_index": 124,
+      "area_mm2": 254.98945903698393,
+      "centroid": [
+        -99.68212195599895,
+        -554.6457192828452,
+        412.35177509093785
+      ],
+      "normal": [
+        0.08924888674526417,
+        -0.6031699859146319,
+        -0.7926036867858197
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 5,
+        "vertices_sha256": "a3dea1d6aa5d86926c0cc80927c7181e2131542a006355a6473c49c435c64fe2"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.000037789292508,
+      "reference_face_id": "4QN1HUUK58/step_face_0005",
+      "reference_face_index": 5
+    },
+    {
+      "part": "4QN1HUUK58",
+      "step_face_index": 659,
+      "area_mm2": 648.0317831640098,
+      "centroid": [
+        -103.45982478728322,
+        -668.4662765626587,
+        472.8715954017464
+      ],
+      "normal": [
+        -0.3947946723435182,
+        0.07068684457422471,
+        0.9160461433210194
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 14,
+        "vertices_sha256": "d03506cf6f446b5b0b7aca9c7ced6173f95acf619bbcc591ffc7c68252b83e4d"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0000003447778505,
+      "reference_face_id": "4QN1HUUK58/step_face_0006",
+      "reference_face_index": 6
+    },
+    {
+      "part": "4QN1HUUK58",
+      "step_face_index": 155,
+      "area_mm2": 332.33639521938767,
+      "centroid": [
+        -96.46882283864726,
+        -514.5140094956205,
+        318.1179294458906
+      ],
+      "normal": [
+        -0.087102649822495,
+        0.9955878431982433,
+        0.03489949669794434
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 6,
+        "vertices_sha256": "4f1a541cd98942f129aa9a6ef3f4a92503e6e11a10ce5fc108e5f57138fc4be0"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.000011178596066,
+      "reference_face_id": "4QN1HUUK58/step_face_0010",
+      "reference_face_index": 10
+    },
+    {
+      "part": "4QN1HUUK58",
+      "step_face_index": 657,
+      "area_mm2": 648.0721150891032,
+      "centroid": [
+        -103.7362399992601,
+        -668.4178697570129,
+        473.51288517362667
+      ],
+      "normal": [
+        0.39479467234573634,
+        -0.07068684457324592,
+        -0.9160461433201389
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 14,
+        "vertices_sha256": "004b3e39cf7b32d18d8da7917111d4865c2c14308c1bd2106abcfdcb4f233424"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.000061644032427,
+      "reference_face_id": "4QN1HUUK58/step_face_0011",
+      "reference_face_index": 11
+    },
+    {
+      "part": "4QN1HUUK58",
+      "step_face_index": 193,
+      "area_mm2": 332.36498983705377,
+      "centroid": [
+        -96.52901974624658,
+        -513.8170389606515,
+        318.14260882482637
+      ],
+      "normal": [
+        0.08710264983286649,
+        -0.9955878431975601,
+        -0.03489949669154957
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 6,
+        "vertices_sha256": "b338a83e5632bfef8e0ab16d08a8f6a3b6b7fa2175cd50058fd5b65c733b0fc2"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.000097218884486,
+      "reference_face_id": "4QN1HUUK58/step_face_0012",
+      "reference_face_index": 12
+    },
+    {
+      "part": "4QN1HUUK58",
+      "step_face_index": 582,
+      "area_mm2": 380.2396673356974,
+      "centroid": [
+        -101.76224269477939,
+        -511.08876189283836,
+        222.9545562766553
+      ],
+      "normal": [
+        -0.12186930592281625,
+        0.9925461562435645,
+        1.2958473427637782e-07
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 9,
+        "vertices_sha256": "3f5f5d7042a04625f031c7d76bcfd9dc0d5830e2ab753bd2e277eec88332b5d4"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0000965424298496,
+      "reference_face_id": "4QN1HUUK58/step_face_0020",
+      "reference_face_index": 20
+    },
+    {
+      "part": "4QN1HUUK58",
+      "step_face_index": 171,
+      "area_mm2": 380.2474866494506,
+      "centroid": [
+        -101.84743401990882,
+        -510.3939651946128,
+        222.95480697260155
+      ],
+      "normal": [
+        0.12186992660978711,
+        -0.9925460800326121,
+        1.4434598516466224e-07
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 9,
+        "vertices_sha256": "15d6d930c70bbfc3f320df13a93c526eea6768e7b4e313b4857271c68b287291"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.000110428624352,
+      "reference_face_id": "4QN1HUUK58/step_face_0028",
+      "reference_face_index": 28
+    },
+    {
+      "part": "4QN1HUUK58",
+      "step_face_index": 298,
+      "area_mm2": 383.2947846946079,
+      "centroid": [
+        -195.93538720413684,
+        -519.5092693832026,
+        219.48232817582294
+      ],
+      "normal": [
+        -0.06981099906589473,
+        0.9975602303052781,
+        -0.00010640818658713687
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 6,
+        "vertices_sha256": "e73d802061647d34621d6b2093f7dd8f5c2b17ca74c6cef7a272310e05d33f8b"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 0.9998957919942003,
+      "reference_face_id": "4QN1HUUK58/step_face_0032",
+      "reference_face_index": 32
+    },
+    {
+      "part": "4QN1HUUK58",
+      "step_face_index": 508,
+      "area_mm2": 383.2688281166281,
+      "centroid": [
+        -195.98549833498348,
+        -518.8110643312758,
+        219.48303105685181
+      ],
+      "normal": [
+        -0.06980973320996076,
+        0.9975603187530676,
+        -0.0001076960174144492
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 6,
+        "vertices_sha256": "2f01f16a3f6fa87e7bc289e84a1709f38af22701d273f402a1fd7e4ac1115bb0"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.000031912684026,
+      "reference_face_id": "4QN1HUUK58/step_face_0033",
+      "reference_face_index": 33
+    },
+    {
+      "part": "FFHD4BOHJR",
+      "step_face_index": 132,
+      "area_mm2": 889.8141933200311,
+      "centroid": [
+        -141.03193425943743,
+        -519.9953743443323,
+        381.48780038118406
+      ],
+      "normal": [
+        -8.023456279067659e-09,
+        -0.989743213636905,
+        -0.1428578701356417
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 11,
+        "vertices_sha256": "2e2b64a25f8d655036e4b4af20a31717b87bf3992ae9e585106f760f0159efea"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.000000455121804,
+      "reference_face_id": "FFHD4BOHJR/step_face_0000",
+      "reference_face_index": 0
+    },
+    {
+      "part": "FFHD4BOHJR",
+      "step_face_index": 113,
+      "area_mm2": 889.7931616282364,
+      "centroid": [
+        -141.0318852091165,
+        -519.0055784551588,
+        381.63029330895444
+      ],
+      "normal": [
+        -1.0671609773626113e-11,
+        0.9897432116445272,
+        0.14285788393916854
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 11,
+        "vertices_sha256": "e6aa5740b7c822beca48b4e5e694aba364a22561da84d02f26ef63b911cc0b30"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0000002570176298,
+      "reference_face_id": "FFHD4BOHJR/step_face_0001",
+      "reference_face_index": 1
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 3,
+      "area_mm2": 3364.7825911757877,
+      "centroid": [
+        102.70298730539525,
+        -487.48444007827766,
+        290.6631164375963
+      ],
+      "normal": [
+        0.1564344650408979,
+        -0.9876883405950321,
+        5.022204874194359e-12
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 17,
+        "vertices_sha256": "b8820181f4c29ed41a89ecba792a8b7c9cf2f783618c80183ef3a578c971bb77"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 0.999993018268612,
+      "reference_face_id": "JPSXUDTAO2/step_face_0000",
+      "reference_face_index": 0
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 4,
+      "area_mm2": 3364.7816129542025,
+      "centroid": [
+        102.54639848108701,
+        -486.4967761853902,
+        290.66313904787546
+      ],
+      "normal": [
+        0.15643446504205555,
+        -0.9876883405948488,
+        -5.081823850616729e-12
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 17,
+        "vertices_sha256": "7af6da3b1d11cd7b9d56fd13abfae4c9075e7e855742d52c0ada68731ae32738"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 0.9999930182686042,
+      "reference_face_id": "JPSXUDTAO2/step_face_0003",
+      "reference_face_index": 3
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 18,
+      "area_mm2": 1466.2419229066356,
+      "centroid": [
+        -101.50697865624652,
+        -586.4049961474094,
+        440.10003645367834
+      ],
+      "normal": [
+        -0.0892488752070189,
+        0.6031699504255893,
+        0.7926037150921476
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 8,
+        "vertices_sha256": "3060766a67af98851bb182b8865a012bc8457a3565a2be053410033272d36ef3"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 0.9999855350833277,
+      "reference_face_id": "JPSXUDTAO2/step_face_0008",
+      "reference_face_index": 8
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 27,
+      "area_mm2": 3631.3641278279324,
+      "centroid": [
+        38.08429593111842,
+        -507.43795766333704,
+        341.29669403275784
+      ],
+      "normal": [
+        0.05233595026401965,
+        -0.998629535067916,
+        5.116630452661752e-09
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 21,
+        "vertices_sha256": "1ac906745d8dc07727e61e679f354bdc54622a9db05c37f51f21c09b3f00f5a8"
+      },
+      "source_coverage": 0.9997844566346776,
+      "reference_coverage": 1.002196257352399,
+      "reference_face_id": "JPSXUDTAO2/step_face_0009",
+      "reference_face_index": 9
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 29,
+      "area_mm2": 3630.308203005067,
+      "centroid": [
+        38.0373881058891,
+        -506.4390436520577,
+        341.2829209512274
+      ],
+      "normal": [
+        0.05233595026328284,
+        -0.9986295350679547,
+        5.121603696700561e-09
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 21,
+        "vertices_sha256": "3564e9c18eb29c10c86a9fa378a715b1625574275cb0b1592fdeb7de3f4d97b1"
+      },
+      "source_coverage": 0.9998498432848253,
+      "reference_coverage": 1.0019011355351806,
+      "reference_face_id": "JPSXUDTAO2/step_face_0011",
+      "reference_face_index": 11
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 1,
+      "area_mm2": 4498.0071732135275,
+      "centroid": [
+        -123.43437007772583,
+        -515.8931403531016,
+        310.21739422637637
+      ],
+      "normal": [
+        0.08710252891699852,
+        -0.9955878611564383,
+        -0.03489928615619606
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 30,
+        "vertices_sha256": "6ca1640d2fefec3c7449922209f60a4d66ac9c24ee42afb8a1fcc4feb9893ced"
+      },
+      "source_coverage": 0.9999078992559922,
+      "reference_coverage": 1.001070746616018,
+      "reference_face_id": "JPSXUDTAO2/step_face_0014",
+      "reference_face_index": 14
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 2,
+      "area_mm2": 584.373712782155,
+      "centroid": [
+        -141.0286303349126,
+        -519.311808883627,
+        376.75194502825553
+      ],
+      "normal": [
+        -1.7203609020027847e-12,
+        0.9897432116425083,
+        0.14285788395315568
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 4,
+        "vertices_sha256": "50696fc747c6d10ec4de631735798739b206f420ef6e46a3f0b2badda40f3da9"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 0.9999999999999891,
+      "reference_face_id": "JPSXUDTAO2/step_face_0015",
+      "reference_face_index": 15
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 5,
+      "area_mm2": 584.9265878241833,
+      "centroid": [
+        -141.04060476045396,
+        -520.3021791788547,
+        376.6134316812912
+      ],
+      "normal": [
+        -7.633317050074043e-12,
+        0.9897432116449068,
+        0.14285788393653823
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 4,
+        "vertices_sha256": "b8460e274aca2df5a65c0cc65b67f0ae968abf5035e2c59ff9bee2bcc90e03fd"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 0.9968223839928317,
+      "reference_face_id": "JPSXUDTAO2/step_face_0016",
+      "reference_face_index": 16
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 15,
+      "area_mm2": 1442.0065180703596,
+      "centroid": [
+        78.98219273393481,
+        -504.1261251641798,
+        490.63909387132725
+      ],
+      "normal": [
+        -0.08710264984728587,
+        0.9955878431957236,
+        0.034899496707952345
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 8,
+        "vertices_sha256": "cee6b05f4e98aa8cfa313c78c6750e7dd23611baf22a3d02040a563e2daf0251"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0000235425423782,
+      "reference_face_id": "JPSXUDTAO2/step_face_0021",
+      "reference_face_index": 21
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 16,
+      "area_mm2": 1442.0056862489039,
+      "centroid": [
+        78.89509662159418,
+        -503.1305365887545,
+        490.6739888180345
+      ],
+      "normal": [
+        0.08710264981615755,
+        -0.9955878431986228,
+        -0.0348994967029378
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 8,
+        "vertices_sha256": "6dab03e711ca4a27db9352eea286e0a12db4617c0d96c26f28b73902485ed424"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0000232748210458,
+      "reference_face_id": "JPSXUDTAO2/step_face_0022",
+      "reference_face_index": 22
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 21,
+      "area_mm2": 1466.282217082086,
+      "centroid": [
+        -101.59611389229421,
+        -585.8018358305335,
+        440.8926602962181
+      ],
+      "normal": [
+        0.08924887521841561,
+        -0.6031699504183088,
+        -0.7926037150964047
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 8,
+        "vertices_sha256": "73e84cd6a3e62ffa4a9178f9bf910e14a801f09de2000a3509ce071793a0c8b5"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 0.9999855136240815,
+      "reference_face_id": "JPSXUDTAO2/step_face_0025",
+      "reference_face_index": 25
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 22,
+      "area_mm2": 4492.409912502276,
+      "centroid": [
+        -123.45568755629327,
+        -514.8901388797176,
+        310.20499053309453
+      ],
+      "normal": [
+        0.08710254214318038,
+        -0.9955878593579748,
+        -0.034899304451534816
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 30,
+        "vertices_sha256": "25098058caeda953aa98661f6c10fccc4904e548eaf68ff3e73c58aa41b1c368"
+      },
+      "source_coverage": 0.9999077833156329,
+      "reference_coverage": 1.0005790724452108,
+      "reference_face_id": "JPSXUDTAO2/step_face_0026",
+      "reference_face_index": 26
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 24,
+      "area_mm2": 2029.3877902051063,
+      "centroid": [
+        7.503789420616159,
+        -510.2097038796924,
+        486.16954945804355
+      ],
+      "normal": [
+        -0.08710264986372795,
+        0.9955878431944862,
+        0.03489949670221626
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 8,
+        "vertices_sha256": "685926fbca2ea47328c3e0165a16c97ae9482565306f3c397aa1a5c6f80f7a63"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0000021606970455,
+      "reference_face_id": "JPSXUDTAO2/step_face_0028",
+      "reference_face_index": 28
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 25,
+      "area_mm2": 2029.4400288788727,
+      "centroid": [
+        7.41641541056511,
+        -509.21412153127295,
+        486.20392843586006
+      ],
+      "normal": [
+        -0.08710264984754565,
+        0.9955878431956952,
+        0.034899496708117
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 8,
+        "vertices_sha256": "dfcd250fdc9853c70785c367306ebe55b2d26da2d75c6a4180e3a177f200e3a8"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0000027824998892,
+      "reference_face_id": "JPSXUDTAO2/step_face_0029",
+      "reference_face_index": 29
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 26,
+      "area_mm2": 828.6330301489626,
+      "centroid": [
+        -95.82565785975771,
+        -654.7517043625508,
+        475.8676110684936
+      ],
+      "normal": [
+        0.3947930084085632,
+        -0.07068724123524082,
+        -0.9160468298281845
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 9,
+        "vertices_sha256": "357e60053c48c708f82e1e8fd5dadb22183efa0f2804fed48dcdb0ff97545519"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0009436809168908,
+      "reference_face_id": "JPSXUDTAO2/step_face_0030",
+      "reference_face_index": 30
+    },
+    {
+      "part": "JPSXUDTAO2",
+      "step_face_index": 28,
+      "area_mm2": 827.8536437485081,
+      "centroid": [
+        -96.21844460685887,
+        -654.6672374116271,
+        476.7834592366785
+      ],
+      "normal": [
+        0.39479635218686154,
+        -0.07069169510554087,
+        -0.9160450450403915
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 9,
+        "vertices_sha256": "d7b6f1fdcd2b4061b5afe34ecb7cdb47a5a514d7e933b0f30c99cf2840987878"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 0.9999890820243494,
+      "reference_face_id": "JPSXUDTAO2/step_face_0031",
+      "reference_face_index": 31
+    },
+    {
+      "part": "Q3Y6UCSE5D",
+      "step_face_index": 175,
+      "area_mm2": 264.9763746787114,
+      "centroid": [
+        79.80758427560922,
+        -503.5489997887375,
+        335.27680699212334
+      ],
+      "normal": [
+        -0.05233272997652108,
+        0.9986297038271691,
+        2.695429060256549e-06
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 6,
+        "vertices_sha256": "c11eead4ec4dfaf722589f6c6a446714e53aae7cd8c0d5bcfb758ace0a92cc4a"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0000638799539265,
+      "reference_face_id": "Q3Y6UCSE5D/step_face_0000",
+      "reference_face_index": 0
+    },
+    {
+      "part": "Q3Y6UCSE5D",
+      "step_face_index": 130,
+      "area_mm2": 233.0928894866084,
+      "centroid": [
+        2.279435280820504,
+        -499.0143730766094,
+        289.8199452558213
+      ],
+      "normal": [
+        0.12536319597846066,
+        -0.9921109156296565,
+        -1.3511143826638872e-05
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 8,
+        "vertices_sha256": "1ccb6d429e3945e71b0351abd68c2ba95015516426436820a123b6da0e819334"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 0.9999999999838569,
+      "reference_face_id": "Q3Y6UCSE5D/step_face_0002",
+      "reference_face_index": 2
+    },
+    {
+      "part": "Q3Y6UCSE5D",
+      "step_face_index": 46,
+      "area_mm2": 240.6613605401421,
+      "centroid": [
+        10.551549304766532,
+        -497.9272632135345,
+        290.7696584791847
+      ],
+      "normal": [
+        0.1350833530779059,
+        -0.9908342382544456,
+        -4.8951371304228886e-06
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 4,
+        "vertices_sha256": "c5b51900929c7752a2b4f080ccfe2a0788d343049d3372e95dbf0b5940607fcc"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 0.9998566376592806,
+      "reference_face_id": "Q3Y6UCSE5D/step_face_0004",
+      "reference_face_index": 4
+    },
+    {
+      "part": "Q3Y6UCSE5D",
+      "step_face_index": 181,
+      "area_mm2": 385.7046228058468,
+      "centroid": [
+        78.59799667212624,
+        -487.7586675885825,
+        301.1346579416819
+      ],
+      "normal": [
+        0.15643446501322045,
+        -0.9876883405994157,
+        -8.830436382112337e-12
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 4,
+        "vertices_sha256": "c8d61a912e850b790f05459c198dfd3c091d41c04615a5aeba445e55ba0957f8"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 0.9999999999999968,
+      "reference_face_id": "Q3Y6UCSE5D/step_face_0005",
+      "reference_face_index": 5
+    },
+    {
+      "part": "Q3Y6UCSE5D",
+      "step_face_index": 216,
+      "area_mm2": 264.97163836105955,
+      "centroid": [
+        79.77107169614547,
+        -502.8499526900398,
+        335.2771334928925
+      ],
+      "normal": [
+        0.05233537691245255,
+        -0.9986295651154711,
+        -8.467234898501541e-07
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 6,
+        "vertices_sha256": "6dee8048a6b67f48f1e8037f63debabc7a5428f3f0004b7b5c54fc4bf1279b39"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0000604790292744,
+      "reference_face_id": "Q3Y6UCSE5D/step_face_0006",
+      "reference_face_index": 6
+    },
+    {
+      "part": "ZWO0Q535RY",
+      "step_face_index": 2,
+      "area_mm2": 955.0280135578331,
+      "centroid": [
+        79.03207656017045,
+        -504.29060306777137,
+        353.71178601974145
+      ],
+      "normal": [
+        0.052335954702813485,
+        -0.9986295348352887,
+        1.821063189133554e-09
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 11,
+        "vertices_sha256": "1706445d7630a25eaa9bf6408356c667c9a6dcf7a583f823696dd0d32d20f102"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0000452482277233,
+      "reference_face_id": "ZWO0Q535RY/step_face_0001",
+      "reference_face_index": 1
+    },
+    {
+      "part": "ZWO0Q535RY",
+      "step_face_index": 5,
+      "area_mm2": 955.0280123372256,
+      "centroid": [
+        78.99544139959926,
+        -503.5915623933297,
+        353.7117859891664
+      ],
+      "normal": [
+        -0.05233595623068985,
+        0.9986295347552161,
+        3.1017410861977623e-12
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 11,
+        "vertices_sha256": "4a1b7645c3614bc22b5c1ffe3e59f02e821385236c0ea1483cd14aaf797b0909"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0000452482294195,
+      "reference_face_id": "ZWO0Q535RY/step_face_0003",
+      "reference_face_index": 3
+    },
+    {
+      "part": "ZWO0Q535RY",
+      "step_face_index": 3,
+      "area_mm2": 1014.699393653544,
+      "centroid": [
+        79.69907193768385,
+        -502.8337198633149,
+        504.2707825122029
+      ],
+      "normal": [
+        0.08710265004089145,
+        -0.9955878431849097,
+        -0.0348994965332441
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 24,
+        "vertices_sha256": "8b54ab3224e4c14738745ff5bea98b9432c32e3198d8ece8ba5b35cc24bdbcd7"
+      },
+      "source_coverage": 0.9998661113744177,
+      "reference_coverage": 0.9998650195820838,
+      "reference_face_id": "ZWO0Q535RY/step_face_0005",
+      "reference_face_index": 5
+    },
+    {
+      "part": "ZWO0Q535RY",
+      "step_face_index": 6,
+      "area_mm2": 1013.0806449139668,
+      "centroid": [
+        79.77171747552956,
+        -503.5303908686073,
+        504.2686278291691
+      ],
+      "normal": [
+        -0.08710215120053806,
+        0.9955878908513102,
+        0.03489938174923036
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 24,
+        "vertices_sha256": "b2b26982daa7d6ce84a0ab83decfaf318753268e262164e768b63ebd6dbb94aa"
+      },
+      "source_coverage": 0.9998344854299522,
+      "reference_coverage": 0.9980573220954443,
+      "reference_face_id": "ZWO0Q535RY/step_face_0006",
+      "reference_face_index": 6
+    },
+    {
+      "part": "ZWO0Q535RY",
+      "step_face_index": 9,
+      "area_mm2": 958.8067529429533,
+      "centroid": [
+        7.564280984167442,
+        -509.1970522591043,
+        486.08603342379274
+      ],
+      "normal": [
+        -0.08710264983675592,
+        0.9955878431968858,
+        0.03489949670108106
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 21,
+        "vertices_sha256": "71d27db863a3a5764a88ff2f19c97db05ffdfba4585351c7abf8e565d5cb0719"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.0003408133644487,
+      "reference_face_id": "ZWO0Q535RY/step_face_0009",
+      "reference_face_index": 9
+    },
+    {
+      "part": "ZWO0Q535RY",
+      "step_face_index": 10,
+      "area_mm2": 958.8066218469932,
+      "centroid": [
+        7.5033082923303045,
+        -508.500141061822,
+        486.11046933334336
+      ],
+      "normal": [
+        -0.08710264983578474,
+        0.9955878431969858,
+        0.0348994967006545
+      ],
+      "boundary_fingerprint": {
+        "vertex_count": 21,
+        "vertices_sha256": "79e392184703408c1d48a57820c78a50d2add62a576ec89dba200b4c3aab8b45"
+      },
+      "source_coverage": 1.0,
+      "reference_coverage": 1.000340813325156,
+      "reference_face_id": "ZWO0Q535RY/step_face_0010",
+      "reference_face_index": 10
+    }
+  ],
+  "label_build_summary": {
+    "source_planar_faces": 525,
+    "reference_planar_faces": 40,
+    "selected_labels": 40,
+    "rejected_reference_faces": 0,
+    "passed": true
+  }
+}

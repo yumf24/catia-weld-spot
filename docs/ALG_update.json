@@ -163,7 +163,7 @@
       "id": "S04_frozen_template_contract",
       "priority": 4,
       "depends_on": ["S03_reference_face_labels"],
-      "pass": false,
+      "pass": true,
       "goal": "生成并版本化 component-simplify 的冻结选面模板。",
       "changes": [
         "定义模板 JSON 契约并写入 templates/component-simplify/plane-selection-template.json。",
