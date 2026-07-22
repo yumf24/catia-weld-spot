@@ -1,0 +1,378 @@
+{
+  "format_version": 1,
+  "title": "component-simplify 冻结单 CAD Face 选面模板改造计划",
+  "project": {
+    "repository": "ml-pipeline",
+    "goal": "从 component-simplify 主 STEP 中自动输出与人工选择结果一致的单个 CAD face，并仅将选中 face 交给后续焊点候选算法。",
+    "scope": "仅适用于 raw_data/component-simplify/manifest.json 所登记 primary_model 的精确 SHA-256 版本；不宣称对新零件或改版 STEP 泛化。",
+    "ground_truth": "component_simplify_surface.step 仅用于一次性建模标签与验收，不得作为日常选面运行时输入。",
+    "known_baseline": {
+      "primary_step_faces": 2834,
+      "primary_planar_faces": 525,
+      "reference_step_faces": 89,
+      "reference_planar_faces": 40,
+      "known_issue": "当前 AABB 任意正面积相交会把擦边或同平面远处小面计为匹配；数学平面集合也明显大于人工选择集合。"
+    },
+    "acceptance_target": {
+      "unit": "single CAD face from the primary STEP",
+      "normal_angle_deg_max": 0.5,
+      "plane_distance_mm_max": 0.05,
+      "source_face_reference_coverage_min": 0.95,
+      "recall_min": 0.95,
+      "precision_min": 0.9
+    }
+  },
+  "directory_layout": {
+    "raw_data/component-simplify/": "不可变原始主 STEP、人工参考 STEP 与输入 manifest。",
+    "data/component-simplify/<run-id>/": "每次构建、选择、评测与核心算法运行的受管产物及 manifest。",
+    "src/weld_core/": "纯 Python/OCP 几何、模板、选择、评测与核心算法实现；严禁依赖 pycatia/pywin32。",
+    "scripts/": "创建模板、执行模板选面、精确评测与受管运行的命令行入口。",
+    "tests/": "独立 OCP 合成几何单测及本地 component-simplify 回归测试。",
+    "templates/component-simplify/": "受版本控制的冻结选面模板；仅保存参考派生的标签、指纹与哈希，不保存原始 CAD。",
+    "docs/": "JSON 契约、CLI 文档及本执行计划。"
+  },
+  "global_rules": {
+    "python": ".venv\\Scripts\\python",
+    "source_of_truth": "src/weld_core/schema.py 与受管 raw/run manifest。",
+    "runtime_reference_policy": "日常选面命令不得读取 component_simplify_surface.step；仅模板构建与验收命令可读取它。",
+    "hash_policy": "运行时 primary_model SHA-256 必须与模板 source_sha256 完全一致；不一致必须返回非零、不得输出 selected faces、不得尝试容差迁移。",
+    "face_identity_policy": "模板 face 身份由 part 名、稳定 STEP face index、面积/重心/法向指纹共同记录；运行时 index 与指纹都必须一致。",
+    "truth_matching_policy": "正式真值匹配必须使用 OCP CAD 面边界的公共面积和覆盖率。投影 AABB 仅可用于缩小候选集合，不能作为通过条件。",
+    "ambiguous_label_policy": "参考面无法唯一、可审计地映射到单个或明确集合的源 CAD face 时必须失败并保留 pass=false；禁止自动猜测。",
+    "step_completion_policy": [
+      "每个步骤开始时 pass 必须为 false。",
+      "strict_tests 中所有命令必须返回预期退出码，且所有显式断言必须成立。",
+      "测试全通过后，才允许将该步骤 pass 改为 true。",
+      "完成该步骤时必须更新 DEVLOG.md，并在同一个提交中包含实现、测试、DEVLOG.md 与本 JSON 的 pass 更新。",
+      "提交前必须通过 git diff --check；提交后 git status --short 必须为空。",
+      "任何失败、标签歧义、SHA 不一致或工作树不干净都必须保持该步骤 pass=false，且不得提交该步骤。"
+    ],
+    "external_change_guard": "执行前若 git status --short 非空，必须先由用户处理或明确隔离外部改动。不得暂存、提交、还原或覆盖非本步骤文件。当前已知外部改动为 PLAN.md 删除及 docs/PLAN.md 未跟踪文件。"
+  },
+  "steps": [
+    {
+      "id": "S01_preflight_baseline",
+      "priority": 1,
+      "depends_on": [],
+      "pass": false,
+      "goal": "建立可重复、可追溯的改造前基线，并确认后续步骤可在干净工作树中执行。",
+      "changes": [
+        "不修改算法行为；新增或扩展只读基线检查，使其报告 raw manifest SHA-256、主/参考面数和平面数。",
+        "确认 component-simplify 的基线为主模型 2834/525、参考模型 89/40。",
+        "在执行记录中明确外部工作树改动已由用户处理；本步骤不得包含外部改动。"
+      ],
+      "strict_tests": [
+        {
+          "command": "git status --short",
+          "expect_exit_code": 0,
+          "assertions": ["stdout 为空；否则本步骤阻塞且 pass 保持 false。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -c \"from weld_core.data_layout import verify_raw_inputs; verify_raw_inputs('component-simplify'); print('OK')\"",
+          "expect_exit_code": 0,
+          "assertions": ["stdout 包含 OK。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": ["全部测试通过。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_step_geometry.py --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": ["component-simplify 断言主模型 2834/525、参考 89/40 全部通过。"]
+        }
+      ],
+      "completion_commit": "chore: establish plane selection baseline",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["用户未处理的外部工作树改动。"]
+    },
+    {
+      "id": "S02_exact_face_overlap",
+      "priority": 2,
+      "depends_on": ["S01_preflight_baseline"],
+      "pass": false,
+      "goal": "提供以 OCP 精确 CAD 边界为准的共面 face 公共面积与覆盖率计算。",
+      "changes": [
+        "在 weld_core 中新增可复用的精确 face-overlap API，输入两个 OCP face 和已校验的共面条件，输出公共面积、source 覆盖率、reference 覆盖率与可诊断失败原因。",
+        "使用 OCP 布尔公共形状与 SurfaceProperties 计算面积；对多个参考 face 覆盖同一源 face 时先构造无重复的并集或明确检测重叠并失败。",
+        "保留 AABB 候选预筛，但删除其作为最终真值条件的任何用法。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_exact_face_overlap.py --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": [
+            "完全重合矩形的双向覆盖率为 1.0。",
+            "源 face 95% 被覆盖时 source_coverage >= 0.95。",
+            "仅边界接触、仅点接触或零面积相交的公共面积为 0，不能匹配。",
+            "部分相交、非共面、超过 0.5 度或超过 0.05 mm 的面均不能通过正式匹配。",
+            "多参考面覆盖同一源 face 不会重复累计面积。"
+          ]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": ["完整测试全绿。"]
+        }
+      ],
+      "completion_commit": "feat: add exact planar face overlap",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["S01_preflight_baseline 未通过。"]
+    },
+    {
+      "id": "S03_reference_face_labels",
+      "priority": 3,
+      "depends_on": ["S02_exact_face_overlap"],
+      "pass": false,
+      "goal": "将一次性人工参考转换为主 STEP 的单 CAD face 正标签，且所有标签均可审计。",
+      "changes": [
+        "新增标签构建逻辑：先按同 part、法向 <=0.5 度、平面距离 <=0.05 mm 预筛，再使用精确 source 覆盖率 >=0.95 选中源 face。",
+        "输出标签构建审计：每个参考 face 的候选、公共面积、双向覆盖率、选中源 face、拒绝原因与歧义状态。",
+        "任何参考 face 无正标签、任何源 face 的覆盖归属歧义、或标签几何检查失败时返回非零。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_plane_reference_labels.py --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": [
+            "合成一对一、一对多、擦边和歧义样例均符合标签策略。",
+            "歧义样例必须失败，不得产生猜测标签。"
+          ]
+        },
+        {
+          "command": ".venv\\Scripts\\python scripts\\build_plane_selection_template.py component-simplify --dry-run",
+          "expect_exit_code": 0,
+          "assertions": [
+            "原始输入 SHA 已核验。",
+            "40 个参考平面均建立可审计标签。",
+            "不存在零面积擦边标签、未解决歧义或超过几何容差的标签。"
+          ]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": ["完整测试全绿。"]
+        }
+      ],
+      "completion_commit": "feat: derive exact reference face labels",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["S02_exact_face_overlap 未通过。", "人工参考无法无歧义地映射到主 STEP 单 CAD face。"]
+    },
+    {
+      "id": "S04_frozen_template_contract",
+      "priority": 4,
+      "depends_on": ["S03_reference_face_labels"],
+      "pass": false,
+      "goal": "生成并版本化 component-simplify 的冻结选面模板。",
+      "changes": [
+        "定义模板 JSON 契约并写入 templates/component-simplify/plane-selection-template.json。",
+        "模板必须记录 format_version、part_id、source_sha256、reference_sha256、生成阈值、每个选中 face 的 part、STEP face index、面积、重心、法向、顶点/边界指纹、覆盖率和参考追溯信息。",
+        "模板只能由 S03 的精确标签结果生成；禁止手写或仅以面积/AABB 推断。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python scripts\\build_plane_selection_template.py component-simplify --output templates\\component-simplify\\plane-selection-template.json",
+          "expect_exit_code": 0,
+          "assertions": ["模板生成成功，且模板 source_sha256/reference_sha256 与 raw manifest 一致。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_plane_selection_template.py --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": [
+            "缺失字段、重复 face identity、错误哈希、错误指纹和低覆盖率模板均被拒绝。",
+            "当前模板可完整反序列化且所有选中 face 均符合单 CAD face 契约。"
+          ]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": ["完整测试全绿。"]
+        }
+      ],
+      "completion_commit": "feat: add frozen component plane template",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["S03_reference_face_labels 未通过。"]
+    },
+    {
+      "id": "S05_template_selection_runtime",
+      "priority": 5,
+      "depends_on": ["S04_frozen_template_contract"],
+      "pass": false,
+      "goal": "在不读取人工参考 STEP 的前提下，按冻结模板自动输出主 STEP 的选中单 CAD face。",
+      "changes": [
+        "新增运行时选面 API 与 scripts/select_template_planes.py。",
+        "运行前校验主 STEP SHA-256；不一致时非零退出，输出重建模板提示且不创建 faces.selected.json。",
+        "SHA 一致时校验每个模板 index 与几何指纹，输出符合 FacesDocument 的 faces.selected.json 和包含全部排除原因的 selection_audit.json。",
+        "在受管 data/component-simplify/<run-id>/ 中登记 selected_faces 与 selection_audit 产物。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_template_plane_selection.py --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": [
+            "同 SHA 输入稳定输出相同选中 face ID 和顺序。",
+            "SHA 不同、face index 不同或指纹不同必须失败且不输出结果。",
+            "运行时实现不读取 surface_reference。"
+          ]
+        },
+        {
+          "command": ".venv\\Scripts\\python scripts\\select_template_planes.py component-simplify --run-label template-selection",
+          "expect_exit_code": 0,
+          "assertions": ["创建一个受管运行目录，包含 faces.selected.json、selection_audit.json 和完整 manifest 产物登记。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": ["完整测试全绿。"]
+        }
+      ],
+      "completion_commit": "feat: select planes from frozen template",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["S04_frozen_template_contract 未通过。"]
+    },
+    {
+      "id": "S06_exact_selection_evaluation",
+      "priority": 6,
+      "depends_on": ["S05_template_selection_runtime"],
+      "pass": false,
+      "goal": "以精确单 CAD face 标签计算正式 precision/recall，并替代 AABB 验证作为模板验收。",
+      "changes": [
+        "新增精确选择评测 API 与 CLI，输入模板选择结果和仅在评测时读取的人工参考。",
+        "输出 plane_selection_evaluation.json 与 Markdown 报告，包含 TP/FP/FN、precision、recall、每个 face 的覆盖率、法向误差、平面距离和失败原因。",
+        "保留旧 plane_validation.json 作为历史诊断；其 AABB 指标不得作为本模板的正式通过依据。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_exact_plane_selection_evaluation.py --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": ["TP/FP/FN、precision、recall 与单 CAD face 覆盖率阈值在合成样例中精确正确。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python scripts\\evaluate_template_plane_selection.py component-simplify --run-dir data\\component-simplify\\<template-selection-run-id>",
+          "expect_exit_code": 0,
+          "assertions": [
+            "precision > 0.90。",
+            "recall > 0.95。",
+            "所有通过匹配满足法向 <=0.5 度、平面距离 <=0.05 mm、覆盖率 >=0.95。"
+          ]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": ["完整测试全绿。"]
+        }
+      ],
+      "completion_commit": "feat: evaluate exact template plane selection",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["S05_template_selection_runtime 未通过。", "正式指标未达到 precision >0.90 或 recall >0.95。"]
+    },
+    {
+      "id": "S07_pipeline_integration",
+      "priority": 7,
+      "depends_on": ["S06_exact_selection_evaluation"],
+      "pass": false,
+      "goal": "确保核心配对和布点仅消费模板选中的 face。",
+      "changes": [
+        "为核心流程增加明确的 selected-faces 输入路径或受管编排命令。",
+        "保留既有通用 faces.enriched.json 流程兼容性；component-simplify 模板路径必须强制使用 faces.selected.json。",
+        "在 candidates 元数据中记录 selected face 来源、模板哈希和主 STEP SHA。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_pipeline.py tests\\test_template_plane_selection.py --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": ["既有通用流程不回退，模板流程只使用 selected face。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m weld_core.pipeline data\\component-simplify\\<template-selection-run-id>\\faces.selected.json data\\component-simplify\\<template-selection-run-id>\\candidates.json",
+          "expect_exit_code": 0,
+          "assertions": ["candidates.json 中所有关联 face ID 都存在于 faces.selected.json。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": ["完整测试全绿。"]
+        }
+      ],
+      "completion_commit": "feat: run pipeline with selected template faces",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["S06_exact_selection_evaluation 未通过。"]
+    },
+    {
+      "id": "S08_acceptance_run",
+      "priority": 8,
+      "depends_on": ["S07_pipeline_integration"],
+      "pass": false,
+      "goal": "完成当前基准零件的端到端离线受管验收运行。",
+      "changes": [
+        "创建独立 data/component-simplify/<run-id>，依次登记模板选择、精确评测和 candidates 产物。",
+        "manifest 记录主/参考 SHA、模板路径与哈希、参数、产物索引、正式指标和 completed 状态。",
+        "不得依赖 CATIA 回导 STEP 的 GetPlane 结果；该流程以原始 STEP/OCP 为几何真值。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python scripts\\select_template_planes.py component-simplify --run-label acceptance",
+          "expect_exit_code": 0,
+          "assertions": ["主 STEP SHA 与模板完全匹配。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python scripts\\evaluate_template_plane_selection.py component-simplify --run-dir data\\component-simplify\\<acceptance-run-id>",
+          "expect_exit_code": 0,
+          "assertions": ["precision >0.90 且 recall >0.95。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m weld_core.pipeline data\\component-simplify\\<acceptance-run-id>\\faces.selected.json data\\component-simplify\\<acceptance-run-id>\\candidates.json",
+          "expect_exit_code": 0,
+          "assertions": ["候选文件成功生成并位于同一受管运行目录。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python scripts\\inspect_run.py component-simplify <acceptance-run-id>",
+          "expect_exit_code": 0,
+          "assertions": ["manifest 状态为 completed，且 selected_faces、selection_audit、plane_selection_evaluation、candidates 全部登记。"]
+        }
+      ],
+      "completion_commit": "chore: record template selection acceptance run",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["S07_pipeline_integration 未通过。", "验收指标未达标。"]
+    },
+    {
+      "id": "S09_documentation_and_closeout",
+      "priority": 9,
+      "depends_on": ["S08_acceptance_run"],
+      "pass": false,
+      "goal": "完成对外契约、CLI、开发记录和计划状态的收尾。",
+      "changes": [
+        "更新 docs/json_contract.md：模板、faces.selected.json、selection_audit.json、plane_selection_evaluation.json 的字段和哈希约束。",
+        "更新 CLI.md：模板构建、模板选面、精确评测、SHA 不匹配处理和验收运行命令。",
+        "更新 DEVLOG.md：记录正式指标、模板范围限制、原始参考仅用于构建/评测以及改版必须重建模板。",
+        "确认 S01-S09 的 pass 都为 true，且本 JSON 仍是有效 JSON。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m json.tool docs\\ALG_update.json > NUL",
+          "expect_exit_code": 0,
+          "assertions": ["ALG_update.json 为有效 JSON，S01-S09 全部 pass=true。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\basetemp",
+          "expect_exit_code": 0,
+          "assertions": ["完整测试全绿。"]
+        },
+        {
+          "command": "git diff --check",
+          "expect_exit_code": 0,
+          "assertions": ["无空白错误。"]
+        },
+        {
+          "command": "git status --short",
+          "expect_exit_code": 0,
+          "assertions": ["提交后 stdout 为空。"]
+        }
+      ],
+      "completion_commit": "docs: finalize template plane selection workflow",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["S08_acceptance_run 未通过。", "任一步骤 pass 仍为 false。"]
+    }
+  ]
+}
