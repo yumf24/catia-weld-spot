@@ -16,6 +16,18 @@ data/<part-id>/<run-id>/manifest.json
 原始清单、运行时输入哈希、执行参数、状态和 `artifacts` 路径。路径均为仓库相对路径，不写入本机绝对
 路径。`component-simplify` 的 `surface_reference` 是平面提取验证基准，不是算法派生产物。
 
+## plane_validation.json（平面提取正确性验证）
+
+由 `scripts/validate_plane_reference.py <part-id>` 生成。默认比较注册的
+`primary_model` STEP 与 `surface_reference`；使用 `--faces` 可验证 CATIA 完整流程的
+`faces.enriched.json`。结果在独立运行目录中登记为 `plane_validation` 与
+`plane_validation_report` 两个产物。
+
+- `summary`：算法/参考平面数量、TP/FP/FN、precision、recall 与通过状态；仅 precision 和
+  recall 都为 100% 才通过。
+- `algorithm_faces` / `reference_faces`：逐面几何、所有多对多匹配及误差。
+- `false_positive_faces` / `false_negative_faces`：待复核的额外算法平面与未检出的参考平面。
+
 ## faces.json（提取层输出 → 核心输入）
 
 | 字段 | 类型 | 说明 |

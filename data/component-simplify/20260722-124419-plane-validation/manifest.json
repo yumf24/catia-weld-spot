@@ -1,0 +1,38 @@
+{
+  "format_version": 1,
+  "part_id": "component-simplify",
+  "run_id": "20260722-124419-plane-validation",
+  "created_at": "2026-07-22T12:44:19+08:00",
+  "status": "completed",
+  "active_document": "",
+  "raw_manifest": "raw_data\\component-simplify\\manifest.json",
+  "raw_inputs": [
+    {
+      "role": "primary_model",
+      "path": "raw_data\\component-simplify\\component_simplify.step",
+      "sha256": "8c79d3364640245c035702cd382aad0022a0740280f74f72212a5b6c15287856",
+      "size_bytes": 34543311
+    },
+    {
+      "role": "surface_reference",
+      "path": "raw_data\\component-simplify\\component_simplify_surface.step",
+      "sha256": "d035d1f9106d870b2bbe21c0aacf7e09bd05250baefe66bf788e677728d6a2ff",
+      "size_bytes": 1350607
+    }
+  ],
+  "parameters": {
+    "validation": "plane-reference",
+    "source_faces": null
+  },
+  "artifacts": {
+    "plane_validation": {
+      "path": "plane_validation.json",
+      "source_kind": "step"
+    },
+    "plane_validation_report": {
+      "path": "plane_validation.md",
+      "kind": "markdown"
+    }
+  },
+  "completed_at": "2026-07-22T12:44:33+08:00"
+}

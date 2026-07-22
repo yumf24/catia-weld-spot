@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-22 12:44:33 +08:00 — component-simplify 平面参考验证落地
+
+**做了什么**
+- 新增 `weld_core.plane_validation` 和 `scripts/validate_plane_reference.py`：读取受管原始清单并核验哈希，将算法平面与 `surface_reference` 以零件号、无向法向、平面距离和投影 AABB 重叠进行多对多匹配。
+- 验证结果写入受管运行目录的 `plane_validation.json` 与 Markdown 报告，记录逐面匹配误差、TP/FP/FN、precision/recall；只有两项指标均为 100% 才标记通过。支持后续传入 `faces.enriched.json` 复核 CATIA 完整流程。
+- 补充 CLI 与 JSON 契约文档，新增法向反向、一对多切分、边界不重叠及超阈值的单元测试。
+
+**验证结果**
+- 离线运行：`data/component-simplify/20260722-124419-plane-validation/`。参考平面 40/40 均被检出（recall **100%**）；算法平面 525 个中 44 个映射到参考，481 个按完整金标准口径为额外平面（precision **8.38%**），结论未通过。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\basetemp`：**45 passed**。
+- CATIA 复核未执行：CNEXT 正在运行，但本机没有 `weld-catia` Conda 环境，base 环境也未安装 `pycatia`/`pywin32`；未改动全局环境或 CATIA 文档。
+
+---
+
 ## 2026-07-22 12:23:14 +08:00 — 原始 CAD 与运行产物目录解耦、可追溯清单落地
 
 **做了什么**

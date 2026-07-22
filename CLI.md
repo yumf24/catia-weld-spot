@@ -15,6 +15,7 @@
 | [提取面数据](#提取面数据) | `catia/extract_faces.py` | 是 | 激活的 CATIA 文档 | `faces.json` |
 | [导出 STEP](#导出-step) | `catia/export_step.py` | 是 | 激活的 CATIA 文档 | `*.stp` |
 | [用 STEP 补全顶点](#用-step-补全顶点) | `scripts/enrich_faces_with_step.py` | 否 | `faces.json` + `*.stp` | `faces.enriched.json` |
+| [验证平面提取](#验证平面提取) | `scripts/validate_plane_reference.py` | 否 | 注册 STEP + 平面参考 | 受管运行目录内 JSON/报告 |
 | [运行核心算法](#运行核心算法) | `python -m weld_core.pipeline` | 否 | `faces.enriched.json` | `candidates.json` |
 | [回写候选点到 CATIA](#回写候选点到-catia) | `catia/write_candidates.py` | 是 | `candidates.json` | CATIA 文档内 `Weld_Candidates` 点集 |
 | [一键端到端](#一键端到端) | `scripts/run_full_pipeline.py` | 是 | 激活的 CATIA 文档 + 原始清单 | 一个受管运行目录（可选回写） |
@@ -123,6 +124,29 @@ python catia/export_step.py data/component/<run-id>/component.stp
 
 ```bash
 python scripts/enrich_faces_with_step.py data/component/<run-id>/faces.json data/component/<run-id>/component.stp data/component/<run-id>/faces.enriched.json
+```
+
+---
+
+## 验证平面提取
+
+**代码路径**：`scripts/validate_plane_reference.py`（核心比较逻辑在
+`src/weld_core/plane_validation.py`，纯 Python/OCP，不依赖 CATIA）
+
+**用途**：将注册的主模型 STEP 中算法判定的平面与 `surface_reference` 中的真实平面做双向
+比较。匹配要求零件号相同、无向法向夹角 ≤0.1°、平面距离 ≤0.02mm，且投影边界 AABB 有
+正面积重叠；支持不同 STEP 导出造成的一对多/多对一面切分。运行创建一个受管目录，写入
+`plane_validation.json`（逐面匹配、TP/FP/FN、precision/recall）和 Markdown 报告；只有
+precision 与 recall 都为 100% 才返回成功。
+
+```bash
+python scripts/validate_plane_reference.py component-simplify
+```
+
+完成 CATIA 一键流程后，可用其 `faces.enriched.json` 复核运行时平面分类，并把报告写回同一运行目录：
+
+```bash
+python scripts/validate_plane_reference.py component-simplify --faces data/component-simplify/<run-id>/faces.enriched.json --run-dir data/component-simplify/<run-id>
 ```
 
 ---
