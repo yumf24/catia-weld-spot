@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-07-22 18:13:00 +08:00 - 补充平面选面错误分析报告说明
+
+**做了什么**
+- 更新错误分析 Markdown 渲染器：在基线指标前说明 TP、FP、FN、precision 与 recall 的含义。
+- 在报告末尾新增 Summary，汇总当前离线结论、主要 FN 根因和按证据排序的下一步改进方向。
+- 重新生成 `component-simplify` 受管回归的最终分析报告；不改动生产选面参数。
+
+**验证结果**
+- `.venv\Scripts\python -m pytest tests\test_general_plane_selection_error_analysis.py`：**12 passed**。
+- `scripts\analyze_general_plane_selection_errors.py component-simplify --run-dir data\component-simplify\20260722-163200-generic-regression`：成功重写 JSON/Markdown 报告。
+
+---
+
 ## 2026-07-22 18:12:00 +08:00 - EA07 平面选面优化建议 backlog
 
 **做了什么**

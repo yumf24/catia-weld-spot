@@ -620,6 +620,14 @@ def render_error_analysis_markdown(report: dict[str, Any]) -> str:
         "",
         "Scope: offline evaluation only. This report does not change production selection parameters.",
         "",
+        "## Metric definitions",
+        "",
+        "- **TP (true positive):** a selected source face that matches an offline truth face.",
+        "- **FP (false positive):** a selected source face with no match in the offline truth.",
+        "- **FN (false negative):** an offline truth face that was not selected.",
+        "- **Precision:** `TP / (TP + FP)`; the share of selected faces that are correct.",
+        "- **Recall:** `TP / (TP + FN)`; the share of offline truth faces that were selected.",
+        "",
         "## Face-level baseline",
         "",
         "| TP | FP | FN | Precision | Recall |",
@@ -643,6 +651,30 @@ def render_error_analysis_markdown(report: dict[str, Any]) -> str:
         lines.append(
             f"- `{item['face_id']}`: {item['false_positive_reason']} "
             f"({len(item['supporting_pairs'])} accepted supporting pair(s))."
+        )
+    ranked_causes = report.get("false_negative_reason_ranking", [])
+    top_cause = ranked_causes[0] if ranked_causes else None
+    lines.extend(["", "## Summary", ""])
+    lines.append(
+        f"- The offline baseline is TP/FP/FN={true_positives}/{false_positives}/{false_negatives}, "
+        f"with precision={precision:.2%} and recall={recall:.2%}. Recall is the primary limitation."
+    )
+    if isinstance(top_cause, dict):
+        lines.append(
+            f"- The main error source is `{top_cause['failure_stage']}` "
+            f"({top_cause['count']} of {false_negatives} false negatives)."
+        )
+    if ranked_causes:
+        cause_breakdown = ", ".join(
+            f"`{item['failure_stage']}`={item['count']}" for item in ranked_causes if isinstance(item, dict)
+        )
+        lines.append(f"- False-negative error breakdown: {cause_breakdown}.")
+    priorities = report.get("optimization_priority", [])
+    if priorities:
+        lines.append(
+            "- Recommended next steps: "
+            + " → ".join(f"`{priority}`" for priority in priorities)
+            + ". Keep all experiments offline until their recall gain and precision risk are validated."
         )
     return "\n".join(lines) + "\n"
 

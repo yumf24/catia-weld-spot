@@ -263,6 +263,10 @@ def test_report_ranks_fn_reasons_and_makes_gap_the_first_recommendation():
     assert report["optimization_priority"][:2] == ["plane_gap_strategy", "projected_aabb_diagnosis"]
     assert "| 1 | plane_gap | 1 |" in markdown
     assert "This report does not change production selection parameters." in markdown
+    assert "## Metric definitions" in markdown
+    assert "**TP (true positive):**" in markdown
+    assert "## Summary" in markdown
+    assert "The main error source is `plane_gap` (1 of 1 false negatives)." in markdown
 
 
 def test_sweep_generates_complete_fixed_28_case_matrix_without_changing_defaults():
