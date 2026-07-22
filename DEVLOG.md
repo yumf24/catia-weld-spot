@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-22 16:17:56 +08:00 — G04 离线参考评测
+
+**做了什么**
+- 新增 `weld_core.general_plane_selection_evaluation`，仅在显式离线评测输入中使用参考 CAD face，构建 source face 真值映射并输出 TP/FP/FN、precision/recall 和逐 face 诊断。
+- 真值映射使用 part、无向法向夹角、平面距离、投影后 OCCT 精确公共面积和 source/reference 双向覆盖率；无匹配、低覆盖和多 source 歧义均失败，不自动猜测。
+- 新增 `scripts/evaluate_general_plane_selection.py` 作为离线评测 CLI；新增 `scripts/select_general_planes.py` 无 reference 依赖的运行时入口骨架，供 G05 继续实现。
+- `docs/ALG_updatev2.json` 中 `G04_offline_reference_evaluation` 标记为通过。
+
+**验证结果**
+- `.venv\Scripts\python -m pytest tests\test_general_plane_selection_evaluation.py --basetemp .pytest_cache\g04-evaluation`：**8 passed**。
+- `.venv\Scripts\python -m pytest --basetemp .pytest_cache\g04-full`：**80 passed**。
+- `rg -n "surface_reference|component_simplify_surface" src\weld_core\general_plane_selection.py scripts\select_general_planes.py`：退出码 **1**，运行时通用选面路径无参考 STEP 命中。
+
+---
+
 ## 2026-07-22 16:11:55 +08:00 — G03 通用平面选面几何契约
 
 **做了什么**

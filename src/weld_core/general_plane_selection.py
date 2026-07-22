@@ -26,6 +26,7 @@ from .geometry import (
     point_to_plane_distance,
     project_to_plane,
 )
+from .step_geometry import StepFace
 
 _ZERO_AREA_MM2 = 1e-9
 
@@ -288,3 +289,25 @@ def select_general_planar_faces(
         supporting_pair_ids_by_face={face_id: tuple(pair_ids) for face_id, pair_ids in sorted(support.items())},
         pair_audits=tuple(audits),
     )
+
+
+def general_faces_from_step_groups(groups: dict[str, list[StepFace]]) -> list[GeneralPlaneFace]:
+    """Convert parsed STEP faces to deterministic generic selection records."""
+
+    faces: list[GeneralPlaneFace] = []
+    for part, part_faces in sorted(groups.items()):
+        for index, face in enumerate(part_faces):
+            if not face.is_planar or face.shape is None:
+                continue
+            faces.append(
+                GeneralPlaneFace(
+                    id=f"{part}/step_face_{index:04d}",
+                    part=part,
+                    normal=face.normal,
+                    plane_origin=face.centroid,
+                    centroid=face.centroid,
+                    vertices=tuple(face.vertices),
+                    shape=face.shape,
+                )
+            )
+    return faces

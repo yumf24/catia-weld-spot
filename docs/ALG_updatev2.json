@@ -182,7 +182,7 @@
       "id": "G04_offline_reference_evaluation",
       "priority": 4,
       "depends_on": ["G03_general_selection_contract_and_geometry"],
-      "pass": false,
+      "pass": true,
       "goal": "建立仅在离线评测阶段加载人工参考 STEP 的单 CAD face 真值映射与指标报告。",
       "changes": [
         "新增评测 API/CLI：输入主 STEP、通用选面结果和显式 reference STEP，临时构建可审计真值并输出 evaluation JSON/Markdown。",
