@@ -124,10 +124,12 @@ def verify_raw_inputs(
     return records
 
 
-def _next_run_dir(part_id: str, label: str, now: datetime, root: Path) -> tuple[str, Path]:
+def _next_run_dir(
+    part_id: str, label: str, now: datetime, root: Path, run_parent: Path | None = None
+) -> tuple[str, Path]:
     stamp = now.strftime("%Y%m%d-%H%M%S")
     base = f"{stamp}-{validate_identifier(label, 'run label')}"
-    parent = data_part_dir(part_id, root)
+    parent = run_parent if run_parent is not None else data_part_dir(part_id, root)
     candidate = parent / base
     index = 2
     while candidate.exists():
@@ -145,11 +147,12 @@ def create_run(
     now: datetime | None = None,
     raw_root: Path = RAW_DATA_ROOT,
     data_root: Path = DATA_ROOT,
+    run_parent: Path | None = None,
     input_roles: Iterable[str] | None = None,
 ) -> tuple[Path, dict[str, Any]]:
     """Create one empty managed run after validating its raw inputs."""
     raw_inputs = verify_raw_inputs(part_id, raw_root, input_roles)
-    run_id, run_dir = _next_run_dir(part_id, label, now or datetime.now(), data_root)
+    run_id, run_dir = _next_run_dir(part_id, label, now or datetime.now(), data_root, run_parent)
     run_dir.mkdir(parents=True)
     manifest: dict[str, Any] = {
         "format_version": 1,

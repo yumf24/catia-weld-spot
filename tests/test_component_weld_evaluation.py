@@ -1,0 +1,78 @@
+"""Contract tests for the isolated component weld candidate run."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from weld_core.component_weld_evaluation import (
+    COMPONENT_PART_ID,
+    FROZEN_COMPONENT_WELD_PARAMS,
+    create_component_candidate_run,
+    planar_faces_document,
+)
+from weld_core.step_geometry import StepFace
+
+
+def test_package_extracts_only_planar_faces(monkeypatch):
+    monkeypatch.setattr(
+        "weld_core.component_weld_evaluation.parse_step_faces",
+        lambda _path: {
+            "PartB": [StepFace("PartB", vertices=[(0, 0, 0), (1, 0, 0)], is_planar=True)],
+            "PartA": [
+                StepFace("PartA", vertices=[(0, 0, 0), (1, 0, 0), (0, 1, 0)], area=1.0, is_planar=True),
+                StepFace("PartA", vertices=[(0, 0, 0), (1, 0, 0), (0, 1, 0)], is_planar=False),
+            ],
+        },
+    )
+
+    document = planar_faces_document(Path("primary.step"))
+
+    assert document.meta.part == COMPONENT_PART_ID
+    assert [face.id for face in document.faces] == ["PartA/STEP/face_00001"]
+    assert document.faces[0].surface_type == "planar"
+
+
+def test_package_creates_primary_only_completed_managed_run(monkeypatch, tmp_path):
+    raw_root = tmp_path / "raw_data"
+    part_dir = raw_root / COMPONENT_PART_ID
+    part_dir.mkdir(parents=True)
+    primary = part_dir / "component.step"
+    primary.write_bytes(b"primary-step")
+    from weld_core.data_layout import sha256_file
+
+    (part_dir / "manifest.json").write_text(
+        json.dumps({"part_id": COMPONENT_PART_ID, "inputs": {"primary_model": {"path": "component.step", "sha256": sha256_file(primary), "size_bytes": primary.stat().st_size}, "ground_truth_markers": {"path": "missing.step"}}}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        "weld_core.component_weld_evaluation.create_run",
+        lambda part_id, label, **kwargs: __import__("weld_core.data_layout", fromlist=["create_run"]).create_run(part_id, label, raw_root=raw_root, data_root=tmp_path / "data", run_parent=tmp_path / "data" / "component-weld-evaluation", **{key: value for key, value in kwargs.items() if key != "run_parent"}),
+    )
+    monkeypatch.setattr(
+        "weld_core.component_weld_evaluation.planar_faces_document",
+        lambda _path: planar_faces_document_from_fixture(),
+    )
+
+    run_dir = create_component_candidate_run("candidate")
+    manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
+
+    assert manifest["status"] == "completed"
+    assert run_dir.parent == tmp_path / "data" / "component-weld-evaluation"
+    assert [entry["role"] for entry in manifest["raw_inputs"]] == ["primary_model"]
+    assert manifest["parameters"]["weld_params"] == FROZEN_COMPONENT_WELD_PARAMS.as_dict()
+    assert set(manifest["artifacts"]) == {"faces.planar", "candidates"}
+    assert (run_dir / manifest["artifacts"]["faces.planar"]["path"]).is_file()
+    assert (run_dir / manifest["artifacts"]["candidates"]["path"]).is_file()
+
+
+def planar_faces_document_from_fixture():
+    from weld_core.schema import FaceRecord, FacesDocument, FacesMeta
+
+    return FacesDocument(
+        meta=FacesMeta(part=COMPONENT_PART_ID),
+        faces=[
+            FaceRecord(id="A/STEP/face_0001", part="A", body="STEP", area=100.0, normal=(0, 0, 1), plane_origin=(0, 0, 0), centroid=(5, 5, 0), vertices=[(0, 0, 0), (10, 0, 0), (10, 10, 0), (0, 10, 0)]),
+            FaceRecord(id="B/STEP/face_0001", part="B", body="STEP", area=100.0, normal=(0, 0, 1), plane_origin=(0, 0, 0.05), centroid=(5, 5, 0.05), vertices=[(0, 0, 0.05), (10, 0, 0.05), (10, 10, 0.05), (0, 10, 0.05)]),
+        ],
+    )

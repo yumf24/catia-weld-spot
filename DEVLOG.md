@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-23 14:35:02 +08:00 - CW02 创建隔离的 component 候选运行
+
+**做了什么**
+- 新增 `scripts/run_component_weld_evaluation.py` 和纯核心打包模块；它只验证并读取 raw manifest 的 `primary_model`，从 `component.step` 提取可序列化的平面面并以固定默认 `WeldParams` 生成候选。
+- 受管运行专门写入 `data/component-weld-evaluation/<run-id>/`；manifest 仅登记 primary 输入、冻结参数、平面面与候选文件的 SHA-256、数量和完成状态。
+- 扩展通用受管运行创建器以支持显式隔离父目录，未改变既有默认 `data/<part-id>/<run-id>` 布局。
+- 实际运行 `20260723-143321-candidate` 得到 2365 个平面面和 199 个候选点；manifest 未登记也未读取 truth 输入。
+
+**验证结果**
+- `.venv\\Scripts\\python -m pytest tests\\test_component_weld_evaluation.py -k package`：**2 passed**。
+- `.venv\\Scripts\\python scripts\\run_component_weld_evaluation.py`：通过，输出位于专用受管目录。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\cw02-full`：**115 passed**。
+
+---
+
 ## 2026-07-23 14:28:54 +08:00 - CW01 冻结 component 真实焊点评测契约
 
 **做了什么**
