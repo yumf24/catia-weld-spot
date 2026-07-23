@@ -242,9 +242,14 @@ the marker shape.
 
 Use `scripts/package_component_weld_ansa_review.py --latest-run --output-dir <empty-directory>` to create
 `component_weld_ansa_review.zip`. The ZIP contains a relative-path `.ansa`, `open_component_weld_review.bat`,
-`ANSA_TRANSL.py`, a manual display script, previews, and a portable manifest. Recipients extract it anywhere, then
-run the batch launcher; no `D:\test-catia` path is embedded. The startup display script disables topology overlays
-and selects shaded Part colours so the 3 mm weld CAD spheres remain visually distinct.
+its self-contained Python Listener client, `ANSA_TRANSL.py` as a manual fallback, a manual display script, previews,
+and a portable manifest. Recipients extract it anywhere, then run the batch launcher; no `D:\test-catia` path is
+embedded. The recipient needs Python 3 and ANSA v24.1.1 or later (or passes `--ansa-executable` to the batch
+launcher). The launcher starts ANSA in official Listener Mode, opens the portable database through the API, and only
+then applies Part-colour shaded rendering with topology overlays disabled. This occurs after local Drawing Styles
+are restored, so the 3 mm CAD weld spheres retain their green/red/yellow colour rather than becoming grey crosses.
+It also writes `startup_display_verification.png` to prove the applied rendering. It never modifies the recipient's
+ANSA profile and preserves an interactive ANSA session after the client exits.
 
 ## ground_truth.json（真实焊点，评测用 → 核心输入）
 

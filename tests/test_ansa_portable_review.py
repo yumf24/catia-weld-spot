@@ -9,6 +9,7 @@ from weld_core.ansa_portable_review import (
     LAUNCHER_NAME,
     MANIFEST_NAME,
     PACKAGE_NAME,
+    REMOTE_LAUNCHER_NAME,
     build_portable_review,
 )
 
@@ -25,16 +26,30 @@ def test_portable_review_is_relative_and_archived(tmp_path):
     manifest = json.loads((package / MANIFEST_NAME).read_text(encoding="utf-8"))
     display = (package / DISPLAY_SCRIPT_RELATIVE_PATH).read_text(encoding="utf-8")
     launcher = (package / LAUNCHER_NAME).read_text(encoding="utf-8")
+    remote_launcher = (package / REMOTE_LAUNCHER_NAME).read_text(encoding="utf-8")
 
     assert (package / DATABASE_RELATIVE_PATH).read_bytes() == b"ANSA-test-database"
     assert manifest["absolute_paths"] is False
     assert manifest["database"] == DATABASE_RELATIVE_PATH.as_posix()
+    assert manifest["startup_method"] == "listener_mode_remote_display"
     assert manifest["previews"] == {"marker_detail": "previews/detail.png"}
     assert "base.SetViewButton" in display
+    assert "guitk.BCTimerSingleShot(3000" in display
+    assert "guitk.BCTimerSingleShot(10000" in display
+    assert "COMPONENT_WELD_CAPTURE_STARTUP_DISPLAY" in display
     assert '"WIRE": "off"' in display
     assert '"Hot Points": "off"' in display
     assert "%~dp0" in launcher
+    assert "py -3" in launcher
+    assert REMOTE_LAUNCHER_NAME in launcher
+    assert "-listenport" in remote_launcher
+    assert "IAPConnection" in remote_launcher
+    assert "PostConnectionAction.keep_listening" in remote_launcher
+    assert '"VIEWMODE": "PART"' in remote_launcher
+    assert '"WIRE": "off"' in remote_launcher
+    assert "startup_display_verification.png" in remote_launcher
     with zipfile.ZipFile(result["archive"]) as archive:
         assert f"{PACKAGE_NAME}/{DATABASE_RELATIVE_PATH.as_posix()}" in archive.namelist()
         assert f"{PACKAGE_NAME}/{DISPLAY_SCRIPT_RELATIVE_PATH.as_posix()}" in archive.namelist()
+        assert f"{PACKAGE_NAME}/{REMOTE_LAUNCHER_NAME}" in archive.namelist()
         assert f"{PACKAGE_NAME}/previews/detail.png" in archive.namelist()

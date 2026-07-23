@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-07-23 17:42:00 +08:00 - Make portable ANSA review colours deterministic
+
+**What changed**
+- Replaced the portable package's unreliable `ANSA_TRANSL.py` profile/startup approach with an included Python 3 Listener-Mode client. `open_component_weld_review.bat` now starts ANSA v24.1.1 (or a supplied `--ansa-executable`) in Listener Mode, opens the package-local database, then applies Part-colour shaded rendering only after ANSA finishes restoring its local Drawing Styles.
+- The post-load display explicitly disables Wire, CONS, bounds, midpoint/C-node, grids and Hot Points, keeps CAD part colours, and writes `startup_display_verification.png` next to the extracted package. No recipient ANSA profile is modified. `ANSA_TRANSL.py` remains only a manual fallback.
+- Added portable-manifest and unit-test coverage for the Listener startup contract, including the persistent interactive-session action and the verification screenshot.
+
+**Verification**
+- Created a new ZIP and extracted it into the independent simulated recipient directory `D:\\test-catia\\ansa-portable-unpacked-v7`. Started it first with the included Python launcher and then through the recipient-facing `.bat`; both produced the package-local verification screenshot and kept ANSA interactive. Manual screenshot review confirms part-coloured CAD and round shaded green/red/yellow weld spheres without grey topology crosses.
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\ansa-portable-listener-full`: **125 passed**; `git diff --check`: passed.
+
 ## 2026-07-23 17:18:00 +08:00 - Package a portable ANSA weld-review handoff
 
 **What changed**
