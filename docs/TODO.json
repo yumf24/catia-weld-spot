@@ -18,7 +18,7 @@
   },
   "steps": [
     {
-      "id": "OP07_freeze_90_percent_target", "priority": 1, "depends_on": [], "pass": false,
+      "id": "OP07_freeze_90_percent_target", "priority": 1, "depends_on": [], "pass": true,
       "goal": "Freeze the strict single-dataset >90% target and the non-generalization boundary without changing production selection.",
       "changes": ["Record the 30/6/10 baseline and strict precision>0.90, recall>0.90 gate.", "Record FN composition: four gap, four AABB, two same-part; same-part and AABB fallback are not production recovery paths.", "State that no independent validation data exists and no generalization claim is permitted."],
       "strict_tests": [

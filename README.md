@@ -80,11 +80,13 @@ python scripts/inspect_run.py component [run-id]
 
 独立脚本可继续传入显式路径，但其输入应取自 `raw_data/<part-id>/`，输出应写入一个运行目录。
 
-通用选面的跨件默认最大 plane gap 为 1.5 mm，same-part pair 默认始终关闭。此默认仅在
-`component-simplify` 的受管离线回归满足 recall≥75%、precision≥80%，并完成 AABB 复核和
-same-part 风险隔离后启用；参考 STEP/truth 只由显式离线评测与分析命令读取，绝不会成为生产
-selector、pipeline 或候选生成的输入。该证据只限单数据集，不代表未知零件或跨零件泛化。数据集
-边界和跨零件门槛见 `docs/dataset_generalization.md`。
+通用选面的跨件默认最大 plane gap 为 1.5 mm，same-part pair 默认始终关闭。当前
+`component-simplify` 受管离线基线为 TP/FP/FN=`30/6/10`、precision=`83.33%`、recall=`75.00%`。
+后续优化的严格单数据集质量门槛为 precision>`90%` 且 recall>`90%`（两项均为严格大于）；当前基线
+尚未达到该门槛。10 个 FN 的离线归因是 gap 4、projected-AABB 4、same-part 2；same-part pair 和
+AABB fallback 均不是生产恢复路径。参考 STEP/truth 只由显式离线评测与分析命令读取，绝不会成为生产
+selector、pipeline 或候选生成的输入。尚无独立验证零件，以上证据只限单数据集，不得表述为未知零件
+或跨零件泛化。数据集边界和跨零件门槛见 `docs/dataset_generalization.md`。
 
 ## 运行
 

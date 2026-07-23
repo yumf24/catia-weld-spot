@@ -17,11 +17,14 @@ cannot depend on one sample's identity.
 
 ## Current Regression
 
-`component-simplify` is a regression dataset. The 2026-07-22 run
-`data/component-simplify/20260722-163200-generic-regression/` selected 19 CAD
-faces, produced 15 candidates, and evaluated to TP/FP/FN 17/2/23 with precision
-89.47% and recall 42.50%. This is useful for diagnosing missed weld-adjacent
-faces, but it is not a cross-part claim.
+`component-simplify` is a regression dataset. The 2026-07-23 run
+`data/component-simplify/20260723-105708-recall-optimization/` evaluated to
+TP/FP/FN 30/6/10 with precision 83.33% and recall 75.00%. The current controlled
+optimization gate is precision >90% and recall >90%, so this baseline does not
+pass it. Its 10 false negatives comprise four plane-gap, four projected-AABB, and
+two same-part-policy cases; neither same-part recovery nor an AABB fallback is a
+production recovery path. This remains useful single-dataset regression evidence,
+not a cross-part claim: no independent validation part is currently available.
 
 ## Gate
 

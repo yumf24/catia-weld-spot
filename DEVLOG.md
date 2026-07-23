@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-23 11:28:00 +08:00 - OP07 冻结通用选面 90% 双指标目标
+
+**做了什么**
+- 将 `component-simplify` 受管离线基线冻结为 TP/FP/FN=`30/6/10`、precision=`83.33%`、recall=`75.00%`；后续受控优化的门槛为 precision>`90%` 且 recall>`90%`，两项均须严格大于。
+- 记录 10 个 FN 的组成：gap 4、projected-AABB 4、same-part 2；same-part pair 和 AABB fallback 都不是生产恢复路径，跨件 1.5 mm 默认与 `allow_same_part_pairs=false` 未改变。
+- 更新 README 与数据集边界说明：目前没有独立验证零件，所有结果仅是单数据集回归证据，禁止声称已证明跨零件泛化；将 `OP07_freeze_90_percent_target` 标记为通过。
+
+**验证结果**
+- `.venv\\Scripts\\python -m json.tool docs\\TODO.json > $null`：通过。
+- `.venv\\Scripts\\python scripts\\check_plane_selection_baseline.py component-simplify`：通过。
+- `.venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py`：通过。
+
+---
+
 ## 2026-07-23 11:10:08 +08:00 - OP06 受控提升通用选面默认 gap
 
 **做了什么**
