@@ -20,13 +20,63 @@ from weld_core.component_weld_ansa_scene import (  # noqa: E402
     LINK_LAYER,
     MARKER_RADIUS_MM,
     SCENE_DATABASE,
+    SCENE_DISPLAY_SCRIPT,
     SCENE_SCREENSHOTS,
+    SCENE_STARTUP_SCRIPT,
     SPHERE_FACE_COUNT,
     load_scene_inputs,
     scene_paths,
 )
 from weld_core.data_layout import register_artifact, sha256_file  # noqa: E402
 from check_ansa_weld_visualization import newest_completed_run, resolve_ansa_shortcut  # noqa: E402
+
+
+def _display_script_source() -> str:
+    """Return the ANSA script that applies the review display in any GUI session."""
+    return '''"""Apply the intended shaded display for component_weld_cad_review.ansa."""
+from ansa import base
+
+
+def apply_review_display():
+    base.SetViewButton({
+        "VIEWMODE": "PART",
+        "SHADOW": "on",
+        "WIRE": "off",
+        "CONS": "off",
+        "BOUNDS": "off",
+        "M.Pnt.": "off",
+        "C.NODE": "off",
+        "GRIDs": "off",
+        "Hot Points": "off",
+    })
+    base.SetViewAngles("F10")
+    base.ZoomAll()
+
+
+def main():
+    apply_review_display()
+'''
+
+
+def _startup_script_source(database_path: Path, display_script_path: Path) -> str:
+    """Return an ANSA GUI startup script that opens the DB and applies its display."""
+    return textwrap.dedent(
+        """\
+        \"\"\"Open the CAD weld review database and apply its presentation settings.\"\"\"
+        from ansa import base
+
+        DATABASE_PATH = {database_path!r}
+        DISPLAY_SCRIPT_PATH = {display_script_path!r}
+
+        def main():
+            if base.Open(DATABASE_PATH) != 0:
+                raise RuntimeError("could not open review database: " + DATABASE_PATH)
+            namespace = {{"__file__": DISPLAY_SCRIPT_PATH}}
+            with open(DISPLAY_SCRIPT_PATH, encoding="utf-8") as handle:
+                exec(compile(handle.read(), DISPLAY_SCRIPT_PATH, "exec"), namespace)
+            namespace["apply_review_display"]()
+        """
+    ).format(database_path=str(database_path), display_script_path=str(display_script_path))
 
 
 def _runner_source(run_dir: Path, cad_path: Path, analysis: dict[str, Any], expected_counts: dict[str, int]) -> str:
@@ -42,6 +92,7 @@ def _runner_source(run_dir: Path, cad_path: Path, analysis: dict[str, Any], expe
         "database_path": str(paths["database"]),
         "result_path": str(run_dir / "ansa" / "component_weld_cad_review_runner.json"),
         "screenshots": {name: str(run_dir / path) for name, path in SCENE_SCREENSHOTS.items()},
+        "display_script_path": str(paths["display_script"]),
         "marker_rows": marker_rows,
         "expected_counts": expected_counts,
         "colors": LAYER_RGB,
@@ -57,6 +108,7 @@ def _runner_source(run_dir: Path, cad_path: Path, analysis: dict[str, Any], expe
         DATABASE_PATH = {database_path!r}
         RESULT_PATH = {result_path!r}
         SCREENSHOTS = {screenshots!r}
+        DISPLAY_SCRIPT_PATH = {display_script_path!r}
         MARKER_ROWS = {marker_rows!r}
         EXPECTED_COUNTS = {expected_counts!r}
         COLORS = {colors!r}
@@ -112,20 +164,10 @@ def _runner_source(run_dir: Path, cad_path: Path, analysis: dict[str, Any], expe
             return len(base.CollectEntities(constants.NASTRAN, None, "FACE"))
 
         def _set_review_display():
-            # Make the saved scene communicate marker classes rather than CAD
-            # topology: shaded solids, coloured by their ANSAPART, without
-            # wire/boundary/hot-point crosses obscuring the small spheres.
-            base.SetViewButton({{
-                "VIEWMODE": "PART",
-                "SHADOW": "on",
-                "WIRE": "off",
-                "CONS": "off",
-                "BOUNDS": "off",
-                "M.Pnt.": "off",
-                "C.NODE": "off",
-                "GRIDs": "off",
-                "Hot Points": "off",
-            }})
+            namespace = {{"__file__": DISPLAY_SCRIPT_PATH}}
+            with open(DISPLAY_SCRIPT_PATH, encoding="utf-8") as handle:
+                exec(compile(handle.read(), DISPLAY_SCRIPT_PATH, "exec"), namespace)
+            namespace["apply_review_display"]()
 
         def main():
             result = {{"cad_import_status": False, "save_status": None, "reopen_status": None, "expected_marker_counts": EXPECTED_COUNTS}}
@@ -192,6 +234,11 @@ def _write_failure(run_dir: Path, message: str) -> None:
 def _run(executable: Path, run_dir: Path, inputs: dict[str, Any], timeout_minutes: int) -> dict[str, Any]:
     ansa_dir = run_dir / "ansa"
     (ansa_dir / "views").mkdir(parents=True, exist_ok=True)
+    paths = scene_paths(run_dir)
+    paths["display_script"].write_text(_display_script_source(), encoding="utf-8")
+    paths["startup_script"].write_text(
+        _startup_script_source(paths["database"], paths["display_script"]), encoding="utf-8"
+    )
     runner = ansa_dir / "build_component_weld_cad_review.py"
     expected_face_counts = {name: count * SPHERE_FACE_COUNT for name, count in inputs["marker_counts"].items() if name != LINK_LAYER}
     runner.write_text(_runner_source(run_dir, inputs["cad_path"], inputs["analysis"], expected_face_counts), encoding="utf-8")
@@ -218,7 +265,8 @@ def _validate(run_dir: Path, result: dict[str, Any], inputs: dict[str, Any]) -> 
     for key in ("created_marker_face_counts", "reopened_marker_face_counts"):
         if result.get(key) != expected:
             raise ValueError(f"{key} does not match expected sphere face counts")
-    for path in [scene_paths(run_dir)["database"], *[run_dir / value for value in SCENE_SCREENSHOTS.values()]]:
+    paths = scene_paths(run_dir)
+    for path in [paths["database"], paths["display_script"], paths["startup_script"], *[run_dir / value for value in SCENE_SCREENSHOTS.values()]]:
         if not path.is_file() or path.stat().st_size == 0:
             raise ValueError(f"missing or empty ANSA scene artifact: {path}")
 
@@ -244,6 +292,8 @@ def _publish(run_dir: Path, executable: Path, result: dict[str, Any], inputs: di
         "created_marker_face_counts": result["created_marker_face_counts"],
         "reopened_marker_face_counts": result["reopened_marker_face_counts"],
         "database_path": SCENE_DATABASE,
+        "display_script_path": SCENE_DISPLAY_SCRIPT,
+        "startup_script_path": SCENE_STARTUP_SCRIPT,
         "screenshot_paths": SCENE_SCREENSHOTS,
         "log_path": result["log_path"],
         "marker_semantics": "visual_markers_not_fe_spotwelds",
@@ -254,10 +304,11 @@ def _publish(run_dir: Path, executable: Path, result: dict[str, Any], inputs: di
         f"- ANSA v{ANSA_VERSION}: CAD import, marker creation, save/reopen and four screenshots passed.\n"
         f"- Imported CAD faces: {validation['cad_face_count']}.\n"
         f"- Marker spheres: radius {MARKER_RADIUS_MM:g} mm; TP truth/candidate green, FP red, FN yellow.\n"
-        "- MATCH_LINK is traceable but hidden by default. No FE mesh, connector, element, or SPOTWELD was created.\n",
+        "- MATCH_LINK is traceable but hidden by default. No FE mesh, connector, element, or SPOTWELD was created.\n"
+        "- To open with shaded markers in a fresh ANSA session, run ansa/open_component_weld_cad_review.py.\n",
         encoding="utf-8",
     )
-    for name, path, kind in (("ansa_cad_scene_validation", paths["validation"], "json"), ("ansa_cad_scene_report", paths["report"], "markdown"), ("ansa_cad_scene_database", paths["database"], "ansa_database"), ("ansa_cad_scene_log", paths["log"], "log")):
+    for name, path, kind in (("ansa_cad_scene_validation", paths["validation"], "json"), ("ansa_cad_scene_report", paths["report"], "markdown"), ("ansa_cad_scene_database", paths["database"], "ansa_database"), ("ansa_cad_scene_display_script", paths["display_script"], "python"), ("ansa_cad_scene_startup_script", paths["startup_script"], "python"), ("ansa_cad_scene_log", paths["log"], "log")):
         register_artifact(run_dir, name, path, kind=kind, sha256=sha256_file(path))
     for view, relative in SCENE_SCREENSHOTS.items():
         path = run_dir / relative

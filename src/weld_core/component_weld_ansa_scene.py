@@ -11,6 +11,8 @@ from .data_layout import sha256_file
 
 ANSA_VERSION = "24.1.1"
 SCENE_DATABASE = "ansa/component_weld_cad_review.ansa"
+SCENE_DISPLAY_SCRIPT = "ansa/apply_component_weld_review_display.py"
+SCENE_STARTUP_SCRIPT = "ansa/open_component_weld_cad_review.py"
 SCENE_SCREENSHOTS = {
     "isometric": "ansa/views/component_weld_isometric.png",
     "front": "ansa/views/component_weld_front.png",
@@ -72,6 +74,8 @@ def scene_paths(run_dir: Path) -> dict[str, Path]:
     """Return all managed scene output paths without writing them."""
     return {
         "database": run_dir / SCENE_DATABASE,
+        "display_script": run_dir / SCENE_DISPLAY_SCRIPT,
+        "startup_script": run_dir / SCENE_STARTUP_SCRIPT,
         "validation": run_dir / "ansa_cad_scene_validation.json",
         "report": run_dir / "ansa_cad_scene_validation.md",
         "log": run_dir / "ansa" / "component_weld_cad_review.log",

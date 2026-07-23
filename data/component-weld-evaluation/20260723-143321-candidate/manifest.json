@@ -140,22 +140,22 @@
     "ansa_cad_scene_validation": {
       "path": "ansa_cad_scene_validation.json",
       "kind": "json",
-      "sha256": "1464ffe907864becc0ec70d5d574f76c16b1637ab24db29e8b80bb16b15f196e"
+      "sha256": "4456ce20f14a830a6949c825f705c00f1f3a2a5d279093014b97f24628773181"
     },
     "ansa_cad_scene_report": {
       "path": "ansa_cad_scene_validation.md",
       "kind": "markdown",
-      "sha256": "8fde60f41c82ae9de231c037b97297af3163817544316d39115f4a15363fe9ee"
+      "sha256": "0c4acd35de79ff5e4c9cfc02998752b620536102b4471248f7925af999e1a038"
     },
     "ansa_cad_scene_database": {
       "path": "ansa\\component_weld_cad_review.ansa",
       "kind": "ansa_database",
-      "sha256": "2b911a32993ef8414af6bb297fbd4cbabd4f0d12a82990c59784144a300285f2"
+      "sha256": "650b476f444993577dacf6209602093b68e3341c274c6453cf06d55daaf11e91"
     },
     "ansa_cad_scene_log": {
       "path": "ansa\\component_weld_cad_review.log",
       "kind": "log",
-      "sha256": "eac6b937a8dff2c66157b718401b07c1b7a6ca834560c134aba44f9738c09c64"
+      "sha256": "e5b73e29e33f2d48c8cf50570aad1987c65f0e2da5025ac822b4e9b7ac4ed78e"
     },
     "ansa_cad_scene_isometric": {
       "path": "ansa\\views\\component_weld_isometric.png",
@@ -181,6 +181,16 @@
       "path": "ansa\\views\\component_weld_marker_detail.png",
       "kind": "png",
       "sha256": "bfd6aabf30d8bc06a0ea2dafb7682e5e11fc26bde601bd5d1d534b3e4012a3b9"
+    },
+    "ansa_cad_scene_display_script": {
+      "path": "ansa\\apply_component_weld_review_display.py",
+      "kind": "python",
+      "sha256": "be7c04e643e8789efe6724f4d0e9e3e5a84ca17ff4d7355327333678a3f9557b"
+    },
+    "ansa_cad_scene_startup_script": {
+      "path": "ansa\\open_component_weld_cad_review.py",
+      "kind": "python",
+      "sha256": "87a929f571b2454245075d690b3a7dd4d10bee86850266d1c57f9a09728f7f50"
     }
   },
   "evaluation": {

@@ -12,7 +12,9 @@ from weld_core.component_weld_ansa_scene import (
     LINK_LAYER,
     MARKER_RADIUS_MM,
     SCENE_DATABASE,
+    SCENE_DISPLAY_SCRIPT,
     SCENE_SCREENSHOTS,
+    SCENE_STARTUP_SCRIPT,
     SPHERE_FACE_COUNT,
     load_scene_inputs,
     scene_paths,
@@ -41,6 +43,8 @@ def test_scene_paths_are_managed_under_run(tmp_path):
     paths = scene_paths(tmp_path)
 
     assert paths["database"] == tmp_path / SCENE_DATABASE
+    assert paths["display_script"] == tmp_path / SCENE_DISPLAY_SCRIPT
+    assert paths["startup_script"] == tmp_path / SCENE_STARTUP_SCRIPT
     assert set(path.name for name, path in paths.items() if name.startswith("screenshot_")) == {Path(value).name for value in SCENE_SCREENSHOTS.values()}
     assert {"isometric", "front", "right", "top"}.issubset(SCENE_SCREENSHOTS)
     assert SCENE_SCREENSHOTS["marker_detail"].endswith("component_weld_marker_detail.png")
@@ -57,6 +61,20 @@ def test_scene_marker_specification_has_colored_three_mm_spheres_and_hidden_link
     }
     assert LAYER_RGB["TP_TRUTH"] == LAYER_RGB["TP_CANDIDATE"]
     assert LINK_LAYER not in LAYER_COLORS
+
+
+def test_review_startup_contract_applies_shaded_display_after_opening_database():
+    root = Path(__file__).resolve().parents[1]
+    builder = (root / "scripts" / "build_component_weld_ansa_scene.py").read_text(encoding="utf-8")
+    launcher = (root / "scripts" / "open_component_weld_ansa_scene.py").read_text(encoding="utf-8")
+
+    assert '"VIEWMODE": "PART"' in builder
+    assert '"SHADOW": "on"' in builder
+    for field in ("WIRE", "CONS", "Hot Points"):
+        assert f'"{field}": "off"' in builder
+    assert "base.Open(DATABASE_PATH)" in builder
+    assert 'namespace["apply_review_display"]()' in builder
+    assert 'f"load_script:{paths[\'startup_script\']}"' in launcher
 
 
 def test_scene_inputs_reject_a_primary_step_hash_mismatch(tmp_path):

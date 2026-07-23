@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-07-23 16:24:00 +08:00 - Add ANSA startup display application
+
+**What changed**
+- Added a managed ANSA display sidecar and startup sidecar for the CAD weld review scene. The display script selects Part-colour shaded rendering and disables Wire, CONS, bounds, grids, midpoint/C-node, and Hot Points overlays.
+- Added `scripts/open_component_weld_ansa_scene.py --latest-run`, which starts ANSA, opens the saved database, and immediately applies that display script. The builder now writes, validates, publishes, and reuses the same script after its save/reopen check.
+- Documented that ANSA Drawing Styles are local GUI preferences: use the launcher for the guaranteed presentation, rather than relying on a direct database double-click.
+
+**Verification**
+- Rebuilt the real ANSA v24.1.1 scene successfully: STEP import reported 10,366 CAD faces; saved/reopened CAD-sphere layer counts remained TP truth/candidate `414/414`, FP `780`, FN `1302` faces. Generated sidecar scripts compile, and the actual re-opened session generated all nonempty review images with the applied shaded display.
+
 ## 2026-07-23 16:07:00 +08:00 - Repair ANSA weld-marker presentation
 
 **What changed**
