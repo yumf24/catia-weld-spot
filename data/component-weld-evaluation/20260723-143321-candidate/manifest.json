@@ -136,6 +136,46 @@
       "path": "component_weld_evaluation_conclusion.md",
       "kind": "markdown",
       "sha256": "e1d8e9587293db35aa4b7b64d0daa5a67f35373d414f28cfdf42ba1b1ba62976"
+    },
+    "ansa_cad_scene_validation": {
+      "path": "ansa_cad_scene_validation.json",
+      "kind": "json",
+      "sha256": "72f6639d709aa8aa24a5857cdaaedabe2c587d6ab46509a8a245b1fcb9cc44cb"
+    },
+    "ansa_cad_scene_report": {
+      "path": "ansa_cad_scene_validation.md",
+      "kind": "markdown",
+      "sha256": "8fde60f41c82ae9de231c037b97297af3163817544316d39115f4a15363fe9ee"
+    },
+    "ansa_cad_scene_database": {
+      "path": "ansa\\component_weld_cad_review.ansa",
+      "kind": "ansa_database",
+      "sha256": "7744ee7c14f6c07708afec5fb8b07afb250b155969266328d1f70405aededf25"
+    },
+    "ansa_cad_scene_log": {
+      "path": "ansa\\component_weld_cad_review.log",
+      "kind": "log",
+      "sha256": "5287783e93bb4e60463a7c6cd7c216346e662d91ca908de0aa465f1b8cffb265"
+    },
+    "ansa_cad_scene_isometric": {
+      "path": "ansa\\views\\component_weld_isometric.png",
+      "kind": "png",
+      "sha256": "dacf094da91dc58de96f0c7711ff3db2d3bd07c06e3382e6e06e50a4efedd230"
+    },
+    "ansa_cad_scene_front": {
+      "path": "ansa\\views\\component_weld_front.png",
+      "kind": "png",
+      "sha256": "3bc841d86dfa9b93670f05431cc47b6c9d5cbe54fe98035768f100da8aaa0f26"
+    },
+    "ansa_cad_scene_right": {
+      "path": "ansa\\views\\component_weld_right.png",
+      "kind": "png",
+      "sha256": "2de1b09ad166e8f2a9a08b63d84919887d388cbdcf2c7636a62b66db48b535d7"
+    },
+    "ansa_cad_scene_top": {
+      "path": "ansa\\views\\component_weld_top.png",
+      "kind": "png",
+      "sha256": "4f9bb36a4083550c11006bef10cc0e16b4266e03c35ffb91d3adbbafb55e33c2"
     }
   },
   "evaluation": {

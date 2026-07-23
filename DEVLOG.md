@@ -5,6 +5,17 @@
 
 ---
 
+## 2026-07-23 15:41:52 +08:00 - Publish CAD-backed component ANSA weld review scene
+
+**What changed**
+- Added `scripts/build_component_weld_ansa_scene.py --latest-run` / `--run-dir` to validate the registered primary `component.step`, import original CAD faces into ANSA v24.1.1, create non-FE 3 mm CAD-sphere TP/FP/FN markers, save/reopen, and publish four standard screenshots.
+- Added pure-Python input/output contract helpers and unit coverage for the primary STEP hash, managed paths, sphere/colour specification, and hidden `MATCH_LINK` convention. Failed CAD scene builds now remove any partial `.ansa` while keeping diagnostic output unregistered.
+- Documented the resulting database, validation report, screenshots, visibility defaults, and explicit non-FE semantics in `docs/json_contract.md`.
+
+**Verification**
+- Real ANSA v24.1.1 run passed: imported `10366` CAD faces; created and reopened marker FACE counts were `TP_TRUTH=414`, `TP_CANDIDATE=414`, `FP_CANDIDATE=780`, `FN_TRUTH=1302` (six CAD faces per sphere); all four PNG views were nonempty and visually checked to contain CAD plus coloured markers.
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\cad-scene-full`: **123 passed**; `py_compile` and `git diff --check`: passed.
+
 ## 2026-07-23 14:57:24 +08:00 - CW05 验证 component ANSA 导入、渲染并发布结论
 
 **做了什么**

@@ -199,6 +199,22 @@ ANSA v24.1.1 包只创建可视化标记：`TP_TRUTH`、`TP_CANDIDATE`、`FP_CAN
 其中 GRID 仅用于显示标记（MATCH_LINK 为成对端点标记）；它绝不创建 FE connector、element 或
 `SPOTWELD`。
 
+## component CAD-backed ANSA review scene
+
+`scripts/build_component_weld_ansa_scene.py --latest-run` (or `--run-dir <run-dir>`) is the one-command
+publisher for the independently openable CAD review database. It validates the completed managed run and the
+SHA-256 registered `raw_data/component/component.step`, imports that STEP as original CAD faces, and never builds
+an FE mesh. The resulting `ansa/component_weld_cad_review.ansa` contains 3 mm CAD-sphere visual markers in
+`TP_TRUTH`, `TP_CANDIDATE`, `FP_CANDIDATE`, and `FN_TRUTH`; TP truth and candidate are green, FP red, and FN
+yellow. `MATCH_LINK` remains traceable to the paired CSV records and is hidden by default, so the normal view has
+no link lines.
+
+The command saves, reopens, and recounts the scene before registering it in the managed manifest. It also publishes
+isometric/front/right/top PNG views plus `ansa_cad_scene_validation.json/.md`, including CAD count, layer counts,
+visibility defaults, ANSA v24.1.1, database path, screenshots, and log. CAD import, timeout, save, reopen, count,
+or screenshot failure writes only the failure report/log and removes the final `.ansa` database; it is never
+registered as a successful artifact. These are visual markers only, never FE `SPOTWELD`s, connectors, or elements.
+
 ## ground_truth.json（真实焊点，评测用 → 核心输入）
 
 由 `scripts/extract_ground_truth.py` 离线解析焊点标记球 STEP 文件（如 `raw_data/component/SPOT.step`）
