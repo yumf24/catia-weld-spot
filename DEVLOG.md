@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-07-23 16:32:00 +08:00 - Allow an explicit ANSA database in review launcher
+
+**What changed**
+- Added mutually exclusive `--ansa-part PATH` to `scripts/open_component_weld_ansa_scene.py`. It validates an explicit `.ansa` database path, creates a unique temporary ANSA startup script, opens that database, and applies the same shaded review display automatically.
+- Retained `--latest-run` and `--run-dir` behavior for the managed component review scene, and documented both invocation forms.
+
+**Verification**
+- Added launcher contract assertions for the new parameter and display flags. `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\ansa-part-full`: **125 passed**; `git diff --check`: passed.
+
 ## 2026-07-23 16:24:00 +08:00 - Add ANSA startup display application
 
 **What changed**

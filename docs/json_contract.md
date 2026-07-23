@@ -221,6 +221,12 @@ Hot Points settings even though the CAD spheres are unchanged. Open the review t
 .venv\Scripts\python scripts\open_component_weld_ansa_scene.py --latest-run
 ```
 
+To render a particular existing ANSA database instead, pass its file path:
+
+```powershell
+.venv\Scripts\python scripts\open_component_weld_ansa_scene.py --ansa-part D:\work\part_to_review.ansa
+```
+
 It starts ANSA, opens the database, and runs the managed `ansa/open_component_weld_cad_review.py` startup script.
 That script applies `ansa/apply_component_weld_review_display.py`: Part-colour shaded rendering with wireframe,
 CONS, bounds, grids, midpoint/C-node, and topology hot points disabled. It prevents small 3 mm spheres from being
