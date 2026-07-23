@@ -1,3 +1,13 @@
+# Controlled same-part offline conclusion
+
+`scripts/conclude_general_plane_selection_controlled_same_part.py component-simplify --run-dir <managed-run-dir>`
+publishes the topology diagnosis, complete policy-search ordering evidence, and a JSON/Markdown conclusion in the
+managed run. This is permanently offline-only: reference STEP and truth are evaluation-only inputs, while the
+policy replay uses the registered primary-model geometry audit only. The conclusion never changes production
+defaults; `allow_same_part_pairs=false` remains required even if a future offline search finds a strict-pass policy.
+There are no independent validation parts, so these artifacts are single-dataset regression evidence and do not
+demonstrate cross-part generalization.
+
 # ml-pipeline — CATIA V5 焊点自动候选识别（V1 原型）
 
 在 CATIA V5 零件上自动粗筛可能的贴合焊接区域并生成候选焊点。

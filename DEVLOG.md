@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-07-23 13:36:46 +08:00 - SP04 发布受控同件离线搜索结论
+
+**做了什么**
+- 新增受控同件结论生成器与 CLI；它只汇总已完成的拓扑诊断及 3780 个策略重放结果，并将 JSON/Markdown 结论登记到受管运行目录。
+- `component-simplify` 的固定矩阵没有任何严格通过策略，结论明确为 `no_feasible_policy`；拓扑回放的理论 TP 上限为 40，但无法满足整体 precision/recall 严格门槛。
+- 更新 README、JSON 契约和 TODO：reference STEP/truth 仅限 evaluation-only，生产 `allow_same_part_pairs=false`、默认 CLI、selector、pipeline 和候选生成均保持不变；结果不宣称跨零件泛化。
+
+**验证结果**
+- `.venv\\Scripts\\python -m pytest tests\\test_controlled_same_part_policy.py tests\\test_general_plane_selection_runtime.py --basetemp .pytest_cache\\sp04-targeted`：**7 passed**。
+- `.venv\\Scripts\\python scripts\\conclude_general_plane_selection_controlled_same_part.py component-simplify --run-dir data\\component-simplify\\20260723-105708-recall-optimization`：成功写入并登记结论产物。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\sp04-full`：**113 passed**。
+
 ## 2026-07-23 13:28:00 +08:00 - SP03 构建受控 pair 离线策略搜索
 
 **做了什么**

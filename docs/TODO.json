@@ -129,7 +129,7 @@
       "id": "SP04_run_controlled_same_part_offline_search_and_conclude",
       "priority": 4,
       "depends_on": ["SP03_build_offline_controlled_pair_policy"],
-      "pass": false,
+      "pass": true,
       "goal": "Publish complete, reproducible offline evidence for the controlled same-part research result without changing production behavior.",
       "changes": [
         "Create and register topology diagnosis, policy-search, and conclusion JSON/Markdown artifacts in a new managed run directory.",

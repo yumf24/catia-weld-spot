@@ -1,3 +1,17 @@
+# Controlled same-part offline artifacts
+
+`general_plane_selection_same_part_topology_diagnosis.json` records the exact geometry and shape-boundary topology
+review. `general_plane_selection_controlled_pair_policy_search.json` records the full canonical ordering evidence
+for every policy replay. `general_plane_selection_controlled_same_part_conclusion.json` is the managed summary of
+those two artifacts, with a Markdown companion of the same basename.
+
+All three are permanently offline-only. Policy generation/replay uses registered primary-model geometry and does not
+read reference STEP or truth; reference/truth may appear only in explicitly marked evaluation-only summaries. The
+conclusion must state `production_defaults_changed=false` and
+`production_guardrail.allow_same_part_pairs=false`. It is single-dataset regression evidence only and cannot be
+used to claim cross-part generalization or to change production selector, pipeline, candidate generation, CLI
+defaults, or same-part behavior.
+
 # JSON 数据契约
 
 提取层、算法核心、回写层通过两份 JSON 文件交换数据。字段定义以

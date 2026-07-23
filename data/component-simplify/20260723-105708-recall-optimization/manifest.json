@@ -91,6 +91,14 @@
     "general_plane_selection_controlled_pair_policy_search": {
       "path": "general_plane_selection_controlled_pair_policy_search.json",
       "kind": "json"
+    },
+    "general_plane_selection_controlled_same_part_conclusion": {
+      "path": "general_plane_selection_controlled_same_part_conclusion.json",
+      "kind": "json"
+    },
+    "general_plane_selection_controlled_same_part_conclusion_markdown": {
+      "path": "general_plane_selection_controlled_same_part_conclusion.md",
+      "kind": "markdown"
     }
   },
   "completed_at": "2026-07-23T10:57:24+08:00"

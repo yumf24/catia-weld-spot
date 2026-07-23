@@ -220,6 +220,104 @@ def render_same_part_topology_markdown(report: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 
+def build_controlled_same_part_conclusion(
+    topology_diagnosis: dict[str, Any], policy_search: dict[str, Any]
+) -> dict[str, Any]:
+    """Summarize a completed controlled-pair search for offline review only.
+
+    The inputs have already separated geometry/policy replay from the
+    evaluation-only truth metrics.  This function merely publishes their
+    deterministic result; it does not supply an input to production code.
+    """
+
+    if topology_diagnosis.get("scope") != "offline_same_part_topology_diagnosis":
+        raise ValueError("invalid same-part topology diagnosis")
+    if policy_search.get("scope") != "offline_controlled_pair_policy_search":
+        raise ValueError("invalid controlled pair policy search")
+    if topology_diagnosis.get("production_behavior_changed") is not False:
+        raise ValueError("topology diagnosis must not change production behavior")
+    if policy_search.get("production_behavior_changed") is not False:
+        raise ValueError("policy search must not change production behavior")
+
+    cases = policy_search.get("cases")
+    if not isinstance(cases, list):
+        raise ValueError("controlled pair policy search has no cases")
+    strict_cases = [case for case in cases if case.get("passed") is True]
+    selected = policy_search.get("selected_strict_pass_policy")
+    if bool(selected) != bool(strict_cases):
+        raise ValueError("selected strict policy does not match policy search pass state")
+
+    evaluation = topology_diagnosis["evaluation_only"]
+    outcome = "strict_pass_policy_selected" if selected else "no_feasible_policy"
+    return {
+        "format_version": 1,
+        "scope": "offline_controlled_same_part_conclusion",
+        "production_defaults_changed": False,
+        "production_guardrail": {"allow_same_part_pairs": False},
+        "generalization_boundary": (
+            "Single-dataset offline regression evidence only; no independent validation "
+            "parts are available and no cross-part generalization is claimed."
+        ),
+        "evaluation_only_inputs": {
+            "reference_and_truth": True,
+            "policy_generation_uses_reference_or_truth": False,
+        },
+        "topology_diagnosis": {
+            "artifact_scope": topology_diagnosis["scope"],
+            "review_count": topology_diagnosis["review_count"],
+            "face_composition_by_topology": evaluation["face_composition_by_topology"],
+            "same_part_false_negative_recovery_ceiling": evaluation["same_part_false_negative_recovery_ceiling"],
+            "theoretical_upper_true_positives": evaluation["theoretical_upper_true_positives"],
+            "target_true_positives": evaluation["target_true_positives"],
+            "geometrically_feasible": evaluation["all_exact_valid_same_part_pairs_reach_target"],
+        },
+        "policy_search": {
+            "artifact_scope": policy_search["scope"],
+            "case_count": policy_search["case_count"],
+            "quality_gate": policy_search["quality_gate"],
+            "strict_pass_case_count": len(strict_cases),
+            "selected_strict_pass_policy": selected,
+            "ordering_evidence_artifact": "general_plane_selection_controlled_pair_policy_search.json",
+        },
+        "outcome": outcome,
+        "conclusion": (
+            "No policy in the fixed controlled-pair matrix passes the strict quality gate. "
+            "Production same-part behavior remains disabled."
+            if outcome == "no_feasible_policy"
+            else "The selected policy is offline evidence only and does not change production behavior."
+        ),
+    }
+
+
+def render_controlled_same_part_conclusion_markdown(report: dict[str, Any]) -> str:
+    """Render the human-readable counterpart to the conclusion JSON."""
+
+    topology = report["topology_diagnosis"]
+    policy = report["policy_search"]
+    lines = [
+        "# Controlled Same-Part Offline Conclusion",
+        "",
+        f"Outcome: **{report['outcome']}**",
+        "",
+        "Production defaults are unchanged: `allow_same_part_pairs=false`.",
+        "",
+        "## Evidence",
+        "",
+        f"- Topology reviews: {topology['review_count']}",
+        f"- Same-part FN recovery ceiling: {topology['same_part_false_negative_recovery_ceiling']}",
+        f"- Theoretical upper TP: {topology['theoretical_upper_true_positives']} (target: {topology['target_true_positives']})",
+        f"- Policy cases replayed: {policy['case_count']}",
+        f"- Strict-pass policies: {policy['strict_pass_case_count']}",
+        "",
+        "The policy-search JSON contains the complete canonical ordering evidence for every case.",
+        "Reference STEP and truth are evaluation-only inputs; policy generation and production selection do not consume them.",
+        report["generalization_boundary"],
+        "",
+        report["conclusion"],
+    ]
+    return "\n".join(lines) + "\n"
+
+
 def build_permissive_controlled_pair_audit(
     faces: Iterable[GeneralPlaneFace],
     *,

@@ -7,6 +7,7 @@ from OCP.TopoDS import TopoDS
 
 from weld_core.controlled_same_part_policy import (
     build_permissive_controlled_pair_audit,
+    build_controlled_same_part_conclusion,
     classify_same_part_topology,
     diagnose_same_part_topology,
     evaluate_controlled_pair_policy_replay,
@@ -105,3 +106,33 @@ def test_replay_uses_one_geometry_audit_and_rejects_unknown_same_part_topology()
     report = evaluate_controlled_pair_policy_replay(replay, ["truth"])
     assert report["scope"] == "offline_controlled_pair_policy_search"
     assert report["cases"][0]["evaluation_only"]["true_positives"] == 1
+
+
+def test_conclusion_reports_no_feasible_policy_without_changing_production_defaults():
+    topology = {
+        "scope": "offline_same_part_topology_diagnosis",
+        "production_behavior_changed": False,
+        "review_count": 2,
+        "evaluation_only": {
+            "face_composition_by_topology": {"disjoint_boundaries": {"true_positives": 1, "false_positives": 2, "false_negatives": 0}},
+            "same_part_false_negative_recovery_ceiling": 1,
+            "theoretical_upper_true_positives": 31,
+            "target_true_positives": 37,
+            "all_exact_valid_same_part_pairs_reach_target": False,
+        },
+    }
+    search = {
+        "scope": "offline_controlled_pair_policy_search",
+        "production_behavior_changed": False,
+        "case_count": 1,
+        "quality_gate": {"minimum_precision_exclusive": 0.9, "minimum_recall_exclusive": 0.9},
+        "selected_strict_pass_policy": None,
+        "cases": [{"passed": False}],
+    }
+
+    conclusion = build_controlled_same_part_conclusion(topology, search)
+
+    assert conclusion["outcome"] == "no_feasible_policy"
+    assert conclusion["production_defaults_changed"] is False
+    assert conclusion["production_guardrail"]["allow_same_part_pairs"] is False
+    assert conclusion["policy_search"]["strict_pass_case_count"] == 0
