@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-23 14:28:54 +08:00 - CW01 冻结 component 真实焊点评测契约
+
+**做了什么**
+- 在 `raw_data/component/manifest.json` 冻结输入职责：`component.step` 是候选生成唯一 CAD 输入；`SPOT.step` 和所有评测产物仅限离线评测。
+- 在 JSON 契约中固定 `data/component-weld-evaluation/<run-id>/` 隔离输出、286 个真实标记球心、10 mm 主匹配阈值及 5/20 mm 敏感性阈值。
+- 明确 ANSA v24.1.1 仅创建 TP/FP/FN 与匹配连线的可视标记，绝不创建或宣称 FE `SPOTWELD`。
+
+**验证结果**
+- `.venv\\Scripts\\python -m json.tool docs\\TODO.json`：通过。
+- `.venv\\Scripts\\python scripts\\extract_ground_truth.py raw_data\\component\\SPOT.step data\\component-weld-evaluation\\contract-ground-truth.json`：通过，解析出 **286** 个真实焊点。
+- `.venv\\Scripts\\python -c "... assert len(d['points']) == 286"`：通过。
+
+---
+
 ## 2026-07-23 13:36:46 +08:00 - SP04 发布受控同件离线搜索结论
 
 **做了什么**

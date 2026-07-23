@@ -163,6 +163,20 @@ score、精确原因和稳定 recovery 状态。它只用显式离线 evaluation
 | `summary.precision` / `recall` | float | face-level 精确率和召回率 |
 | `true_positive_faces` / `false_positive_faces` / `false_negative_faces` | obj[] | 逐 face 诊断 |
 
+## component 焊点评测冻结契约
+
+`component` 的候选生成和真实焊点评测必须隔离。唯一允许作为候选生成 CAD 输入的是
+`raw_data/component/component.step`（raw manifest 的 `primary_model`）；`raw_data/component/SPOT.step`
+及其派生的 `ground_truth.json`、评测报告和 ANSA 包均只能在评测阶段读取，不能成为候选生成、
+参数选择或生产 pipeline 的输入。
+
+专用受管输出根目录固定为 `data/component-weld-evaluation/<run-id>/`；不得把该流程的产物写入
+其他零件的运行目录。真实标记必须解析为 **286** 个球心。点集采用逐距离排序的一对一贪心匹配，
+主指标容忍度为 **10 mm**，并同时发布 **5 mm** 与 **20 mm** 的敏感性结果。
+
+ANSA v24.1.1 包只创建可视化标记：`TP_TRUTH`、`TP_CANDIDATE`、`FP_CANDIDATE`、`FN_TRUTH`
+和 `MATCH_LINK`。这些标记不代表、也绝不能创建或宣称为 FE `SPOTWELD` / 焊接连接器。
+
 ## ground_truth.json（真实焊点，评测用 → 核心输入）
 
 由 `scripts/extract_ground_truth.py` 离线解析焊点标记球 STEP 文件（如 `raw_data/component/SPOT.step`）
