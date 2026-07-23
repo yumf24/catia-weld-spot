@@ -19,6 +19,7 @@
 | [通用平面选面](#通用平面选面) | `scripts/select_general_planes.py` | 否 | 注册主 STEP | `faces.general-selected.json` + 审计 |
 | [离线评测通用选面](#离线评测通用选面) | `scripts/evaluate_general_plane_selection.py` | 否 | 主 STEP + 显式参考 STEP + 通用选面结果 | 受管运行目录内 JSON/报告 |
 | [复核通用选面 AABB 拒绝](#复核通用选面-aabb-拒绝) | `scripts/diagnose_general_plane_selection_aabb.py` | 否 | 主 STEP + pair 审计 | 受管运行目录内离线诊断 JSON |
+| [评估通用选面同件风险](#评估通用选面同件风险) | `scripts/evaluate_general_plane_selection_same_part.py` | 否 | 离线参数扫描 | 受管运行目录内 JSON/报告 |
 | [通用选面回归](#通用选面回归) | `scripts/run_general_plane_selection_regression.py` | 否 | 注册主 STEP + 显式评测参考 | 通用选面、评测、候选产物 |
 | [运行核心算法](#运行核心算法) | `python -m weld_core.pipeline` | 否 | `faces.enriched.json` | `candidates.json` |
 | [回写候选点到 CATIA](#回写候选点到-catia) | `catia/write_candidates.py` | 是 | `candidates.json` | CATIA 文档内 `Weld_Candidates` 点集 |
@@ -199,6 +200,17 @@ python scripts/evaluate_general_plane_selection.py component-simplify --run-dir 
 
 ```bash
 python scripts/diagnose_general_plane_selection_aabb.py component-simplify --run-dir data/component-simplify/<run-id>
+```
+
+## 评估通用选面同件风险
+
+**代码路径**：`scripts/evaluate_general_plane_selection_same_part.py`
+
+**用途**：从已生成的离线参数扫描中固定提取 1.5 mm / coverage=0.05 的 same-part 关闭和开启实验，
+形成单独的 FP 风险证据。报告绝非运行时输入，生产 `allow_same_part_pairs` 仍固定关闭；结果只限该离线数据集。
+
+```bash
+python scripts/evaluate_general_plane_selection_same_part.py component-simplify --run-dir data/component-simplify/<run-id>
 ```
 
 ---

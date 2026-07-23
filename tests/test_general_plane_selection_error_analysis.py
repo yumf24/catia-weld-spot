@@ -14,6 +14,8 @@ from weld_core.general_plane_selection_error_analysis import (
     join_error_analysis,
     load_and_join_error_analysis,
     render_error_analysis_markdown,
+    build_same_part_risk_report,
+    render_same_part_risk_markdown,
     render_controlled_parameter_sweep_markdown,
 )
 from weld_core.general_plane_selection import ExactPairMeasurement
@@ -358,3 +360,23 @@ def test_backlog_orders_gap_aabb_and_same_part_with_required_evidence_and_risk()
         "plane_gap", "projected_aabb", "same_part_policy"
     ]
     assert all(row["evidence"] and row["precision_risk"] and row["acceptance_tests"] for row in backlog["recommendations"])
+
+
+def test_same_part_risk_report_isolates_the_high_false_positive_offline_case():
+    sweep = build_controlled_parameter_sweep(
+        lambda params: {"summary": {
+            "predicted_faces": 212 if params.allow_same_part_pairs else 36,
+            "truth_faces": 40,
+            "true_positives": 40 if params.allow_same_part_pairs else 30,
+            "false_positives": 172 if params.allow_same_part_pairs else 6,
+            "false_negatives": 0 if params.allow_same_part_pairs else 10,
+            "precision": 40 / 212 if params.allow_same_part_pairs else 30 / 36,
+            "recall": 1.0 if params.allow_same_part_pairs else .75,
+            "passed": True,
+        }}
+    )
+    report = build_same_part_risk_report(sweep)
+    enabled = report["comparison"]["same_part_enabled_offline_only"]["summary"]
+    assert report["production_guardrail"] == {"allow_same_part_pairs": False}
+    assert (enabled["true_positives"], enabled["false_positives"], enabled["false_negatives"]) == (40, 172, 0)
+    assert "Same-part pairs remain disabled in production." in render_same_part_risk_markdown(report)

@@ -63,7 +63,7 @@
       ], "completion_commit": "feat: diagnose projected AABB selection rejections"
     },
     {
-      "id": "OP04_isolate_same_part_risk", "priority": 4, "depends_on": ["OP03_diagnose_projected_aabb_rejections"], "pass": false,
+      "id": "OP04_isolate_same_part_risk", "priority": 4, "depends_on": ["OP03_diagnose_projected_aabb_rejections"], "pass": true,
       "goal": "将 same-part 召回收益与其已知 FP 风险隔离为离线证据，锁定生产排除护栏。",
       "changes": ["新增 same-part 离线报告，记录 1.5 mm/coverage 0.05 的 40/172/0、precision≈18.87%、recall=100%。", "默认参数、运行时 CLI 和 pipeline 均保持 same-part 关闭；报告不能被生产消费。", "文档说明同件策略需未来独立 TODO、独立 precision 门槛与通用限制设计。"],
       "strict_tests": [

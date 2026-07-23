@@ -251,6 +251,60 @@ def build_optimization_recommendation_backlog(
     }
 
 
+def build_same_part_risk_report(sweep_report: dict[str, Any]) -> dict[str, Any]:
+    """Isolate the fixed offline same-part experiment from runtime policy.
+
+    The report deliberately consumes a pre-existing offline sweep rather than
+    reusing its result in any selector configuration.
+    """
+
+    cases = sweep_report.get("cases")
+    if sweep_report.get("scope") != "offline_evaluation_only" or not isinstance(cases, list):
+        raise ErrorAnalysisInputError("invalid offline parameter-sweep report for same-part evaluation")
+
+    def find_case(same_part: bool) -> dict[str, Any]:
+        for case in cases:
+            params = case.get("parameters") if isinstance(case, dict) else None
+            if isinstance(params, dict) and (
+                params.get("max_plane_gap_mm") == 1.5
+                and params.get("min_face_coverage") == 0.05
+                and params.get("allow_same_part_pairs") is same_part
+            ):
+                return case
+        raise ErrorAnalysisInputError(f"sweep report missing 1.5 mm / coverage 0.05 same_part={same_part} case")
+
+    excluded = find_case(False)
+    enabled = find_case(True)
+    return {
+        "format_version": 1,
+        "scope": "offline_same_part_risk_evaluation",
+        "generalization_boundary": "This single-dataset offline result is not evidence of cross-part generalization.",
+        "production_defaults_changed": False,
+        "production_guardrail": {"allow_same_part_pairs": False},
+        "comparison": {"same_part_excluded": excluded, "same_part_enabled_offline_only": enabled},
+        "conclusion": "Same-part selection remains disabled in production; any future policy requires a separate generic design and precision gate.",
+    }
+
+
+def render_same_part_risk_markdown(report: dict[str, Any]) -> str:
+    """Render the offline same-part risk conclusion without runtime advice."""
+
+    comparison = report["comparison"]
+    excluded = comparison["same_part_excluded"]["summary"]
+    enabled = comparison["same_part_enabled_offline_only"]["summary"]
+    return "\n".join([
+        "# Same-part Plane Selection Risk (offline only)",
+        "",
+        "| Policy | TP | FP | FN | Precision | Recall |",
+        "| --- | ---: | ---: | ---: | ---: | ---: |",
+        "| same-part excluded (production default) | {true_positives} | {false_positives} | {false_negatives} | {precision:.2%} | {recall:.2%} |".format(**excluded),
+        "| same-part enabled (offline experiment) | {true_positives} | {false_positives} | {false_negatives} | {precision:.2%} | {recall:.2%} |".format(**enabled),
+        "",
+        "Same-part pairs remain disabled in production. This report is not runtime input and does not establish cross-part generalization.",
+        "",
+    ])
+
+
 _FN_REASON_DETAILS = {
     "overlap_area_below_threshold": (
         "overlap_area",

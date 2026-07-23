@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-07-23 11:06:00 +08:00 - OP04 隔离 same-part 选面风险
+
+**做了什么**
+- 新增纯离线 same-part 风险报告：从受管参数扫描固定提取 1.5 mm、coverage=0.05 的 same-part 关闭与开启实验，并写入 JSON/Markdown 及 manifest；报告不能作为生产输入。
+- 报告将生产护栏明确固定为 `allow_same_part_pairs=false`，同时说明未来同件策略需独立的通用设计和 precision 门槛，且单数据集结论不代表跨零件泛化。
+- `component-simplify` 的开启实验为 TP/FP/FN=`40/172/0`、precision=`18.87%`、recall=`100%`；same-part 继续保持生产关闭。将 `OP04_isolate_same_part_risk` 标记为通过。
+
+**验证结果**
+- `.venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k same_part`：通过（风险报告、默认排除及已有 intended/unintended same-part 覆盖）。
+- `.venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_runtime.py`：**2 passed**，默认运行时仍无 accepted same-part pair。
+- `.venv\\Scripts\\python scripts\\evaluate_general_plane_selection_same_part.py component-simplify --run-dir data\\component-simplify\\20260722-163200-generic-regression`：成功写入并登记报告。
+- 参数扫描脚本本轮真实 STEP 重跑在 10 分钟上限内未完成；该脚本和输入未改动，OP01 已成功生成并登记同一 28 组受管扫描，本步使用该既有证据。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\op04-full`：**105 passed**。
+
+---
+
 ## 2026-07-23 10:45:00 +08:00 - OP03 projected-AABB 拒绝离线复核
 
 **做了什么**
