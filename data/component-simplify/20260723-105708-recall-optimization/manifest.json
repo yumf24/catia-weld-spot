@@ -87,6 +87,10 @@
     "general_plane_selection_same_part_topology_diagnosis_markdown": {
       "path": "general_plane_selection_same_part_topology_diagnosis.md",
       "kind": "markdown"
+    },
+    "general_plane_selection_controlled_pair_policy_search": {
+      "path": "general_plane_selection_controlled_pair_policy_search.json",
+      "kind": "json"
     }
   },
   "completed_at": "2026-07-23T10:57:24+08:00"

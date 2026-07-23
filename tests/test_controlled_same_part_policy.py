@@ -6,8 +6,11 @@ from OCP.TopExp import TopExp_Explorer
 from OCP.TopoDS import TopoDS
 
 from weld_core.controlled_same_part_policy import (
+    build_permissive_controlled_pair_audit,
     classify_same_part_topology,
     diagnose_same_part_topology,
+    evaluate_controlled_pair_policy_replay,
+    replay_controlled_pair_policies,
     render_same_part_topology_markdown,
 )
 from weld_core.general_plane_selection import ExactPairMeasurement
@@ -82,3 +85,23 @@ def test_topology_diagnosis_records_exact_geometry_and_evaluation_only_ceiling()
     }
     assert report["evaluation_only"]["theoretical_upper_true_positives"] == 31
     assert "Truth is used only" in render_same_part_topology_markdown(report)
+
+
+def test_replay_uses_one_geometry_audit_and_rejects_unknown_same_part_topology():
+    faces = [_face("truth", "one"), _face("other", "one", z=0.1), _face("cross", "two", z=0.2)]
+    calls = []
+    audit = build_permissive_controlled_pair_audit(
+        faces,
+        exact_overlap=lambda a, b: calls.append((a.id, b.id)) or ExactPairMeasurement(0, 0.1, 20, 0.5, 0.5, 40, 40),
+        projected_aabb_overlap=lambda *_: (5.0, 5.0),
+        topology_classifier=lambda *_: "topology_unknown",
+    )
+    replay = replay_controlled_pair_policies(audit)
+    assert len(calls) == 3
+    assert replay["case_count"] == 3780
+    unconstrained = next(case for case in replay["cases"] if case["parameters"]["same_part_topology"] == "no_constraint")
+    assert unconstrained["accepted_same_part_count"] == 0
+    assert unconstrained["accepted_cross_part_count"] == 2
+    report = evaluate_controlled_pair_policy_replay(replay, ["truth"])
+    assert report["scope"] == "offline_controlled_pair_policy_search"
+    assert report["cases"][0]["evaluation_only"]["true_positives"] == 1

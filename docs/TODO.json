@@ -109,7 +109,7 @@
       "id": "SP03_build_offline_controlled_pair_policy",
       "priority": 3,
       "depends_on": ["SP02_diagnose_same_part_topology_and_geometry"],
-      "pass": false,
+      "pass": true,
       "goal": "Build an offline-only deterministic replay and search for a controlled policy that uniformly re-screens cross-part and same-part pairs.",
       "changes": [
         "Generate one permissive exact pair audit from registered primary-model geometry, then replay every candidate policy without repeated identical OCP boolean operations.",

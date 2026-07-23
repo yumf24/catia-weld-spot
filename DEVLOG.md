@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-23 13:28:00 +08:00 - SP03 构建受控 pair 离线策略搜索
+
+**做了什么**
+- 新增离线受控 pair 几何审计与确定性策略重放；固定搜索矩阵为 `6 x 6 x 5 x 7 x 3 = 3780` 个策略。策略重放只读取几何审计，不读取 reference 或 truth；evaluation-only 层才追加 TP/FP/FN、precision、recall 和严格门槛结果。
+- 同件 pair 始终拒绝 `topology_unknown`；所有接受 pair 都要求正的精确投影 overlap。AABB 只可记录无重叠拒绝或有效宽度，不能作为接受回退。
+- 搜索命令将 SP02 同件精确诊断与同一受管运行的跨件 primary-model pair audit 合成为一个可重放审计，避免对已测量 pair 重复 OCCT 布尔运算。`component-simplify` 共复用 769 条审计记录，严格 90% 双指标下没有可行策略。
+
+**验证结果**
+- `.venv\\Scripts\\python -m pytest tests\\test_controlled_same_part_policy.py -k replay`：**1 passed**。
+- `.venv\\Scripts\\python scripts\\search_general_plane_selection_controlled_pair_policy.py component-simplify --run-dir data\\component-simplify\\20260723-105708-recall-optimization`：成功写入 3780 条策略搜索结果。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\sp03-full`：**112 passed**。
+
+---
+
 ## 2026-07-23 12:17:43 +08:00 - SP02 诊断同件拓扑和精确几何
 
 **做了什么**
