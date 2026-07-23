@@ -5,6 +5,16 @@
 
 ---
 
+## 2026-07-23 18:22:00 +08:00 - Restore reliable portable ANSA opening
+
+**What changed**
+- Removed the portable package's Listener-Mode automatic-display launcher. Further real ANSA v24.1.1 testing showed that its Listener can accept TCP before the GUI-side handler is ready, then abort handshakes; this made an automatically launched ANSA session appear briefly and was not a reliable delivery path.
+- Restored the recipient-facing batch file to the Windows `.ansa` file association, which opens the extracted database as a normal interactive ANSA session and requires no Python. The manual `ansa/apply_component_weld_review_display.py` remains the supported way to apply Part-colour shaded rendering after opening; the package does not modify the recipient's profile.
+
+**Verification**
+- Built and extracted a fresh ZIP into `D:\\test-catia\\ansa-portable-unpacked-stable`, ran its `.bat`, then confirmed after 12 seconds that `ansa_win64.exe` remained active with `-i <extracted package>\\ansa\\component_weld_cad_review.ansa`.
+- `tests/test_ansa_portable_review.py`: **1 passed**.
+
 ## 2026-07-23 17:42:00 +08:00 - Make portable ANSA review colours deterministic
 
 **What changed**

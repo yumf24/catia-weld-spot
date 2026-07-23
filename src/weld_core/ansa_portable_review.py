@@ -65,22 +65,13 @@ guitk.BCTimerSingleShot(10000, _apply_after_database_load, None)
 
 
 def launcher_source() -> str:
-    """Return a Windows launcher for the portable Listener-mode opener."""
+    """Return the reliable Windows file-association launcher."""
     return r'''@echo off
-setlocal EnableExtensions
-set "PACKAGE_ROOT=%~dp0"
-where py >nul 2>&1
-if not errorlevel 1 (
-    py -3 "%PACKAGE_ROOT%open_component_weld_review.py" %*
-    exit /b %ERRORLEVEL%
-)
-where python >nul 2>&1
-if not errorlevel 1 (
-    python "%PACKAGE_ROOT%open_component_weld_review.py" %*
-    exit /b %ERRORLEVEL%
-)
-echo [FAIL] Python 3 was not found. Install Python 3, then run this launcher again.
-exit /b 1
+setlocal
+pushd "%~dp0"
+start "" "ansa\component_weld_cad_review.ansa"
+popd
+endlocal
 '''
 
 
@@ -101,11 +92,20 @@ import socket
 import subprocess
 import sys
 import time
+import traceback
 
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
 DATABASE = PACKAGE_ROOT / "ansa" / "component_weld_cad_review.ansa"
+LOG_PATH = PACKAGE_ROOT / "open_component_weld_review.log"
 DEFAULT_ANSA_ROOT = Path(r"C:\Program Files (x86)\BETA_CAE_Systems")
+
+
+def log(message: str) -> None:
+    line = time.strftime("%Y-%m-%d %H:%M:%S") + " " + message
+    print(line)
+    with LOG_PATH.open("a", encoding="utf-8") as log_file:
+        log_file.write(line + "\n")
 
 
 def find_ansa_executable(explicit: str | None) -> Path:
@@ -156,13 +156,29 @@ def open_review(ansa_executable: Path, timeout_seconds: float) -> None:
     from AnsaProcessModule import IAPConnection, PostConnectionAction
 
     creationflags = getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0)
+    # ANSA's own batch wrapper supplies the version-matched Qt/Python runtime.
+    # Launch it directly: `start` invokes a persistent `cmd /K` wrapper on
+    # this ANSA release and prevents Listener Mode from completing its handshake.
     subprocess.Popen([str(ansa_executable), "-listenport", str(port)], creationflags=creationflags)
+    log("started ANSA Listener on port " + str(port) + " using " + str(ansa_executable))
     deadline = time.monotonic() + timeout_seconds
+    # A just-created ANSA Listener can accept TCP while its GUI-side request
+    # handler is still initializing. Sending Hello during that window causes
+    # ANSA 24.1.1 to drop the socket and prolongs startup. Let the GUI settle
+    # before the first protocol request.
+    settle_seconds = min(90.0, max(30.0, timeout_seconds / 2.0))
+    log("waiting {:.0f} seconds for ANSA GUI initialization".format(settle_seconds))
+    time.sleep(settle_seconds)
     connection = None
     last_error: Exception | None = None
     while time.monotonic() < deadline:
         try:
+            log("attempting ANSA Listener handshake")
             connection = IAPConnection(port)
+            # ANSA may accept TCP before its GUI-side Listener is ready to
+            # answer Hello. Avoid letting that half-ready socket consume the
+            # entire startup timeout; close it and retry instead.
+            connection.ansa_control.settimeout(5.0)
             response = connection.hello()
             if not response.success():
                 raise RuntimeError("ANSA Listener handshake failed")
@@ -174,11 +190,20 @@ def open_review(ansa_executable: Path, timeout_seconds: float) -> None:
             if not response.success() or response.get_script_execution_details() not in (None, 0):
                 raise RuntimeError("ANSA rejected the display script")
             connection.goodbye(PostConnectionAction.keep_listening)
-            print("[OK] ANSA opened with Part-colour shaded CAD spheres.")
-            print("[OK] display verification: " + str(PACKAGE_ROOT / "startup_display_verification.png"))
+            # Reconnect after Goodbye: this proves the requested interactive
+            # Listener remains alive after this launcher exits.
+            connection = IAPConnection(port)
+            connection.ansa_control.settimeout(5.0)
+            response = connection.hello()
+            if not response.success():
+                raise RuntimeError("ANSA Listener stopped after applying the display")
+            connection.goodbye(PostConnectionAction.keep_listening)
+            log("[OK] ANSA remains interactive with Part-colour shaded CAD spheres.")
+            log("[OK] display verification: " + str(PACKAGE_ROOT / "startup_display_verification.png"))
             return
         except Exception as exc:
             last_error = exc
+            log("Listener is not ready yet: " + repr(exc))
             if connection is not None:
                 try:
                     connection.close()
@@ -191,12 +216,14 @@ def open_review(ansa_executable: Path, timeout_seconds: float) -> None:
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--ansa-executable", help="path to ANSA ansa64.bat")
-    parser.add_argument("--timeout", type=float, default=90.0, help="ANSA startup timeout in seconds")
+    parser.add_argument("--timeout", type=float, default=180.0, help="ANSA startup timeout in seconds")
     args = parser.parse_args(argv)
     try:
         open_review(find_ansa_executable(args.ansa_executable), args.timeout)
     except (OSError, RuntimeError, ValueError) as exc:
-        print("[FAIL] " + str(exc), file=sys.stderr)
+        log("[FAIL] " + str(exc))
+        with LOG_PATH.open("a", encoding="utf-8") as log_file:
+            traceback.print_exc(file=log_file)
         return 1
     return 0
 
@@ -211,16 +238,14 @@ def readme_source() -> str:
 
 Open `open_component_weld_review.bat` on Windows. It uses the local .ansa file
 association and leaves ANSA interactive. The package has no repository-specific
-paths. It requires Python 3 (the standard Windows `py -3` launcher is used) and
-an installed ANSA v24.1.1 or later. If ANSA is installed elsewhere, run
-`open_component_weld_review.bat --ansa-executable C:\\path\\to\\ansa64.bat`.
+paths and does not require Python.
 
-The launcher uses ANSA Listener Mode to open the database and then applies its
-Part-colour shaded display. This happens after ANSA has restored user Drawing
-Styles, so CAD and 3 mm CAD weld markers render as round green/red/yellow spheres
-rather than grey topology crosses. It writes `startup_display_verification.png`
-beside the launcher as proof of the applied display. `ANSA_TRANSL.py` remains a
-manual fallback script; it does not modify the recipient's ANSA profile.
+ANSA v24.1.1 does not provide a reliable automatic post-open display hook that
+also keeps the interactive GUI alive. To apply the coloured sphere presentation,
+load and run `ansa/apply_component_weld_review_display.py` from ANSA after the
+database has opened. It selects Part-colour shaded display and disables Wire,
+CONS and Hot Points. `ANSA_TRANSL.py` is the same manual fallback script; it
+does not modify the recipient's ANSA profile.
 
 The model contains visual CAD spheres only; it does not contain FE SPOTWELD,
 connectors or FE elements.
@@ -249,7 +274,6 @@ def build_portable_review(
     display_source = display_script_source()
     (package_dir / DISPLAY_SCRIPT_RELATIVE_PATH).write_text(display_source, encoding="utf-8")
     (package_dir / MANUAL_DISPLAY_RELATIVE_PATH).write_text(display_source, encoding="utf-8")
-    (package_dir / REMOTE_LAUNCHER_NAME).write_text(remote_launcher_source(), encoding="utf-8")
     (package_dir / LAUNCHER_NAME).write_text(launcher_source(), encoding="utf-8", newline="\r\n")
     (package_dir / README_NAME).write_text(readme_source(), encoding="utf-8")
     preview_relatives: dict[str, str] = {}
@@ -268,7 +292,7 @@ def build_portable_review(
         "display_startup_script": DISPLAY_SCRIPT_RELATIVE_PATH.as_posix(),
         "manual_display_script": MANUAL_DISPLAY_RELATIVE_PATH.as_posix(),
         "launcher": LAUNCHER_NAME,
-        "startup_method": "listener_mode_remote_display",
+        "startup_method": "file_association_manual_display_script",
         "marker_presentation": "shaded_3mm_cad_spheres",
         "absolute_paths": False,
         "previews": preview_relatives,
