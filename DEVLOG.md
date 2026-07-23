@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-07-23 17:18:00 +08:00 - Package a portable ANSA weld-review handoff
+
+**What changed**
+- Added `scripts/package_component_weld_ansa_review.py`, which creates a self-contained `component_weld_ansa_review.zip`: relative-path CAD review database, batch launcher, `ANSA_TRANSL.py` shaded-display initializer, manual display script, five review previews, README and portable manifest.
+- The package launcher sets its own working directory before using the Windows `.ansa` association. ANSA therefore discovers the packaged `ANSA_TRANSL.py`, whose top-level display settings disable Wire/CONS/Hot Points and preserve strong shaded CAD-sphere markers without an unsafe `-exec` invocation.
+
+**Verification**
+- Created the real 59.5 MB ZIP, extracted it to `D:\\test-catia\\ansa-portable-unpacked-v2`, confirmed identical database SHA-256 and no `D:\\test-catia` text path in portable control files, then opened its batch launcher in ANSA v24.1.1. The unpacked database process remained responsive and created its own lock file, demonstrating it was actually opened from the simulated recipient directory. `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\ansa-portable-full`: **125 passed**; `git diff --check`: passed.
+
 ## 2026-07-23 17:05:00 +08:00 - Keep ANSA review launcher interactive
 
 **What changed**

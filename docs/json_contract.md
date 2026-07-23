@@ -238,6 +238,14 @@ ANSA's lock dialog (or remove only the matching hidden `.lock.<database>.ansa#` 
 In addition to the four standard views, `component_weld_marker_detail.png` is a zoomed CAD-context view proving
 the marker shape.
 
+## Portable component ANSA review handoff
+
+Use `scripts/package_component_weld_ansa_review.py --latest-run --output-dir <empty-directory>` to create
+`component_weld_ansa_review.zip`. The ZIP contains a relative-path `.ansa`, `open_component_weld_review.bat`,
+`ANSA_TRANSL.py`, a manual display script, previews, and a portable manifest. Recipients extract it anywhere, then
+run the batch launcher; no `D:\test-catia` path is embedded. The startup display script disables topology overlays
+and selects shaded Part colours so the 3 mm weld CAD spheres remain visually distinct.
+
 ## ground_truth.json（真实焊点，评测用 → 核心输入）
 
 由 `scripts/extract_ground_truth.py` 离线解析焊点标记球 STEP 文件（如 `raw_data/component/SPOT.step`）
