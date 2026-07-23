@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-23 11:10:08 +08:00 - OP06 受控提升通用选面默认 gap
+
+**做了什么**
+- 在完成既有 AABB 复核、same-part 风险隔离和扩展 gap FP 归因的前提下，将跨件 `GeneralSelectionParams.max_plane_gap_mm` 默认值由 `0.2` 提升至 `1.5`；`allow_same_part_pairs=false` 未改变。
+- 新建受管回归 `data/component-simplify/20260723-105708-recall-optimization`，使用新默认值生成 selection、pair audit、显式离线 evaluation、candidates、FP 归因、28 组参数扫描、AABB 诊断和 same-part 风险报告，并全部登记 manifest。
+- 回归得到 TP/FP/FN=`30/6/10`、precision=`83.33%`、recall=`75.00%`；AABB 诊断复核 156 个拒绝，same-part 离线开启仍为 TP/FP/FN=`40/172/0`、precision=`18.87%`、recall=`100%`，生产护栏继续关闭。
+- 更新 README、CLI、算法与 JSON 契约，明确 gap 分层、reference/truth 仅限显式离线使用，以及该单数据集结论不代表跨零件泛化；将 `OP06_controlled_default_update_and_regression` 标记为通过。
+
+**验证结果**
+- `.venv\\Scripts\\python scripts\\run_general_plane_selection_regression.py component-simplify --run-label recall-optimization`：成功创建新受管运行并达到质量门槛。
+- `.venv\\Scripts\\python scripts\\analyze_general_plane_selection_errors.py ...`、`diagnose_general_plane_selection_aabb.py ...`、`sweep_general_plane_selection_parameters.py ...`、`evaluate_general_plane_selection_same_part.py ...`：均成功写入并登记离线产物；扫描调用层在 10 分钟时超时，但产物随后已完整落盘并通过 JSON 校验。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\op06-full`：**106 passed**；`scripts\\check_plane_selection_baseline.py component-simplify`：primary/reference 输入 SHA-256 与冻结基线一致。
+
+---
+
 ## 2026-07-23 10:52:00 +08:00 - OP05 归因扩展 gap 的假阳性
 
 **做了什么**

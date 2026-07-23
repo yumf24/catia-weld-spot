@@ -80,11 +80,11 @@ python scripts/inspect_run.py component [run-id]
 
 独立脚本可继续传入显式路径，但其输入应取自 `raw_data/<part-id>/`，输出应写入一个运行目录。
 
-通用选面回归的当前基线记录在
-`data/component-simplify/20260722-163200-generic-regression/manifest.json`：选中 19 个 face，离线
-参考评测 TP/FP/FN 为 17/2/23，precision 89.47%，recall 42.50%，生成 15 个候选。这只是
-`component-simplify` 单数据集事实，不能外推到未知零件。数据集边界和跨零件门槛见
-`docs/dataset_generalization.md`。
+通用选面的跨件默认最大 plane gap 为 1.5 mm，same-part pair 默认始终关闭。此默认仅在
+`component-simplify` 的受管离线回归满足 recall≥75%、precision≥80%，并完成 AABB 复核和
+same-part 风险隔离后启用；参考 STEP/truth 只由显式离线评测与分析命令读取，绝不会成为生产
+selector、pipeline 或候选生成的输入。该证据只限单数据集，不代表未知零件或跨零件泛化。数据集
+边界和跨零件门槛见 `docs/dataset_generalization.md`。
 
 ## 运行
 

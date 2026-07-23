@@ -9,8 +9,10 @@ def test_regression_command_runs_selection_evaluation_then_pipeline(monkeypatch,
     run_dir = tmp_path / "data" / "part-a" / "20260722-170000-generic-regression"
     calls: list[tuple[str, list[str]]] = []
 
-    def fake_select(part_id: str, **_kwargs):
+    def fake_select(part_id: str, **kwargs):
         calls.append(("select", [part_id]))
+        assert kwargs["params"].max_plane_gap_mm == 1.5
+        assert kwargs["params"].allow_same_part_pairs is False
         run_dir.mkdir(parents=True)
         return run_dir
 

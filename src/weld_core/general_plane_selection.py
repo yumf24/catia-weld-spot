@@ -43,7 +43,7 @@ class GeneralSelectionParams:
     """Thresholds for generic planar face-pair selection."""
 
     max_normal_angle_deg: float = 0.5
-    max_plane_gap_mm: float = 0.2
+    max_plane_gap_mm: float = 1.5
     min_overlap_area_mm2: float = 1.0
     min_face_coverage: float = 0.05
     min_effective_width_mm: float = 0.1
@@ -108,7 +108,7 @@ def _gap_layer(plane_gap_mm: float | None) -> str | None:
     """Return the fixed audit layer for a measured inter-plane gap.
 
     This is audit metadata, not a selection threshold: production continues to
-    use ``GeneralSelectionParams.max_plane_gap_mm`` (currently 0.2 mm).
+    use ``GeneralSelectionParams.max_plane_gap_mm`` (currently 1.5 mm).
     """
 
     if plane_gap_mm is None:

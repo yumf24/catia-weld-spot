@@ -226,10 +226,11 @@ python scripts/evaluate_general_plane_selection_same_part.py component-simplify 
 python scripts/run_general_plane_selection_regression.py component-simplify --run-label generic-regression
 ```
 
-当前 `component-simplify` 结果是单数据集回归事实：2026-07-22 的通用运行
-`data/component-simplify/20260722-163200-generic-regression/` 选中 19 个 face，离线评测
-TP/FP/FN 为 17/2/23，precision 89.47%，recall 42.50%，生成 15 个候选。该结果不能作为未知
-零件能力声明；至少两个未参与阈值设定的独立验证零件分别达标后，才可对外报告初步跨零件能力。
+默认跨件 `max_plane_gap_mm` 为 1.5 mm；`allow_same_part_pairs` 默认且必须保持关闭。该默认的
+`component-simplify` 受管离线证据为 TP/FP/FN=30/6/10、precision 83.33%、recall 75.00%，达到
+本项目的单数据集质量门槛。此命令中的选面和 pipeline 不读取参考 STEP/truth；它们仅由中间的
+显式离线评测读取。该结果不能作为未知零件能力或跨零件泛化声明；至少两个未参与阈值设定的独立
+验证零件分别达标后，才可对外报告初步跨零件能力。
 
 ---
 

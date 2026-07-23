@@ -82,14 +82,14 @@
       ], "completion_commit": "feat: attribute expanded gap false positives"
     },
     {
-      "id": "OP06_controlled_default_update_and_regression", "priority": 6, "depends_on": ["OP05_attribute_expanded_gap_false_positives"], "pass": false,
+      "id": "OP06_controlled_default_update_and_regression", "priority": 6, "depends_on": ["OP05_attribute_expanded_gap_false_positives"], "pass": true,
       "goal": "仅在证据完整且质量门槛通过时，将 1.5 mm 跨件 gap 作为受控生产默认并完成回归交付。",
       "changes": ["确认 AABB 诊断完成、same-part 默认关闭、跨件候选达到 recall≥0.75 和 precision≥0.80 后，更新 GeneralSelectionParams.max_plane_gap_mm 默认值为 1.5。", "重跑受管 regression、offline evaluation、候选 pipeline、错误分析、参数扫描、AABB 诊断和 same-part 报告，登记全部 manifest。", "更新 README、CLI、json_contract 与 DEVLOG，说明新默认、gap 层、reference 离线限制和单数据集非泛化结论。"],
       "strict_tests": [
         {"command": ".venv\\Scripts\\python scripts\\run_general_plane_selection_regression.py component-simplify --run-label recall-optimization", "expect_exit_code": 0, "assertions": ["新受管运行使用跨件默认 1.5 mm，产出 selection/pair/evaluation/candidates。"]},
         {"command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\op06-full", "expect_exit_code": 0, "assertions": ["完整测试集全绿。"]},
         {"command": ".venv\\Scripts\\python scripts\\check_plane_selection_baseline.py component-simplify", "expect_exit_code": 0, "assertions": ["输入基线未漂移。"]},
-        {"command": ".venv\\Scripts\\python -c \"import json; p='data/component-simplify/REPLACE_WITH_NEW_RUN/general_plane_selection_evaluation.json'; s=json.load(open(p, encoding='utf8'))['summary']; assert s['recall'] >= .75 and s['precision'] >= .80\"", "expect_exit_code": 0, "assertions": ["受管候选运行达到 recall≥75%、precision≥80%。实现时必须将占位 run 路径替换为实际新运行目录。"]},
+        {"command": ".venv\\Scripts\\python -c \"import json; p='data/component-simplify/20260723-105708-recall-optimization/general_plane_selection_evaluation.json'; s=json.load(open(p, encoding='utf8'))['summary']; assert s['recall'] >= .75 and s['precision'] >= .80\"", "expect_exit_code": 0, "assertions": ["受管候选运行达到 recall≥75%、precision≥80%。"]},
         {"command": "git diff --check", "expect_exit_code": 0, "assertions": ["无空白错误。"]},
         {"command": "git status --short", "expect_exit_code": 0, "assertions": ["提交后工作区为空。"]}
       ], "completion_commit": "feat: raise generic plane selection gap default"
