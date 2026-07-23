@@ -13,6 +13,7 @@ from weld_core.component_weld_evaluation import (
 )
 from weld_core.step_geometry import StepFace
 from weld_core.component_weld_point_evaluation import evaluate_component_weld_points
+from weld_core.component_weld_ansa import build_ansa_layers
 
 
 def test_package_extracts_only_planar_faces(monkeypatch):
@@ -93,3 +94,15 @@ def test_point_evaluation_publishes_traceable_counts_and_sensitivity():
     assert report["summary"]["f1"] == 0.5
     assert set(report["sensitivity_by_tolerance_mm"]) == {"5.0", "10.0", "20.0"}
     assert analysis["true_positives"][0]["candidate_faces"] == ["face-a"]
+
+
+def test_ansa_layers_keep_error_analysis_source_ids():
+    layers = build_ansa_layers({
+        "true_positives": [{"ground_truth_id": "gt-1", "ground_truth_position_mm": [0, 0, 0], "candidate_id": "wc-1", "candidate_position_mm": [1, 0, 0], "candidate_faces": ["f-1"]}],
+        "false_positives": [{"candidate_id": "wc-2", "candidate_position_mm": [2, 0, 0], "candidate_faces": ["f-2"]}],
+        "false_negatives": [{"ground_truth_id": "gt-2", "ground_truth_position_mm": [3, 0, 0]}],
+    })
+    assert layers["TP_TRUTH"][0]["source_id"] == "gt-1"
+    assert layers["TP_CANDIDATE"][0]["faces"] == "f-1"
+    assert layers["MATCH_LINK"][0]["source_id"] == "gt-1->wc-1"
+    assert len(layers["FP_CANDIDATE"]) == len(layers["FN_TRUTH"]) == 1

@@ -61,6 +61,46 @@
       "path": "weld_point_error_analysis.md",
       "kind": "markdown",
       "sha256": "c59d7094699d49add17bc161c1ac46daac2ca97859210188cb93b8c299e8da86"
+    },
+    "ansa_tp_truth": {
+      "path": "ansa\\TP_TRUTH.csv",
+      "kind": "csv",
+      "sha256": "636d712a9a0ee2b97f339b60eb5e821e803bf8507d469808650491c19dc7b813",
+      "count": 69
+    },
+    "ansa_tp_candidate": {
+      "path": "ansa\\TP_CANDIDATE.csv",
+      "kind": "csv",
+      "sha256": "ced4168fb63c80ecd8f656d6a6f8e15d78a0fade5c3abefc99674ad1b7d4ec9a",
+      "count": 69
+    },
+    "ansa_fp_candidate": {
+      "path": "ansa\\FP_CANDIDATE.csv",
+      "kind": "csv",
+      "sha256": "c55da741c5be6e5aa749471caee0669e48b3318c2d684c02a1015551768a79cd",
+      "count": 130
+    },
+    "ansa_fn_truth": {
+      "path": "ansa\\FN_TRUTH.csv",
+      "kind": "csv",
+      "sha256": "a46081b1204518485c3e135e2bd4a074e1aa08363a01395d1f5185ac6237656b",
+      "count": 217
+    },
+    "ansa_match_link": {
+      "path": "ansa\\MATCH_LINK.csv",
+      "kind": "csv",
+      "sha256": "a3895587f9b454766b738e71781e00e44c66295cb1f00042bc59bb93ba855a5c",
+      "count": 69
+    },
+    "ansa_import_manifest": {
+      "path": "ansa_import_manifest.json",
+      "kind": "json",
+      "sha256": "7cd0b13a7130fef3ff29da8be60fe44fffc36fe49cb815f011798fd9e137f8ef"
+    },
+    "ansa_import_script": {
+      "path": "ansa\\ansa_import.py",
+      "kind": "python",
+      "sha256": "0d3ef0e4cbfba4a3bcfdf1a138a500c3cb6b3bed33af103f5ff046e0c2c3c870"
     }
   },
   "evaluation": {

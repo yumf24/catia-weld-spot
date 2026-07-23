@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-23 14:43:00 +08:00 - CW04 构建 component ANSA v24.1.1 可视化包
+
+**做了什么**
+- 新增从逐点错误分析生成的 ANSA 包：manifest、五个分层 CSV 与 `ansa/ansa_import.py` 均位于候选受管运行内。
+- 分层为 `TP_TRUTH=69`、`TP_CANDIDATE=69`、`FP_CANDIDATE=130`、`FN_TRUTH=217`、`MATCH_LINK=69`；每行保留错误分析 source ID，TP 连线记录 `gt->candidate` 的成对端点。
+- 导入脚本创建同名 Set 与仅供显示的 GRID 点标记（MATCH_LINK 为成对端点），不创建 FE connector、element 或 `SPOTWELD`；尚未声称真实 ANSA 已导入或渲染。
+
+**验证结果**
+- `.venv\\Scripts\\python -m pytest tests\\test_component_weld_evaluation.py`：**4 passed**。
+- `.venv\\Scripts\\python scripts\\package_component_weld_ansa.py data\\component-weld-evaluation\\20260723-143321-candidate`：成功生成并登记包。
+- 生成 `ansa_import.py` 与既有候选运行脚本的 `py_compile`：通过；manifest 层计数与逐点分类结果一致。
+
+---
+
 ## 2026-07-23 14:41:20 +08:00 - CW03 评测 component 候选与真实焊点
 
 **做了什么**

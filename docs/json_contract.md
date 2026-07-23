@@ -189,6 +189,16 @@ ANSA v24.1.1 包只创建可视化标记：`TP_TRUTH`、`TP_CANDIDATE`、`FP_CAN
 距离和候选 face ID，FN 的真值坐标，以及 FP 的候选坐标和 face ID。每次生成前都会校验三个摘要
 计数分别等于对应逐点分类数组的长度。
 
+## component ANSA 可视化包
+
+`scripts/package_component_weld_ansa.py <run-dir>` 只消费同一运行的
+`weld_point_error_analysis.json`，并写入 `ansa_import_manifest.json`、`ansa/` 下的五份 CSV 与
+`ansa/ansa_import.py`。manifest 固定要求 ANSA `24.1.1`，每层声明颜色、行数和来源文件。
+`TP_TRUTH`/`TP_CANDIDATE`/`FP_CANDIDATE`/`FN_TRUTH` 的 CSV 均保留 source ID 与坐标；
+`MATCH_LINK` 保留 `ground_truth_id->candidate_id` 和一对端点坐标。导入脚本把它们放入同名 Set，
+其中 GRID 仅用于显示标记（MATCH_LINK 为成对端点标记）；它绝不创建 FE connector、element 或
+`SPOTWELD`。
+
 ## ground_truth.json（真实焊点，评测用 → 核心输入）
 
 由 `scripts/extract_ground_truth.py` 离线解析焊点标记球 STEP 文件（如 `raw_data/component/SPOT.step`）
