@@ -5,6 +5,22 @@
 
 ---
 
+## 2026-07-23 10:21:26 +08:00 - OP02 通用平面选面对 gap 分层审计
+
+**做了什么**
+- 为 `GeneralPairAudit` 增加可序列化 `gap_layer`：gap≤`0.2 mm` 为 `strict`，`0.2<gap≤1.5 mm` 为 `extended`，更大 gap 为 `beyond_extended`；未计算 gap 的早期拒绝保留 null。
+- `selection_audit.json` 的选中 face 新增 `supporting_pair_gap_layers`，逐 pair 保留其层级追溯；pair ID、排序、去重、法向/面积/coverage/有效宽度语义均保持不变。
+- 更新 JSON 契约与 CLI，明确分层仅为生产审计元数据；`max_plane_gap_mm` 默认值仍为 `0.2`，same-part 默认仍关闭。
+- 将 `OP02_layered_gap_audit_contract` 标记为通过。
+
+**验证结果**
+- `.venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_geometry.py -k gap`：**7 passed**，覆盖 0.2、刚超过 0.2、0.8、1.5、刚超过 1.5 mm。
+- `.venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_geometry.py`：**15 passed**。
+- `.venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_runtime.py`：**2 passed**。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\op02-full`：**102 passed**。
+
+---
+
 ## 2026-07-23 10:18:36 +08:00 - OP01 冻结通用平面选面优化基线
 
 **做了什么**

@@ -43,7 +43,7 @@
       ], "completion_commit": "chore: freeze plane selection optimization baseline"
     },
     {
-      "id": "OP02_layered_gap_audit_contract", "priority": 2, "depends_on": ["OP01_freeze_optimization_baseline"], "pass": false,
+      "id": "OP02_layered_gap_audit_contract", "priority": 2, "depends_on": ["OP01_freeze_optimization_baseline"], "pass": true,
       "goal": "为统一跨件 1.5 mm gap 策略增加 strict/extended 来源审计，同时保持所有非 gap 选择语义。",
       "changes": ["GeneralPairAudit 增加可序列化 gap_layer：gap≤0.2 为 strict，0.2<gap≤1.5 为 extended；超阈值拒绝仍记录其层。", "保持 allow_same_part_pairs=false、法向/面积/coverage/有效宽度阈值、排序、去重和 supporting-pair 追溯。", "更新 pair_audit、selection_audit、JSON 契约与 CLI 文档以说明层含义；本步不改默认值。"],
       "strict_tests": [

@@ -34,6 +34,8 @@ from .schema import FaceRecord, FacesDocument, FacesMeta, dump_document
 from .step_geometry import StepFace
 
 _ZERO_AREA_MM2 = 1e-9
+_STRICT_GAP_LIMIT_MM = 0.2
+_EXTENDED_GAP_LIMIT_MM = 1.5
 
 
 @dataclass(frozen=True)
@@ -93,12 +95,29 @@ class GeneralPairAudit:
     reason: str | None
     normal_angle_deg: float | None = None
     plane_gap_mm: float | None = None
+    gap_layer: str | None = None
     aabb_overlap_width_mm: float | None = None
     aabb_overlap_height_mm: float | None = None
     common_area_mm2: float = 0.0
     coverage_a: float = 0.0
     coverage_b: float = 0.0
     score: float = 0.0
+
+
+def _gap_layer(plane_gap_mm: float | None) -> str | None:
+    """Return the fixed audit layer for a measured inter-plane gap.
+
+    This is audit metadata, not a selection threshold: production continues to
+    use ``GeneralSelectionParams.max_plane_gap_mm`` (currently 0.2 mm).
+    """
+
+    if plane_gap_mm is None:
+        return None
+    if plane_gap_mm <= _STRICT_GAP_LIMIT_MM:
+        return "strict"
+    if plane_gap_mm <= _EXTENDED_GAP_LIMIT_MM:
+        return "extended"
+    return "beyond_extended"
 
 
 @dataclass(frozen=True)
@@ -131,6 +150,7 @@ def _reject(
         reason=reason,
         normal_angle_deg=normal_angle_deg,
         plane_gap_mm=plane_gap_mm,
+        gap_layer=_gap_layer(plane_gap_mm),
         aabb_overlap_width_mm=aabb_overlap_width_mm,
         aabb_overlap_height_mm=aabb_overlap_height_mm,
     )
@@ -264,6 +284,7 @@ def evaluate_pair(
         reason=reason,
         normal_angle_deg=measurement.normal_angle_deg,
         plane_gap_mm=measurement.plane_gap_mm,
+        gap_layer=_gap_layer(measurement.plane_gap_mm),
         aabb_overlap_width_mm=overlap_width,
         aabb_overlap_height_mm=overlap_height,
         common_area_mm2=measurement.common_area_mm2,
@@ -404,6 +425,7 @@ def run_registered_general_plane_selection(
         result = select_general_planar_faces(all_faces, params)
         selected_id_set = set(result.selected_face_ids)
         selected_faces = [face for face in all_faces if face.id in selected_id_set]
+        audit_by_id = {audit.id: audit for audit in result.pair_audits}
 
         faces_path = run_dir / "faces.general-selected.json"
         pair_audit_path = run_dir / "pair_audit.json"
@@ -438,6 +460,13 @@ def run_registered_general_plane_selection(
                     {
                         "face_id": face_id,
                         "supporting_pair_ids": list(result.supporting_pair_ids_by_face[face_id]),
+                        "supporting_pair_gap_layers": [
+                            {
+                                "pair_id": pair_id,
+                                "gap_layer": audit_by_id[pair_id].gap_layer,
+                            }
+                            for pair_id in result.supporting_pair_ids_by_face[face_id]
+                        ],
                     }
                     for face_id in result.selected_face_ids
                 ],

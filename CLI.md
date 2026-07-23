@@ -165,8 +165,8 @@ python scripts/validate_plane_reference.py component-simplify --faces data/compo
 **输出**：新建 `data/<part-id>/<run-id>/`，包含：
 
 - `faces.general-selected.json`：可直接交给 `python -m weld_core.pipeline` 的通用 `FacesDocument`。
-- `pair_audit.json`：每个候选 face pair 的接受/拒绝原因及几何测量。
-- `selection_audit.json`：每个选中 face 的支持 pair、每个未选中 face 的原因、阈值和输入来源。
+- `pair_audit.json`：每个候选 face pair 的接受/拒绝原因及几何测量；`gap_layer` 将 gap≤0.2 mm 标为 `strict`、0.2<gap≤1.5 mm 标为 `extended`、更大间隙标为 `beyond_extended`。标签只用于审计，不会改写当前默认 gap。
+- `selection_audit.json`：每个选中 face 的支持 pair 及其 `supporting_pair_gap_layers`、每个未选中 face 的原因、阈值和输入来源。
 - `manifest.json`：只登记 `primary_model` 运行时输入和通用选面参数。
 
 ```bash

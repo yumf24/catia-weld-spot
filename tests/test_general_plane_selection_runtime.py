@@ -111,11 +111,15 @@ def test_registered_runtime_writes_stable_primary_only_managed_artifacts(tmp_pat
     pair_audit = json.loads((run_dir / "pair_audit.json").read_text(encoding="utf-8"))
     accepted_pairs = [pair for pair in pair_audit["pairs"] if pair["accepted"]]
     assert [pair["id"] for pair in accepted_pairs] == ["PartA/step_face_0000::PartB/step_face_0000"]
+    assert accepted_pairs[0]["gap_layer"] == "strict"
 
     selection_audit = json.loads((run_dir / "selection_audit.json").read_text(encoding="utf-8"))
     assert selection_audit["total_planar_faces"] == 3
     assert selection_audit["selected_face_count"] == 2
     assert selection_audit["source"]["role"] == "primary_model"
+    assert selection_audit["selected_faces"][0]["supporting_pair_gap_layers"] == [
+        {"pair_id": "PartA/step_face_0000::PartB/step_face_0000", "gap_layer": "strict"}
+    ]
     assert [row["face_id"] for row in selection_audit["rejected_faces"]] == ["PartC/step_face_0000"]
 
 

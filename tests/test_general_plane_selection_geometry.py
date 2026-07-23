@@ -71,6 +71,29 @@ def test_pair_acceptance_records_exact_metrics_and_score():
     assert audit.coverage_a == pytest.approx(0.5)
     assert audit.coverage_b == pytest.approx(0.5)
     assert audit.score == pytest.approx(25.0)
+    assert audit.gap_layer == "strict"
+
+
+@pytest.mark.parametrize(
+    ("gap_mm", "expected_layer", "accepted"),
+    [
+        (0.2, "strict", True),
+        (0.2001, "extended", True),
+        (0.8, "extended", True),
+        (1.5, "extended", True),
+        (1.5001, "beyond_extended", False),
+    ],
+)
+def test_gap_layer_records_fixed_strict_extended_boundaries(gap_mm, expected_layer, accepted):
+    audit = evaluate_pair(
+        _face("a", "PartA"),
+        _face("b", "PartB", z=gap_mm),
+        GeneralSelectionParams(max_plane_gap_mm=1.5),
+    )
+
+    assert audit.gap_layer == expected_layer
+    assert audit.accepted is accepted
+    assert audit.reason == (None if accepted else "plane_gap_exceeds_threshold")
 
 
 def test_projected_aabb_only_prescreens_and_edge_contact_is_rejected_by_exact_overlap():
