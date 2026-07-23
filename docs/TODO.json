@@ -1,98 +1,53 @@
 {
-  "format_version": 1,
-  "title": "通用平面选面召回优化 TODO",
+  "format_version": 2,
+  "title": "通用选面 90% 双指标优化 TODO（单数据集受控计划）",
   "project": {
     "repository": "ml-pipeline",
-    "goal": "在不读取 reference STEP 的生产路径中，将跨件通用平面选面的默认 gap 上限受控提升至 1.5 mm；仅在 component-simplify 离线评测达到 recall≥0.75、precision≥0.80 后更新生产默认值。",
-    "current_baseline": {
-      "part_id": "component-simplify",
-      "run_dir": "data/component-simplify/20260722-163200-generic-regression",
-      "baseline": {"true_positives": 17, "false_positives": 2, "false_negatives": 23, "precision": 0.8947368421052632, "recall": 0.425},
-      "cross_part_gap_1_5_candidate": {"true_positives": 30, "false_positives": 6, "false_negatives": 10, "precision": 0.8333333333333334, "recall": 0.75},
-      "same_part_risk_case": {"true_positives": 40, "false_positives": 172, "false_negatives": 0, "precision": 0.18867924528301888, "recall": 1.0}
-    },
-    "quality_gate": {"minimum_recall": 0.75, "minimum_precision": 0.8, "evaluation_scope": "component-simplify single-dataset offline regression"},
-    "constraints": [
-      "production selector and pipeline may not read reference STEP, truth mapping, evaluation result, dataset identity, face ID, part ID, SHA, known counts, or manual labels.",
-      "same-part pairs remain disabled in production; their evaluation is isolated and may not become an implicit gap-strategy side effect.",
-      "AABB fallback is not presumed necessary: it may be added only after exact offline diagnosis proves a pre-filter false rejection.",
-      "This regression is not evidence of cross-part generalization; all generated documentation must state that boundary."
-    ]
+    "development_dataset": "component-simplify",
+    "quality_gate": {"minimum_precision_exclusive": 0.9, "minimum_recall_exclusive": 0.9, "truth_faces": 40},
+    "baseline_run_dir": "data/component-simplify/20260723-105708-recall-optimization",
+    "baseline": {"true_positives": 30, "false_positives": 6, "false_negatives": 10, "precision": 0.8333333333333334, "recall": 0.75},
+    "generalization_boundary": "No independent validation parts are available. Results are single-dataset regression evidence and must not be presented as proven cross-part generalization."
   },
   "global_rules": {
     "python": ".venv\\Scripts\\python",
-    "runtime_reference_policy": "生产通用选面、pipeline、候选生成和其测试夹具不得读取 reference STEP 或 truth；仅显式离线 evaluation、参数扫描、AABB 诊断、错误分析可读取 reference 或受管离线产物。",
-    "dataset_isolation_policy": "不得将 component-simplify 的 ID、SHA、数量、人工标签或针对该数据集的分支写入生产逻辑。",
-    "default_change_policy": "在 OP06 的所有质量门槛、AABB 结论和 same-part 护栏均通过前，不得修改 GeneralSelectionParams.max_plane_gap_mm 默认值。",
-    "artifact_policy": "离线产物必须登记受管 manifest：error_analysis JSON/Markdown、parameter_sweep JSON/Markdown、aabb_diagnosis JSON、same_part_evaluation JSON/Markdown。",
-    "step_completion_policy": [
-      "每个步骤开始时 pass 必须为 false；仅在该步骤所有 strict_tests 成功后才可写为 true。",
-      "每一步完成时在 DEVLOG.md 顶部追加完整日期时间记录；代码、测试、文档、产物登记、DEVLOG 与 TODO pass 更新必须在同一提交。",
-      "每次改动 weld_core 后必须运行全量 pytest；提交前运行 git diff --check，提交后 git status --short 必须为空。"
-    ]
+    "runtime_reference_policy": "Production selector, pipeline, candidate generation, and their tests must not read reference STEP, truth mapping, evaluation results, dataset identity, face ID, part ID, SHA, known counts, or labels.",
+    "fixed_production_boundaries": ["allow_same_part_pairs remains false", "AABB fallback is prohibited unless diagnosis finds prefilter_false_rejection", "accepted pairs require positive exact projected overlap", "new policies remain offline until OP10 passes"],
+    "default_change_policy": "Keep the current 1.5 mm production default unless OP08 proves feasibility and OP09/OP10 strictly exceed both quality thresholds.",
+    "step_completion_policy": ["Each step starts pass=false and is changed to true only after all strict tests pass.", "Each completed step updates DEVLOG.md and TODO pass state in the same commit.", "After weld_core changes run full pytest; before commit run git diff --check; after commit git status --short must be empty."]
   },
   "steps": [
     {
-      "id": "OP01_freeze_optimization_baseline", "priority": 1, "depends_on": [], "pass": true,
-      "goal": "冻结现有错误分析、参数扫描与上线质量门槛，防止后续实现静默改变验收目标。",
-      "changes": ["核验基线运行的 evaluation、pair_audit、selection_audit、error_analysis、parameter_sweep、optimization_backlog 和 manifest。", "将 17/2/23 基线、30/6/10 候选、75% recall 与 80% precision 作为受控验收事实写入 TODO 与离线报告。", "确认生产路径没有 reference/truth 输入。"],
+      "id": "OP07_freeze_90_percent_target", "priority": 1, "depends_on": [], "pass": false,
+      "goal": "Freeze the strict single-dataset >90% target and the non-generalization boundary without changing production selection.",
+      "changes": ["Record the 30/6/10 baseline and strict precision>0.90, recall>0.90 gate.", "Record FN composition: four gap, four AABB, two same-part; same-part and AABB fallback are not production recovery paths.", "State that no independent validation data exists and no generalization claim is permitted."],
       "strict_tests": [
-        {"command": ".venv\\Scripts\\python -m json.tool docs\\TODO.json > $null", "expect_exit_code": 0, "assertions": ["TODO 是有效 JSON，所有 OP 步骤 pass 初始为 false。"]},
-        {"command": ".venv\\Scripts\\python scripts\\check_plane_selection_baseline.py component-simplify", "expect_exit_code": 0, "assertions": ["输入 face/planar face 基线可复现。"]},
-        {"command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py", "expect_exit_code": 0, "assertions": ["离线审计 join、FN/FP 分类和扫描报告契约仍有效。"]}
-      ], "completion_commit": "chore: freeze plane selection optimization baseline"
+        {"command": ".venv\\Scripts\\python -m json.tool docs\\TODO.json > $null", "expect_exit_code": 0},
+        {"command": ".venv\\Scripts\\python scripts\\check_plane_selection_baseline.py component-simplify", "expect_exit_code": 0},
+        {"command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py", "expect_exit_code": 0}
+      ], "completion_commit": "chore: freeze 90 percent plane selection target"
     },
     {
-      "id": "OP02_layered_gap_audit_contract", "priority": 2, "depends_on": ["OP01_freeze_optimization_baseline"], "pass": true,
-      "goal": "为统一跨件 1.5 mm gap 策略增加 strict/extended 来源审计，同时保持所有非 gap 选择语义。",
-      "changes": ["GeneralPairAudit 增加可序列化 gap_layer：gap≤0.2 为 strict，0.2<gap≤1.5 为 extended；超阈值拒绝仍记录其层。", "保持 allow_same_part_pairs=false、法向/面积/coverage/有效宽度阈值、排序、去重和 supporting-pair 追溯。", "更新 pair_audit、selection_audit、JSON 契约与 CLI 文档以说明层含义；本步不改默认值。"],
+      "id": "OP08_diagnose_exact_gap_recovery_feasibility", "priority": 2, "depends_on": ["OP07_freeze_90_percent_target"], "pass": false,
+      "goal": "Offline-only, replay cross-part 1.5-6 mm gap rejections with exact overlap and decide whether TP>=37 is geometrically feasible under fixed boundaries.",
+      "changes": ["Add a managed offline diagnosis with 1.5-3, 3-4.5, and 4.5-6 mm tiers, exact area, coverage, effective width, score, reason, and deterministic recovery status.", "Use evaluation truth only to report the theoretical recoverable FN upper bound; do not expose it to runtime.", "Require the current AABB diagnosis to have zero prefilter_false_rejection; if the theoretical upper TP is below 37, report the target unreachable and leave all production defaults unchanged."],
       "strict_tests": [
-        {"command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_geometry.py -k gap", "expect_exit_code": 0, "assertions": ["覆盖 0.2、刚超过 0.2、0.8、1.5、刚超过 1.5 mm 及 strict/extended 标签。"]},
-        {"command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_geometry.py", "expect_exit_code": 0, "assertions": ["反向法向、无重叠、边接触、低有效宽度、面积/coverage 拒绝、投影失败和稳定去重保持正确。"]},
-        {"command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_runtime.py", "expect_exit_code": 0, "assertions": ["运行时 JSON 审计兼容并且无 reference 依赖。"]}
-      ], "completion_commit": "feat: audit layered plane selection gaps"
+        {"command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k gap_recovery", "expect_exit_code": 0},
+        {"command": ".venv\\Scripts\\python scripts\\diagnose_general_plane_selection_gap_recovery.py component-simplify --run-dir data\\component-simplify\\20260723-105708-recall-optimization", "expect_exit_code": 0},
+        {"command": ".venv\\Scripts\\python -c \"import json; p='data/component-simplify/20260723-105708-recall-optimization/general_plane_selection_gap_recovery_diagnosis.json'; d=json.load(open(p, encoding='utf8')); assert d['aabb_prefilter_false_rejection_count'] == 0\"", "expect_exit_code": 0}
+      ], "completion_commit": "feat: diagnose exact gap recovery feasibility"
     },
     {
-      "id": "OP03_diagnose_projected_aabb_rejections", "priority": 3, "depends_on": ["OP02_layered_gap_audit_contract"], "pass": true,
-      "goal": "仅离线复核 projected_aabb_no_overlap，确定其为真实无重叠、预筛假拒绝还是几何失败。",
-      "changes": ["新增离线诊断 CLI，重新加载 primary CAD faces，对每个 AABB 拒绝 pair 跳过预筛执行精确投影 overlap。", "输出 pair ID、端点、gap、精确面积、coverage、exact reason 与 review_status（true_no_overlap、prefilter_false_rejection、projection_or_geometry_failure），登记 manifest。", "若诊断存在 false rejection，再新增仅针对 AABB 拒绝的通用精确 fallback；若不存在，明确保留生产预筛，不做行为改动。"],
-      "strict_tests": [
-        {"command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k aabb", "expect_exit_code": 0, "assertions": ["覆盖真实无重叠、边界接触、预筛假拒绝、顶点不足、投影异常和稳定诊断输出。"]},
-        {"command": ".venv\\Scripts\\python scripts\\diagnose_general_plane_selection_aabb.py component-simplify --run-dir data\\component-simplify\\20260722-163200-generic-regression", "expect_exit_code": 0, "assertions": ["写入并登记完整 AABB 离线诊断；运行时选择结果不被此命令改变。"]},
-        {"command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_geometry.py -k aabb", "expect_exit_code": 0, "assertions": ["若 fallback 存在，仅恢复精确 overlap 证实的 pair，真实无重叠仍拒绝。"]}
-      ], "completion_commit": "feat: diagnose projected AABB selection rejections"
+      "id": "OP09_layered_pair_quality_offline_search", "priority": 3, "depends_on": ["OP08_diagnose_exact_gap_recovery_feasibility"], "pass": false,
+      "goal": "Only if OP08 proves feasibility, implement and search strict/extended/outer exact-overlap quality policies offline.",
+      "changes": ["Keep strict gap<=0.2 behavior; apply stronger independent coverage, area, width, and score gates to extended 0.2-1.5 and outer 1.5-6 layers.", "Select a policy only when both metrics are strictly >0.90; maximize recall then precision.", "Do not aggregate weak supporting pairs or enable same-part/AABB fallback."],
+      "strict_tests": [{"command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_geometry.py -k layered_quality", "expect_exit_code": 0}, {"command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\op09-full", "expect_exit_code": 0}], "completion_commit": "feat: search layered pair quality policy"
     },
     {
-      "id": "OP04_isolate_same_part_risk", "priority": 4, "depends_on": ["OP03_diagnose_projected_aabb_rejections"], "pass": true,
-      "goal": "将 same-part 召回收益与其已知 FP 风险隔离为离线证据，锁定生产排除护栏。",
-      "changes": ["新增 same-part 离线报告，记录 1.5 mm/coverage 0.05 的 40/172/0、precision≈18.87%、recall=100%。", "默认参数、运行时 CLI 和 pipeline 均保持 same-part 关闭；报告不能被生产消费。", "文档说明同件策略需未来独立 TODO、独立 precision 门槛与通用限制设计。"],
-      "strict_tests": [
-        {"command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k same_part", "expect_exit_code": 0, "assertions": ["覆盖 intended/unintended same-part overlap、风险报告和默认排除。"]},
-        {"command": ".venv\\Scripts\\python scripts\\sweep_general_plane_selection_parameters.py component-simplify --run-dir data\\component-simplify\\20260722-163200-generic-regression", "expect_exit_code": 0, "assertions": ["28 组扫描保留 same-part 高 FP 证据。"]},
-        {"command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_runtime.py", "expect_exit_code": 0, "assertions": ["默认生产运行没有 accepted same-part pair。"]}
-      ], "completion_commit": "feat: isolate same-part selection risk"
-    },
-    {
-      "id": "OP05_attribute_expanded_gap_false_positives", "priority": 5, "depends_on": ["OP04_isolate_same_part_risk"], "pass": true,
-      "goal": "为 1.5 mm 跨件配置下全部 FP 提供继承/新增和 gap 层归因，作为 precision 回归护栏。",
-      "changes": ["离线 error-analysis 比较基线与候选预测面；对 FP 标记 inherited 或 new，并汇总 supporting pairs 的 layer、面积、coverage、score、对侧 part 和 truth 关系。", "Markdown 报告同时显示基线 2 个 FP 与扩大 gap 后的新增 FP；运行时 audit 不得写入 truth 或 FP 标签。", "生成候选报告后校验其指标与 evaluation 一致。"],
-      "strict_tests": [
-        {"command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k fp", "expect_exit_code": 0, "assertions": ["覆盖继承 FP、新增 FP、单/多 supporting pair、truth/unknown 对侧和 gap layer。"]},
-        {"command": ".venv\\Scripts\\python scripts\\analyze_general_plane_selection_errors.py component-simplify --run-dir data\\component-simplify\\20260722-163200-generic-regression", "expect_exit_code": 0, "assertions": ["JSON/Markdown 报告可重建且指标一致。"]}
-      ], "completion_commit": "feat: attribute expanded gap false positives"
-    },
-    {
-      "id": "OP06_controlled_default_update_and_regression", "priority": 6, "depends_on": ["OP05_attribute_expanded_gap_false_positives"], "pass": true,
-      "goal": "仅在证据完整且质量门槛通过时，将 1.5 mm 跨件 gap 作为受控生产默认并完成回归交付。",
-      "changes": ["确认 AABB 诊断完成、same-part 默认关闭、跨件候选达到 recall≥0.75 和 precision≥0.80 后，更新 GeneralSelectionParams.max_plane_gap_mm 默认值为 1.5。", "重跑受管 regression、offline evaluation、候选 pipeline、错误分析、参数扫描、AABB 诊断和 same-part 报告，登记全部 manifest。", "更新 README、CLI、json_contract 与 DEVLOG，说明新默认、gap 层、reference 离线限制和单数据集非泛化结论。"],
-      "strict_tests": [
-        {"command": ".venv\\Scripts\\python scripts\\run_general_plane_selection_regression.py component-simplify --run-label recall-optimization", "expect_exit_code": 0, "assertions": ["新受管运行使用跨件默认 1.5 mm，产出 selection/pair/evaluation/candidates。"]},
-        {"command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\op06-full", "expect_exit_code": 0, "assertions": ["完整测试集全绿。"]},
-        {"command": ".venv\\Scripts\\python scripts\\check_plane_selection_baseline.py component-simplify", "expect_exit_code": 0, "assertions": ["输入基线未漂移。"]},
-        {"command": ".venv\\Scripts\\python -c \"import json; p='data/component-simplify/20260723-105708-recall-optimization/general_plane_selection_evaluation.json'; s=json.load(open(p, encoding='utf8'))['summary']; assert s['recall'] >= .75 and s['precision'] >= .80\"", "expect_exit_code": 0, "assertions": ["受管候选运行达到 recall≥75%、precision≥80%。"]},
-        {"command": "git diff --check", "expect_exit_code": 0, "assertions": ["无空白错误。"]},
-        {"command": "git status --short", "expect_exit_code": 0, "assertions": ["提交后工作区为空。"]}
-      ], "completion_commit": "feat: raise generic plane selection gap default"
+      "id": "OP10_controlled_90_percent_default_update", "priority": 4, "depends_on": ["OP09_layered_pair_quality_offline_search"], "pass": false,
+      "goal": "Promote only a feasible, strictly >90% offline policy and deliver complete regression evidence.",
+      "changes": ["Run the complete managed regression and all offline reports; register every artifact.", "Update production default only after strict metrics pass; otherwise preserve 1.5 mm default.", "Update README, CLI, JSON contract, DEVLOG, and state that this remains single-dataset evidence."],
+      "strict_tests": [{"command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\op10-full", "expect_exit_code": 0}, {"command": "git diff --check", "expect_exit_code": 0}], "completion_commit": "feat: optimize layered plane selection quality"
     }
   ]
 }
