@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-23 14:57:24 +08:00 - CW05 验证 component ANSA 导入、渲染并发布结论
+
+**做了什么**
+- 新增 `scripts/check_ansa_weld_visualization.py`：解析 Windows 开始菜单的 ANSA v24.1.1 快捷方式，真实启动 ANSA GUI，导入受管 `ansa_import.py`，保存、重开、逐 Set 核验 GRID 数量并生成 PNG 截图。
+- 真实 ANSA v24.1.1 验证通过：`TP_TRUTH=69`、`TP_CANDIDATE=69`、`FP_CANDIDATE=130`、`FN_TRUTH=217`、`MATCH_LINK=138` 个 GRID（69 条匹配连线的两个端点）。数据库、日志、截图与 JSON/Markdown 验证报告均登记到候选受管运行。
+- 发布单数据集结论：10 mm 下 TP/FP/FN=`69/130/217`，precision=`34.67%`、recall=`24.13%`、F1=`28.45%`；明确不作跨零件泛化或 FE `SPOTWELD` 声明。
+- 修正 ANSA 24.1.1 不提供 `base.SetEntityColor` 的实际 API 差异；分层颜色仍由包 manifest 声明，ANSA 内以同名 Set 作为稳定可见层标识。
+
+**验证结果**
+- `.venv\\Scripts\\python scripts\\check_ansa_weld_visualization.py --latest-run --force`：真实导入、保存、重开、实体计数与非空 GUI 截图均通过。
+- 截图 `ansa/component_weld_visualization.png` 已人工检查，显示全部标记点云。
+
+---
+
 ## 2026-07-23 14:43:00 +08:00 - CW04 构建 component ANSA v24.1.1 可视化包
 
 **做了什么**

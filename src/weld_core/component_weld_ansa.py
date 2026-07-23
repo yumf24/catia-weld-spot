@@ -77,7 +77,9 @@ COLORS = {"TP_TRUTH": "GREEN", "TP_CANDIDATE": "GREEN", "FP_CANDIDATE": "RED", "
 
 def marker_set(name):
     marker = base.CreateEntity(constants.NASTRAN, "SET", {"Name": name})
-    base.SetEntityColor(marker, COLORS[name])
+    # ANSA v24.1.1 does not expose ``base.SetEntityColor``.  The layer colour
+    # remains explicit in the import manifest/CSV package; the Set name is the
+    # stable ANSA-visible layer identifier used for display filtering.
     return marker
 
 def add_nodes(name, rows):

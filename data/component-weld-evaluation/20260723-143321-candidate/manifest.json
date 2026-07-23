@@ -100,7 +100,42 @@
     "ansa_import_script": {
       "path": "ansa\\ansa_import.py",
       "kind": "python",
-      "sha256": "0d3ef0e4cbfba4a3bcfdf1a138a500c3cb6b3bed33af103f5ff046e0c2c3c870"
+      "sha256": "82036ef7a179c022f51b2c375361410ecb11385a83d8eee52f0c41f6f128b355"
+    },
+    "ansa_render_validation": {
+      "path": "ansa_render_validation.json",
+      "kind": "json",
+      "sha256": "6fb2a44c66511ac670a7480678a1954cc2bb99e9857eafa67dc3266fd8444d53"
+    },
+    "ansa_render_validation_report": {
+      "path": "ansa_render_validation.md",
+      "kind": "markdown",
+      "sha256": "bfdfb9523e7e63d3204997aebe8b57a95c21b7b7ed6e9e4d0f4ca6fa6effdf96"
+    },
+    "ansa_render_database": {
+      "path": "ansa\\component_weld_visualization.ansa",
+      "kind": "ansa_database",
+      "sha256": "52a9b126076297ee3aaf03e9d3ec4a302a1b419ae06e7c04685364b57309d5f8"
+    },
+    "ansa_render_screenshot": {
+      "path": "ansa\\component_weld_visualization.png",
+      "kind": "png",
+      "sha256": "2aa94d3b8c2e8835ea924a2d25b5f5ca533215bfe5769c65eb0d2d1f44dc6336"
+    },
+    "ansa_render_log": {
+      "path": "ansa\\ansa_render_validation.log",
+      "kind": "log",
+      "sha256": "aeee6e427c81d80fccaea4b4fac28cb225b17736d5a3b7f05372f4bb2902bdfb"
+    },
+    "component_weld_evaluation_conclusion": {
+      "path": "component_weld_evaluation_conclusion.json",
+      "kind": "json",
+      "sha256": "6daf87ca805a2cec47baae0e08846260616ec785fdd66a13da2813e7ae2b3800"
+    },
+    "component_weld_evaluation_conclusion_report": {
+      "path": "component_weld_evaluation_conclusion.md",
+      "kind": "markdown",
+      "sha256": "e1d8e9587293db35aa4b7b64d0daa5a67f35373d414f28cfdf42ba1b1ba62976"
     }
   },
   "evaluation": {
