@@ -33,7 +33,7 @@
   },
   "steps": [
     {
-      "id": "OP01_freeze_optimization_baseline", "priority": 1, "depends_on": [], "pass": false,
+      "id": "OP01_freeze_optimization_baseline", "priority": 1, "depends_on": [], "pass": true,
       "goal": "冻结现有错误分析、参数扫描与上线质量门槛，防止后续实现静默改变验收目标。",
       "changes": ["核验基线运行的 evaluation、pair_audit、selection_audit、error_analysis、parameter_sweep、optimization_backlog 和 manifest。", "将 17/2/23 基线、30/6/10 候选、75% recall 与 80% precision 作为受控验收事实写入 TODO 与离线报告。", "确认生产路径没有 reference/truth 输入。"],
       "strict_tests": [

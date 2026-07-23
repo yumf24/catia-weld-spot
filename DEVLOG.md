@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-23 10:18:36 +08:00 - OP01 冻结通用平面选面优化基线
+
+**做了什么**
+- 核验受管运行 `data/component-simplify/20260722-163200-generic-regression` 的 evaluation、pair/selection audit、错误分析、参数扫描、优化 backlog 和 manifest；离线报告已固定基线 TP/FP/FN=`17/2/23`，跨件 1.5 mm 候选=`30/6/10`（recall=`75%`、precision=`83.33%`）。
+- 冻结上线质量门槛为单数据集离线评测 recall≥`75%`、precision≥`80%`；same-part 风险证据继续隔离，生产默认和 `allow_same_part_pairs=false` 均未改动。
+- 核验生产 `select_general_planes.py` 仅调用注册的主 STEP 选面；reference/truth 仅由显式离线评测、扫描与诊断路径读取。
+- 将 `OP01_freeze_optimization_baseline` 标记为通过；该结论不代表跨零件泛化。
+
+**验证结果**
+- `.venv\\Scripts\\python -m json.tool docs\\TODO.json > $null`：通过。
+- `.venv\\Scripts\\python scripts\\check_plane_selection_baseline.py component-simplify`：primary=`2834/525` faces/planar，reference=`89/40`，两份输入 SHA-256 均匹配。
+- `.venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py`：**12 passed**。
+
+---
+
 ## 2026-07-22 18:13:00 +08:00 - 补充平面选面错误分析报告说明
 
 **做了什么**
