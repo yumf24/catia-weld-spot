@@ -53,7 +53,7 @@
       ], "completion_commit": "feat: audit layered plane selection gaps"
     },
     {
-      "id": "OP03_diagnose_projected_aabb_rejections", "priority": 3, "depends_on": ["OP02_layered_gap_audit_contract"], "pass": false,
+      "id": "OP03_diagnose_projected_aabb_rejections", "priority": 3, "depends_on": ["OP02_layered_gap_audit_contract"], "pass": true,
       "goal": "仅离线复核 projected_aabb_no_overlap，确定其为真实无重叠、预筛假拒绝还是几何失败。",
       "changes": ["新增离线诊断 CLI，重新加载 primary CAD faces，对每个 AABB 拒绝 pair 跳过预筛执行精确投影 overlap。", "输出 pair ID、端点、gap、精确面积、coverage、exact reason 与 review_status（true_no_overlap、prefilter_false_rejection、projection_or_geometry_failure），登记 manifest。", "若诊断存在 false rejection，再新增仅针对 AABB 拒绝的通用精确 fallback；若不存在，明确保留生产预筛，不做行为改动。"],
       "strict_tests": [

@@ -18,6 +18,7 @@
 | [验证平面提取](#验证平面提取) | `scripts/validate_plane_reference.py` | 否 | 注册 STEP + 平面参考 | 受管运行目录内 JSON/报告 |
 | [通用平面选面](#通用平面选面) | `scripts/select_general_planes.py` | 否 | 注册主 STEP | `faces.general-selected.json` + 审计 |
 | [离线评测通用选面](#离线评测通用选面) | `scripts/evaluate_general_plane_selection.py` | 否 | 主 STEP + 显式参考 STEP + 通用选面结果 | 受管运行目录内 JSON/报告 |
+| [复核通用选面 AABB 拒绝](#复核通用选面-aabb-拒绝) | `scripts/diagnose_general_plane_selection_aabb.py` | 否 | 主 STEP + pair 审计 | 受管运行目录内离线诊断 JSON |
 | [通用选面回归](#通用选面回归) | `scripts/run_general_plane_selection_regression.py` | 否 | 注册主 STEP + 显式评测参考 | 通用选面、评测、候选产物 |
 | [运行核心算法](#运行核心算法) | `python -m weld_core.pipeline` | 否 | `faces.enriched.json` | `candidates.json` |
 | [回写候选点到 CATIA](#回写候选点到-catia) | `catia/write_candidates.py` | 是 | `candidates.json` | CATIA 文档内 `Weld_Candidates` 点集 |
@@ -185,6 +186,19 @@ python scripts/select_general_planes.py component-simplify --run-label generic-r
 
 ```bash
 python scripts/evaluate_general_plane_selection.py component-simplify --run-dir data/component-simplify/<run-id>
+```
+
+## 复核通用选面 AABB 拒绝
+
+**代码路径**：`scripts/diagnose_general_plane_selection_aabb.py`
+
+**用途**：离线重新加载已登记的主 STEP，对既有 `pair_audit.json` 中
+`projected_aabb_no_overlap` 的 pair 绕过顶点 AABB 预筛执行精确 CAD 边界 overlap。报告将每项归为
+真实无重叠、预筛假拒绝或投影/几何失败，并登记到受管 manifest。它不读取 reference/truth，不能改变
+运行时选择结果；单数据集诊断也不能证明跨零件泛化。
+
+```bash
+python scripts/diagnose_general_plane_selection_aabb.py component-simplify --run-dir data/component-simplify/<run-id>
 ```
 
 ---

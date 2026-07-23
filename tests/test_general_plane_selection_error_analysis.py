@@ -16,6 +16,38 @@ from weld_core.general_plane_selection_error_analysis import (
     render_error_analysis_markdown,
     render_controlled_parameter_sweep_markdown,
 )
+from weld_core.general_plane_selection import ExactPairMeasurement
+from weld_core.general_plane_selection_aabb_diagnosis import diagnose_projected_aabb_rejections
+from test_general_plane_selection_geometry import _face
+
+
+def test_aabb_diagnosis_classifies_exact_outcomes_and_is_stably_sorted():
+    audit = {"pairs": [
+        {"id": "z", "face_a_id": "a", "face_b_id": "b", "part_a": "one", "part_b": "two", "plane_gap_mm": 0.1, "reason": "projected_aabb_no_overlap"},
+        {"id": "a", "face_a_id": "a", "face_b_id": "c", "part_a": "one", "part_b": "three", "plane_gap_mm": 0.1, "reason": "projected_aabb_no_overlap"},
+    ]}
+    faces = [_face("a", "one"), _face("b", "two", x0=20, x1=30), _face("c", "three", x0=10, x1=20)]
+    measurements = iter([
+        ExactPairMeasurement(0, .1, 0, 0, 0, 100, 100, "zero_area_intersection"),
+        ExactPairMeasurement(0, .1, 2, .2, .2, 10, 10),
+    ])
+    report = diagnose_projected_aabb_rejections(audit, faces, exact_overlap=lambda *_: next(measurements))
+    assert [row["pair_id"] for row in report["pairs"]] == ["a", "z"]
+    assert [row["review_status"] for row in report["pairs"]] == ["true_no_overlap", "prefilter_false_rejection"]
+    assert report["production_behavior_changed"] is False
+
+
+def test_aabb_diagnosis_marks_insufficient_vertices_and_projection_failures():
+    audit = {"pairs": [{"id": "pair", "face_a_id": "a", "face_b_id": "b", "reason": "projected_aabb_no_overlap"}]}
+    face_a = _face("a", "one")
+    face_b = _face("b", "two")
+    face_b = face_b.__class__(**{**face_b.__dict__, "vertices": ()})
+    report = diagnose_projected_aabb_rejections(
+        audit, [face_a, face_b], exact_overlap=lambda *_: ExactPairMeasurement(0, 0, 0, 0, 0, 0, 0, "projection_failed:RuntimeError")
+    )
+    row = report["pairs"][0]
+    assert row["prefilter_input_status"] == "insufficient_vertices"
+    assert row["review_status"] == "projection_or_geometry_failure"
 
 
 def _artifacts():

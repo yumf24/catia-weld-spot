@@ -67,6 +67,10 @@
     "general_plane_selection_optimization_backlog": {
       "path": "general_plane_selection_optimization_backlog.json",
       "kind": "json"
+    },
+    "general_plane_selection_aabb_diagnosis": {
+      "path": "general_plane_selection_aabb_diagnosis.json",
+      "kind": "json"
     }
   },
   "completed_at": "2026-07-22T16:32:14+08:00"

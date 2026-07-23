@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-23 10:45:00 +08:00 - OP03 projected-AABB 拒绝离线复核
+
+**做了什么**
+- 新增仅离线使用的 AABB 复核 CLI：重新加载登记的 `primary_model`，只对 `pair_audit.json` 中的 `projected_aabb_no_overlap` pair 跳过顶点预筛并执行精确投影 overlap；不会读取 reference/truth，也不会改动运行时选择器或 pipeline。
+- 受管诊断 JSON 逐 pair 记录端点、gap、精确公共面积、双方 coverage、精确原因、预筛输入状态与 `true_no_overlap` / `prefilter_false_rejection` / `projection_or_geometry_failure` 结论，并登记 manifest。
+- `component-simplify` 基线实际复核 34 个拒绝：33 个精确证实无重叠，0 个预筛假拒绝，1 个顶点不足且零面积输入的几何复核失败。因此保留生产 AABB 预筛，不新增 fallback；该单数据集结果不代表跨零件泛化。
+- 将 `OP03_diagnose_projected_aabb_rejections` 标记为通过。
+
+**验证结果**
+- `.venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k aabb`：**4 passed**，覆盖真实无重叠、边界接触假拒绝、顶点不足、投影异常和稳定输出。
+- `.venv\\Scripts\\python scripts\\diagnose_general_plane_selection_aabb.py component-simplify --run-dir data\\component-simplify\\20260722-163200-generic-regression`：成功写入并登记 34 条离线复核。
+- `.venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_geometry.py -k aabb`：**1 passed**。
+
+---
+
 ## 2026-07-23 10:21:26 +08:00 - OP02 通用平面选面对 gap 分层审计
 
 **做了什么**
