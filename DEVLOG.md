@@ -5,6 +5,23 @@
 
 ---
 
+## 2026-07-23 12:17:43 +08:00 - SP02 诊断同件拓扑和精确几何
+
+**做了什么**
+- 新增永久离线的同件 pair 拓扑诊断：从登记的 primary STEP 重放所有满足 `0.5°` 法向和 `1.5 mm` gap 边界的同件平面 pair，每对只做一次精确投影 overlap。
+- 拓扑分类只比较 OCCT 面边界子形状，且对 pair 顺序稳定：`shared_edge`、`shared_vertex_only`、`disjoint_boundaries` 或 `topology_unknown`；生产 selector、pipeline 和候选生成均未引用该模块。
+- 每个复核记录同件关系、拓扑类别、精确面积、双方 coverage、有效宽度、score、gap、精确/恢复原因和恢复状态；truth 仅在报告汇总中计算 TP/FP/FN 组成和同件 FN 理论恢复上限。
+- 实际 `component-simplify` 受管报告复核 568 个 pair：`shared_edge=77`、`shared_vertex_only=2`、`disjoint_boundaries=489`、`topology_unknown=0`。同件 FN 理论恢复上限为 10、理论 TP 上限为 40（达到 TP=37 的几何可行性门槛）；这只是离线诊断，`allow_same_part_pairs=false` 保持不变。
+- JSON 和 Markdown 均写入受管运行目录并分别登记 manifest，避免两个格式使用同一 artifact 名称互相覆盖。
+
+**验证结果**
+- `.venv\\Scripts\\python -m pytest tests\\test_controlled_same_part_policy.py -k topology`：**3 passed**。
+- `.venv\\Scripts\\python scripts\\diagnose_general_plane_selection_same_part_topology.py component-simplify --run-dir data\\component-simplify\\20260723-105708-recall-optimization`：成功写入 568 条复核。
+- 输出契约核验：`scope == offline_same_part_topology_diagnosis` 且 `production_behavior_changed is False`；manifest 同时登记 JSON 和 Markdown。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\sp02-full`：**111 passed**。
+
+---
+
 ## 2026-07-23 12:05:01 +08:00 - SP01 冻结受控同件离线研究契约
 
 **做了什么**

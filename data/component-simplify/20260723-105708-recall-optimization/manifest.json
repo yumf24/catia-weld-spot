@@ -79,6 +79,14 @@
     "general_plane_selection_gap_recovery_diagnosis": {
       "path": "general_plane_selection_gap_recovery_diagnosis.json",
       "kind": "json"
+    },
+    "general_plane_selection_same_part_topology_diagnosis": {
+      "path": "general_plane_selection_same_part_topology_diagnosis.json",
+      "kind": "json"
+    },
+    "general_plane_selection_same_part_topology_diagnosis_markdown": {
+      "path": "general_plane_selection_same_part_topology_diagnosis.md",
+      "kind": "markdown"
     }
   },
   "completed_at": "2026-07-23T10:57:24+08:00"

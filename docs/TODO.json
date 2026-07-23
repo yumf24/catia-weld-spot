@@ -90,7 +90,7 @@
       "id": "SP02_diagnose_same_part_topology_and_geometry",
       "priority": 2,
       "depends_on": ["SP01_freeze_controlled_same_part_research_contract"],
-      "pass": false,
+      "pass": true,
       "goal": "Offline-only, diagnose exact same-part pair geometry and shape-derived topology before policy search.",
       "changes": [
         "Replay same-part pairs satisfying the fixed 0.5-degree normal and 1.5-mm gap bounds, calculate exact projected overlap once, and write a managed JSON/Markdown diagnosis.",
