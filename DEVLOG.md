@@ -5,14 +5,14 @@
 
 ---
 
-## 2026-07-23 16:48:00 +08:00 - Prevent ANSA launcher GUI startup deadlock
+## 2026-07-23 17:05:00 +08:00 - Keep ANSA review launcher interactive
 
 **What changed**
-- Reworked the review launcher to pass the target `.ansa` database as ANSA's native positional startup input. The subsequent `-exec` script now only applies display flags; it no longer calls `base.Open()` or camera-fitting APIs while ANSA is still starting.
-- This specifically avoids the observed frozen `Executing Script` GUI state on the large component CAD database. Both managed-scene and `--ansa-part` paths use the safe sequence.
+- Real GUI testing established that ANSA v24.1.1 exits its interactive process after a `-exec` script finishes and does not load a bare positional `.ansa` argument. The launcher now invokes the Windows `.ansa` file association, exactly like a double-click, without `-exec`, so the GUI opens the requested database and remains open.
+- The display sidecar remains available for manual execution after ANSA has opened; automatic in-process display application is deliberately removed rather than leaving a launcher that freezes or closes ANSA.
 
 **Verification**
-- Added and updated launcher contract coverage. `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\ansa-launch-deadlock-full`: **125 passed**; `git diff --check`: passed. The prior launcher-owned ANSA processes are left for the user to close because the environment does not authorize terminating GUI processes.
+- Real launch through the Windows association created the target `component_weld_cad_review.ansa` ANSA window and did not exit. It exposed a pre-existing stale `.lock.component_weld_cad_review.ansa#` file from the earlier failed launcher; removal is left to the user because the environment does not authorize deleting it. `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\ansa-native-launch-full`: **124 passed**; `git diff --check`: passed.
 
 ## 2026-07-23 16:32:00 +08:00 - Allow an explicit ANSA database in review launcher
 

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import importlib.util
 import json
 from pathlib import Path
 
@@ -76,28 +75,9 @@ def test_review_startup_contract_applies_shaded_display_after_opening_database()
     startup_section = builder.split("def _startup_script_source", 1)[1].split("def _runner_source", 1)[0]
     assert "base.Open(" not in startup_section
     assert 'namespace["apply_review_display"]()' in builder
-    assert 'str(database_path), "-exec", f"load_script:{startup_script}"' in launcher
     assert 'group.add_argument(\n        "--ansa-part"' in launcher
-    assert '"WIRE": "off"' in launcher
-    assert '"CONS": "off"' in launcher
-
-
-def test_explicit_ansa_part_startup_script_applies_display_after_ansastartup_opens_database(monkeypatch):
-    root = Path(__file__).resolve().parents[1]
-    monkeypatch.syspath_prepend(str(root / "scripts"))
-    spec = importlib.util.spec_from_file_location("open_component_weld_ansa_scene", root / "scripts" / "open_component_weld_ansa_scene.py")
-    assert spec and spec.loader
-    launcher = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(launcher)
-
-    source = launcher._safe_display_script_source()
-
-    assert "base.Open(" not in source
-    assert "base.ZoomAll(" not in source
-    assert "base.SetViewAngles(" not in source
-    assert '"VIEWMODE": "PART"' in source
-    assert '"WIRE": "off"' in source
-    assert '"CONS": "off"' in source
+    assert "os.startfile(database_path)" in launcher
+    assert '"-exec"' not in launcher
 
 
 def test_scene_inputs_reject_a_primary_step_hash_mismatch(tmp_path):

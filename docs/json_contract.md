@@ -227,10 +227,14 @@ To render a particular existing ANSA database instead, pass its file path:
 .venv\Scripts\python scripts\open_component_weld_ansa_scene.py --ansa-part D:\work\part_to_review.ansa
 ```
 
-It passes the database to ANSA's native startup loader, then runs a safe temporary display script that only changes view flags.
-That script applies `ansa/apply_component_weld_review_display.py`: Part-colour shaded rendering with wireframe,
-CONS, bounds, grids, midpoint/C-node, and topology hot points disabled. It prevents small 3 mm spheres from being
-misread as cross-shaped CAD topology. The display script can also be run manually in an already-open ANSA session.
+It opens the database through the Windows `.ansa` file association (the same path as double-clicking the file).
+ANSA v24.1.1 closes a GUI process after a `-exec` script returns, so the launcher deliberately does not run scripts
+during startup. To apply the review
+appearance in the open ANSA session, load `ansa/apply_component_weld_review_display.py`: Part-colour shaded
+rendering with wireframe, CONS, bounds, grids, midpoint/C-node, and topology hot points disabled. It prevents small
+3 mm spheres from being misread as cross-shaped CAD topology.
+If ANSA reports a stale lock after an earlier abnormal exit, close every ANSA process first and choose **Open** in
+ANSA's lock dialog (or remove only the matching hidden `.lock.<database>.ansa#` file after confirming it is stale).
 In addition to the four standard views, `component_weld_marker_detail.png` is a zoomed CAD-context view proving
 the marker shape.
 
