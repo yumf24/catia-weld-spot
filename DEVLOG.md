@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-23 11:42:00 +08:00 - OP08 诊断精确 gap 恢复可行性
+
+**做了什么**
+- 新增仅离线使用的 `diagnose_general_plane_selection_gap_recovery.py` 与诊断模块，按 1.5--3、3--4.5、4.5--6 mm 分档重放跨件 `plane_gap_exceeds_threshold` pair；每条记录精确公共面积、双方 coverage、有效宽度、score、原因和确定性恢复状态。
+- 评测真值只用于报告理论 FN 恢复上限，不会进入 selector、pipeline 或候选生成。受管运行复核 234 个 pair，AABB prefilter false rejection 为 0；在固定边界下仅可恢复 3 个 FN，理论 TP 上限为 33，低于严格 recall 门槛所需的 TP=37。
+- 因目标在固定边界下不可达，保持跨件 1.5 mm 默认、`allow_same_part_pairs=false` 和无 AABB fallback；将 `OP08_diagnose_exact_gap_recovery_feasibility` 标记为通过。
+
+**验证结果**
+- `.venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k gap_recovery`：2 passed。
+- `.venv\\Scripts\\python scripts\\diagnose_general_plane_selection_gap_recovery.py component-simplify --run-dir data\\component-simplify\\20260723-105708-recall-optimization`：成功写入并登记 234 条复核。
+- `aabb_prefilter_false_rejection_count == 0`：通过。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\op08-full`：**108 passed**。
+
+---
+
 ## 2026-07-23 11:28:00 +08:00 - OP07 冻结通用选面 90% 双指标目标
 
 **做了什么**

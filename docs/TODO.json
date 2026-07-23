@@ -28,7 +28,7 @@
       ], "completion_commit": "chore: freeze 90 percent plane selection target"
     },
     {
-      "id": "OP08_diagnose_exact_gap_recovery_feasibility", "priority": 2, "depends_on": ["OP07_freeze_90_percent_target"], "pass": false,
+      "id": "OP08_diagnose_exact_gap_recovery_feasibility", "priority": 2, "depends_on": ["OP07_freeze_90_percent_target"], "pass": true,
       "goal": "Offline-only, replay cross-part 1.5-6 mm gap rejections with exact overlap and decide whether TP>=37 is geometrically feasible under fixed boundaries.",
       "changes": ["Add a managed offline diagnosis with 1.5-3, 3-4.5, and 4.5-6 mm tiers, exact area, coverage, effective width, score, reason, and deterministic recovery status.", "Use evaluation truth only to report the theoretical recoverable FN upper bound; do not expose it to runtime.", "Require the current AABB diagnosis to have zero prefilter_false_rejection; if the theoretical upper TP is below 37, report the target unreachable and leave all production defaults unchanged."],
       "strict_tests": [

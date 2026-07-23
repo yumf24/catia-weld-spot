@@ -22,6 +22,7 @@ from weld_core.general_plane_selection_error_analysis import (
 )
 from weld_core.general_plane_selection import ExactPairMeasurement
 from weld_core.general_plane_selection_aabb_diagnosis import diagnose_projected_aabb_rejections
+from weld_core.general_plane_selection_gap_recovery import diagnose_gap_recovery
 from test_general_plane_selection_geometry import _face
 
 
@@ -52,6 +53,32 @@ def test_aabb_diagnosis_marks_insufficient_vertices_and_projection_failures():
     row = report["pairs"][0]
     assert row["prefilter_input_status"] == "insufficient_vertices"
     assert row["review_status"] == "projection_or_geometry_failure"
+
+
+def test_gap_recovery_replays_tiers_and_reports_only_theoretical_truth_ceiling():
+    audit = {"pairs": [
+        {"id": "recover", "face_a_id": "truth-fn", "face_b_id": "other", "part_a": "one", "part_b": "two", "reason": "plane_gap_exceeds_threshold", "plane_gap_mm": 3.0},
+        {"id": "reject", "face_a_id": "other", "face_b_id": "third", "part_a": "two", "part_b": "three", "reason": "plane_gap_exceeds_threshold", "plane_gap_mm": 4.5},
+    ]}
+    faces = [_face("truth-fn", "one"), _face("other", "two"), _face("third", "three")]
+    exact = iter([
+        ExactPairMeasurement(0, 3, 2, .5, .5, 4, 4),
+        ExactPairMeasurement(0, 4.5, 0, 0, 0, 4, 4, "zero_area_intersection"),
+    ])
+    report = diagnose_gap_recovery(
+        audit, faces, baseline_true_positives=30, false_negative_face_ids=["truth-fn"],
+        aabb_prefilter_false_rejection_count=0, exact_overlap=lambda *_: next(exact), projected_aabb_overlap=lambda *_: (2.0, 3.0),
+    )
+    assert [row["gap_tier"] for row in report["pairs"]] == ["1.5-3", "3-4.5"]
+    assert report["pairs"][0]["recovery_status"] == "recoverable"
+    assert report["theoretical_upper_true_positives"] == 31
+    assert report["target_geometrically_feasible"] is False
+    assert report["target_unreachable_under_fixed_boundaries"] is True
+
+
+def test_gap_recovery_requires_clean_aabb_diagnosis():
+    with pytest.raises(ValueError, match="zero AABB"):
+        diagnose_gap_recovery({}, [], baseline_true_positives=30, false_negative_face_ids=[], aabb_prefilter_false_rejection_count=1)
 
 
 def _artifacts():

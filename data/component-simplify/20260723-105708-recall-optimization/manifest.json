@@ -75,6 +75,10 @@
     "general_plane_selection_same_part_evaluation_markdown": {
       "path": "general_plane_selection_same_part_evaluation.md",
       "kind": "markdown"
+    },
+    "general_plane_selection_gap_recovery_diagnosis": {
+      "path": "general_plane_selection_gap_recovery_diagnosis.json",
+      "kind": "json"
     }
   },
   "completed_at": "2026-07-23T10:57:24+08:00"
