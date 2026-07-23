@@ -71,7 +71,7 @@
       "id": "SP01_freeze_controlled_same_part_research_contract",
       "priority": 1,
       "depends_on": [],
-      "pass": false,
+      "pass": true,
       "goal": "Freeze the permanent offline-only controlled same-part research contract, strict overall quality gate, and known baseline without changing production selection.",
       "changes": [
         "Record cross-part default TP/FP/FN=30/6/10 and unconstrained same-part offline TP/FP/FN=40/172/0.",

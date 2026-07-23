@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-23 12:05:01 +08:00 - SP01 冻结受控同件离线研究契约
+
+**做了什么**
+- 冻结跨件生产基线 TP/FP/FN=`30/6/10`，以及无约束同件离线风险基线 TP/FP/FN=`40/172/0`；生产护栏 `allow_same_part_pairs=false` 保持不变。
+- 记录 OP08 的 gap-only 理论上限为 TP=`33`，低于严格 recall 门槛 TP=`37`，故以受控同件 pair 的永久离线研究替代该不可达路径。
+- 记录加法不可行性：保留 `30/6/10` 并新增 10 个 TP、零 FP 时 precision 也仅为 `40/46`（约 `86.96%`）；后续搜索必须用统一规则同时重筛跨件与同件 pair。
+- 在 README 和数据集边界文档中明确：所有结果都只是单数据集离线证据，不会改变生产 selection、CLI、候选生成或同件关闭状态。
+
+**验证结果**
+- `.venv\\Scripts\\python -m json.tool docs\\TODO.json > $null`：通过。
+- `.venv\\Scripts\\python scripts\\check_plane_selection_baseline.py component-simplify`：通过；输入 SHA-256 和 `2834/525`、`89/40` face 基线一致。
+- `.venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k same_part`：**4 passed**。
+
+---
+
 ## 2026-07-23 11:42:00 +08:00 - OP08 诊断精确 gap 恢复可行性
 
 **做了什么**

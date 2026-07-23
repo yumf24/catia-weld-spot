@@ -26,6 +26,16 @@ two same-part-policy cases; neither same-part recovery nor an AABB fallback is a
 production recovery path. This remains useful single-dataset regression evidence,
 not a cross-part claim: no independent validation part is currently available.
 
+The unconstrained same-part offline comparison is TP/FP/FN 40/172/0. It is a risk
+baseline, not a production option. OP08 separately established that gap-only
+recovery under the fixed cross-part boundaries has a theoretical upper limit of
+TP=33, below the strict recall target of TP=37. Controlled same-part work therefore
+remains permanently offline and must uniformly re-screen both cross-part and
+same-part pairs: retaining the 30/6/10 baseline and adding ten true positives with
+zero false positives would still produce only 40/46 precision (about 86.96%). No
+same-part result may change `allow_same_part_pairs=false` or be presented as
+cross-part generalization.
+
 ## Gate
 
 The workflow may report preliminary cross-part capability only after at least
