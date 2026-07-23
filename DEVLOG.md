@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-07-23 16:07:00 +08:00 - Repair ANSA weld-marker presentation
+
+**What changed**
+- Set the scene to shaded, Part-colour rendering and disabled wireframe, CAD CONS, bounds, grids, topology hot points, midpoint and C-node overlays. Markers remain exact 3 mm non-FE CAD spheres in their TP/FP/FN colour layers.
+- Added a managed `component_weld_marker_detail.png` close-up, created from a representative same-colour marker Part before save/reopen, so the spherical marker geometry can be verified at its real physical scale.
+
+**Verification**
+- Rebuilt the actual ANSA v24.1.1 scene successfully. All standard screenshots and the close-up are nonempty; manual inspection confirms red/yellow/green round shaded markers with no cross-shaped topology overlays.
+
 ## 2026-07-23 15:41:52 +08:00 - Publish CAD-backed component ANSA weld review scene
 
 **What changed**

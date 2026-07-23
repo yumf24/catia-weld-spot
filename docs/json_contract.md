@@ -214,6 +214,9 @@ isometric/front/right/top PNG views plus `ansa_cad_scene_validation.json/.md`, i
 visibility defaults, ANSA v24.1.1, database path, screenshots, and log. CAD import, timeout, save, reopen, count,
 or screenshot failure writes only the failure report/log and removes the final `.ansa` database; it is never
 registered as a successful artifact. These are visual markers only, never FE `SPOTWELD`s, connectors, or elements.
+The saved review display uses Part-colour shaded rendering with wireframe, CONS, bounds, grids, and topology hot
+points disabled. This prevents small 3 mm spheres from being misread as cross-shaped CAD topology. In addition to
+the four standard views, `component_weld_marker_detail.png` is a zoomed CAD-context view proving the marker shape.
 
 ## ground_truth.json（真实焊点，评测用 → 核心输入）
 

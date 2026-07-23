@@ -140,7 +140,7 @@
     "ansa_cad_scene_validation": {
       "path": "ansa_cad_scene_validation.json",
       "kind": "json",
-      "sha256": "72f6639d709aa8aa24a5857cdaaedabe2c587d6ab46509a8a245b1fcb9cc44cb"
+      "sha256": "1464ffe907864becc0ec70d5d574f76c16b1637ab24db29e8b80bb16b15f196e"
     },
     "ansa_cad_scene_report": {
       "path": "ansa_cad_scene_validation.md",
@@ -150,32 +150,37 @@
     "ansa_cad_scene_database": {
       "path": "ansa\\component_weld_cad_review.ansa",
       "kind": "ansa_database",
-      "sha256": "7744ee7c14f6c07708afec5fb8b07afb250b155969266328d1f70405aededf25"
+      "sha256": "2b911a32993ef8414af6bb297fbd4cbabd4f0d12a82990c59784144a300285f2"
     },
     "ansa_cad_scene_log": {
       "path": "ansa\\component_weld_cad_review.log",
       "kind": "log",
-      "sha256": "5287783e93bb4e60463a7c6cd7c216346e662d91ca908de0aa465f1b8cffb265"
+      "sha256": "eac6b937a8dff2c66157b718401b07c1b7a6ca834560c134aba44f9738c09c64"
     },
     "ansa_cad_scene_isometric": {
       "path": "ansa\\views\\component_weld_isometric.png",
       "kind": "png",
-      "sha256": "dacf094da91dc58de96f0c7711ff3db2d3bd07c06e3382e6e06e50a4efedd230"
+      "sha256": "a585303d5dee993ce031ff7922668675547759658ed96dab8eee372d59600479"
     },
     "ansa_cad_scene_front": {
       "path": "ansa\\views\\component_weld_front.png",
       "kind": "png",
-      "sha256": "3bc841d86dfa9b93670f05431cc47b6c9d5cbe54fe98035768f100da8aaa0f26"
+      "sha256": "fa145f277aa2523a7c50fe0f9d11581e86bf9fef79ec9b75cfd3c3e6c23f7bba"
     },
     "ansa_cad_scene_right": {
       "path": "ansa\\views\\component_weld_right.png",
       "kind": "png",
-      "sha256": "2de1b09ad166e8f2a9a08b63d84919887d388cbdcf2c7636a62b66db48b535d7"
+      "sha256": "f1fa301ca22fd8f08fca6e8820b9442f007431525ad6259ba829162de7be1996"
     },
     "ansa_cad_scene_top": {
       "path": "ansa\\views\\component_weld_top.png",
       "kind": "png",
-      "sha256": "4f9bb36a4083550c11006bef10cc0e16b4266e03c35ffb91d3adbbafb55e33c2"
+      "sha256": "55431863a3b700b204e709a83717271393ed072434dee33dae81a8bdba87ac16"
+    },
+    "ansa_cad_scene_marker_detail": {
+      "path": "ansa\\views\\component_weld_marker_detail.png",
+      "kind": "png",
+      "sha256": "bfd6aabf30d8bc06a0ea2dafb7682e5e11fc26bde601bd5d1d534b3e4012a3b9"
     }
   },
   "evaluation": {

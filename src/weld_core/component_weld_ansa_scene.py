@@ -16,6 +16,7 @@ SCENE_SCREENSHOTS = {
     "front": "ansa/views/component_weld_front.png",
     "right": "ansa/views/component_weld_right.png",
     "top": "ansa/views/component_weld_top.png",
+    "marker_detail": "ansa/views/component_weld_marker_detail.png",
 }
 MARKER_RADIUS_MM = 3.0
 SPHERE_FACE_COUNT = 6

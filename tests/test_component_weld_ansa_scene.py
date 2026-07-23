@@ -42,6 +42,8 @@ def test_scene_paths_are_managed_under_run(tmp_path):
 
     assert paths["database"] == tmp_path / SCENE_DATABASE
     assert set(path.name for name, path in paths.items() if name.startswith("screenshot_")) == {Path(value).name for value in SCENE_SCREENSHOTS.values()}
+    assert {"isometric", "front", "right", "top"}.issubset(SCENE_SCREENSHOTS)
+    assert SCENE_SCREENSHOTS["marker_detail"].endswith("component_weld_marker_detail.png")
 
 
 def test_scene_marker_specification_has_colored_three_mm_spheres_and_hidden_links():

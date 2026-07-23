@@ -85,15 +85,22 @@ def _runner_source(run_dir: Path, cad_path: Path, analysis: dict[str, Any], expe
             if part is None:
                 raise RuntimeError("could not create marker part " + name)
             _set_color(part, COLORS[name])
+            # Keep one representative sphere in its own same-colour Part so
+            # ANSA can create a reliable close-up proof using ZoomInEnt.
+            detail_part = base.NewPart(name + "_DETAIL_MARKER")
+            if detail_part is None:
+                raise RuntimeError("could not create marker detail part " + name)
+            _set_color(detail_part, COLORS[name])
             group = _named_set(name)
             faces = []
-            for position in positions:
-                created = base.CreateVolumeSphere(position, RADIUS_MM, part=part, volumes=False)
+            for index, position in enumerate(positions):
+                target_part = detail_part if index == 0 else part
+                created = base.CreateVolumeSphere(position, RADIUS_MM, part=target_part, volumes=False)
                 if not created:
                     raise RuntimeError("could not create marker sphere in " + name)
                 faces.extend(created)
             base.AddToSet(group, faces)
-            return group, faces
+            return group, faces, detail_part
 
         def _count_set(name):
             matches = [e for e in base.NameToEnts(name) if e.ansa_type(constants.NASTRAN) == "SET"]
@@ -103,6 +110,22 @@ def _runner_source(run_dir: Path, cad_path: Path, analysis: dict[str, Any], expe
 
         def _cad_face_count():
             return len(base.CollectEntities(constants.NASTRAN, None, "FACE"))
+
+        def _set_review_display():
+            # Make the saved scene communicate marker classes rather than CAD
+            # topology: shaded solids, coloured by their ANSAPART, without
+            # wire/boundary/hot-point crosses obscuring the small spheres.
+            base.SetViewButton({{
+                "VIEWMODE": "PART",
+                "SHADOW": "on",
+                "WIRE": "off",
+                "CONS": "off",
+                "BOUNDS": "off",
+                "M.Pnt.": "off",
+                "C.NODE": "off",
+                "GRIDs": "off",
+                "Hot Points": "off",
+            }})
 
         def main():
             result = {{"cad_import_status": False, "save_status": None, "reopen_status": None, "expected_marker_counts": EXPECTED_COUNTS}}
@@ -114,13 +137,21 @@ def _runner_source(run_dir: Path, cad_path: Path, analysis: dict[str, Any], expe
                 result["cad_face_count_before_markers"] = _cad_face_count()
                 if result["cad_face_count_before_markers"] < 1:
                     raise RuntimeError("component.step imported no CAD faces")
+                marker_detail_parts = {{}}
                 for name, positions in MARKER_ROWS.items():
-                    _add_spheres(name, positions)
+                    _group, _marker_faces, marker_detail_parts[name] = _add_spheres(name, positions)
                 # Keep matching information as an empty, disabled Set in this
                 # review scene. It is traceable to the source CSV but does not
                 # draw links or create FE entities by default.
                 _named_set("MATCH_LINK")
                 result["created_marker_face_counts"] = {{name: _count_set(name) for name in MARKER_ROWS}}
+                _set_review_display()
+                # This happens before SaveAs because ANSA invalidates in-memory
+                # Part references when it subsequently reopens the database.
+                base.SetViewAngles("F10")
+                base.ZoomInEnt(marker_detail_parts["TP_TRUTH"])
+                utils.SnapShot(SCREENSHOTS["marker_detail"], "PNG")
+                base.ZoomAll()
                 result["save_status"] = base.SaveAs(DATABASE_PATH, silent=True)
                 if result["save_status"] not in (None, 0):
                     raise RuntimeError("SaveAs returned %r" % (result["save_status"],))
@@ -128,11 +159,13 @@ def _runner_source(run_dir: Path, cad_path: Path, analysis: dict[str, Any], expe
                 if result["reopen_status"] != 0:
                     raise RuntimeError("Open returned %r" % (result["reopen_status"],))
                 result["reopened_marker_face_counts"] = {{name: _count_set(name) for name in MARKER_ROWS}}
-                base.SetEntityVisibilityValues(constants.NASTRAN, {{"all": "on"}})
+                _set_review_display()
                 for key, view in (("isometric", "F10"), ("front", "F1"), ("right", "F2"), ("top", "F3")):
                     base.SetViewAngles(view)
                     base.ZoomAll()
                     utils.SnapShot(SCREENSHOTS[key], "PNG")
+                base.SetViewAngles("F10")
+                base.ZoomAll()
                 result["screenshot_paths"] = SCREENSHOTS
                 result["database_path"] = DATABASE_PATH
                 result["pass"] = (result["created_marker_face_counts"] == EXPECTED_COUNTS and result["reopened_marker_face_counts"] == EXPECTED_COUNTS)
