@@ -73,7 +73,7 @@
       ], "completion_commit": "feat: isolate same-part selection risk"
     },
     {
-      "id": "OP05_attribute_expanded_gap_false_positives", "priority": 5, "depends_on": ["OP04_isolate_same_part_risk"], "pass": false,
+      "id": "OP05_attribute_expanded_gap_false_positives", "priority": 5, "depends_on": ["OP04_isolate_same_part_risk"], "pass": true,
       "goal": "为 1.5 mm 跨件配置下全部 FP 提供继承/新增和 gap 层归因，作为 precision 回归护栏。",
       "changes": ["离线 error-analysis 比较基线与候选预测面；对 FP 标记 inherited 或 new，并汇总 supporting pairs 的 layer、面积、coverage、score、对侧 part 和 truth 关系。", "Markdown 报告同时显示基线 2 个 FP 与扩大 gap 后的新增 FP；运行时 audit 不得写入 truth 或 FP 标签。", "生成候选报告后校验其指标与 evaluation 一致。"],
       "strict_tests": [

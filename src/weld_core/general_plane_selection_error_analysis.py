@@ -618,6 +618,141 @@ def classify_false_positives(joined: dict[str, Any]) -> list[dict[str, Any]]:
     return classifications
 
 
+def build_expanded_gap_false_positive_attribution(
+    baseline_joined: dict[str, Any], candidate_joined: dict[str, Any]
+) -> dict[str, Any]:
+    """Attribute 1.5 mm cross-part candidate false positives offline.
+
+    Both joins originate from explicit evaluation artifacts, so this comparison
+    deliberately remains outside the production selector and pipeline.  A
+    selected candidate FP is ``inherited`` only when the same source-face ID
+    was already an FP in the 0.2 mm baseline; otherwise it is ``new``.
+    """
+
+    def parameters(joined: dict[str, Any], label: str) -> dict[str, Any]:
+        value = joined.get("parameters")
+        if not isinstance(value, dict):
+            raise ErrorAnalysisInputError(f"{label} selection parameters must be an object")
+        return value
+
+    baseline_params = parameters(baseline_joined, "baseline")
+    candidate_params = parameters(candidate_joined, "candidate")
+    if baseline_params.get("max_plane_gap_mm") != 0.2:
+        raise ErrorAnalysisInputError("baseline comparison must use max_plane_gap_mm=0.2")
+    if candidate_params.get("max_plane_gap_mm") != 1.5:
+        raise ErrorAnalysisInputError("expanded-gap candidate must use max_plane_gap_mm=1.5")
+    if baseline_params.get("allow_same_part_pairs") is not False or candidate_params.get("allow_same_part_pairs") is not False:
+        raise ErrorAnalysisInputError("expanded-gap attribution requires same-part pairs to remain disabled")
+
+    def false_positive_ids(joined: dict[str, Any]) -> set[str]:
+        return {
+            face["face_id"]
+            for face in joined.get("faces", [])
+            if isinstance(face, dict)
+            and face.get("classification") == "false_positive"
+            and isinstance(face.get("face_id"), str)
+        }
+
+    baseline_fp_ids = false_positive_ids(baseline_joined)
+    candidate_truth_ids = {
+        face["face_id"]
+        for face in candidate_joined.get("faces", [])
+        if isinstance(face, dict) and face.get("is_truth_face") and isinstance(face.get("face_id"), str)
+    }
+    rows: list[dict[str, Any]] = []
+    for face in candidate_joined.get("faces", []):
+        if not isinstance(face, dict) or face.get("classification") != "false_positive":
+            continue
+        face_id = face.get("face_id")
+        supporting_pairs = face.get("supporting_pairs")
+        if not isinstance(face_id, str) or not isinstance(supporting_pairs, list) or not supporting_pairs:
+            raise ErrorAnalysisInputError("candidate false-positive face must have a face_id and supporting pairs")
+        supports: list[dict[str, Any]] = []
+        for pair in supporting_pairs:
+            if not isinstance(pair, dict) or not pair.get("accepted"):
+                raise ErrorAnalysisInputError(f"candidate false-positive face {face_id!r} has invalid supporting pair")
+            counterpart_face_id, counterpart_part = _counterpart(pair, face_id)
+            if pair.get("face_a_id") == face_id:
+                source_coverage, counterpart_coverage = pair.get("coverage_a"), pair.get("coverage_b")
+            else:
+                source_coverage, counterpart_coverage = pair.get("coverage_b"), pair.get("coverage_a")
+            supports.append(
+                {
+                    "pair_id": pair["id"],
+                    "gap_layer": pair.get("gap_layer"),
+                    "common_area_mm2": pair.get("common_area_mm2"),
+                    "source_coverage": source_coverage,
+                    "counterpart_coverage": counterpart_coverage,
+                    "score": pair.get("score"),
+                    "counterpart_face_id": counterpart_face_id,
+                    "counterpart_part": counterpart_part,
+                    "counterpart_truth_relation": (
+                        "offline_truth_face" if counterpart_face_id in candidate_truth_ids else "unknown_to_offline_truth"
+                    ),
+                }
+            )
+        rows.append(
+            {
+                "face_id": face_id,
+                "attribution": "inherited" if face_id in baseline_fp_ids else "new",
+                "supporting_pairs": sorted(supports, key=lambda support: support["pair_id"]),
+            }
+        )
+    rows.sort(key=lambda row: row["face_id"])
+    inherited_count = sum(row["attribution"] == "inherited" for row in rows)
+    return {
+        "format_version": 1,
+        "scope": "offline_evaluation_only",
+        "generalization_boundary": "This single-dataset comparison is not evidence of cross-part generalization.",
+        "production_defaults_changed": False,
+        "comparison": {
+            "baseline_parameters": baseline_params,
+            "candidate_parameters": candidate_params,
+            "baseline_false_positives": len(baseline_fp_ids),
+            "candidate_false_positives": len(rows),
+            "inherited_false_positives": inherited_count,
+            "new_false_positives": len(rows) - inherited_count,
+        },
+        "false_positives": rows,
+    }
+
+
+def render_expanded_gap_false_positive_attribution_markdown(report: dict[str, Any]) -> str:
+    """Render detailed offline provenance for baseline and expanded-gap FPs."""
+
+    comparison = report.get("comparison")
+    rows = report.get("false_positives")
+    if report.get("scope") != "offline_evaluation_only" or not isinstance(comparison, dict) or not isinstance(rows, list):
+        raise ErrorAnalysisInputError("invalid expanded-gap false-positive attribution report")
+    lines = [
+        "## Expanded-gap false-positive attribution (offline only)",
+        "",
+        "| Baseline FP | Candidate FP | Inherited | New |",
+        "| ---: | ---: | ---: | ---: |",
+        "| {baseline_false_positives} | {candidate_false_positives} | {inherited_false_positives} | {new_false_positives} |".format(**comparison),
+        "",
+        "| FP face | Attribution | Pair | Gap layer | Area (mm2) | Face coverage | Counterpart coverage | Score | Counterpart part | Truth relation |",
+        "| --- | --- | --- | --- | ---: | ---: | ---: | ---: | --- | --- |",
+    ]
+    for row in rows:
+        for support in row["supporting_pairs"]:
+            lines.append(
+                "| {face_id} | {attribution} | {pair_id} | {gap_layer} | {common_area_mm2:.6g} | {source_coverage:.6g} | {counterpart_coverage:.6g} | {score:.6g} | {counterpart_part} | {counterpart_truth_relation} |".format(
+                    face_id=row["face_id"], attribution=row["attribution"], pair_id=support["pair_id"],
+                    gap_layer=support["gap_layer"] or "null", common_area_mm2=support["common_area_mm2"] or 0.0,
+                    source_coverage=support["source_coverage"] or 0.0, counterpart_coverage=support["counterpart_coverage"] or 0.0,
+                    score=support["score"] or 0.0, counterpart_part=support["counterpart_part"] or "null",
+                    counterpart_truth_relation=support["counterpart_truth_relation"],
+                )
+            )
+    lines.extend([
+        "",
+        "This report consumes explicit offline truth only and must not be used by production selection or the pipeline.",
+        "",
+    ])
+    return "\n".join(lines)
+
+
 def build_error_analysis_report(joined: dict[str, Any], pair_audit: dict[str, Any]) -> dict[str, Any]:
     """Build a deterministic, human-reviewable offline error-analysis report."""
 
@@ -706,6 +841,9 @@ def render_error_analysis_markdown(report: dict[str, Any]) -> str:
             f"- `{item['face_id']}`: {item['false_positive_reason']} "
             f"({len(item['supporting_pairs'])} accepted supporting pair(s))."
         )
+    expanded_gap = report.get("expanded_gap_false_positive_attribution")
+    if isinstance(expanded_gap, dict):
+        lines.extend(["", render_expanded_gap_false_positive_attribution_markdown(expanded_gap).rstrip()])
     ranked_causes = report.get("false_negative_reason_ranking", [])
     top_cause = ranked_causes[0] if ranked_causes else None
     lines.extend(["", "## Summary", ""])

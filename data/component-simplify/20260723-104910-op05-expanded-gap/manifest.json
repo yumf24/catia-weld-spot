@@ -1,0 +1,61 @@
+{
+  "format_version": 1,
+  "part_id": "component-simplify",
+  "run_id": "20260723-104910-op05-expanded-gap",
+  "created_at": "2026-07-23T10:49:10+08:00",
+  "status": "completed",
+  "active_document": "",
+  "raw_manifest": "raw_data\\component-simplify\\manifest.json",
+  "raw_inputs": [
+    {
+      "role": "primary_model",
+      "path": "raw_data\\component-simplify\\component_simplify.step",
+      "sha256": "8c79d3364640245c035702cd382aad0022a0740280f74f72212a5b6c15287856",
+      "size_bytes": 34543311
+    }
+  ],
+  "parameters": {
+    "general_selection": {
+      "max_normal_angle_deg": 0.5,
+      "max_plane_gap_mm": 1.5,
+      "min_overlap_area_mm2": 1.0,
+      "min_face_coverage": 0.05,
+      "min_effective_width_mm": 0.1,
+      "allow_same_part_pairs": false
+    }
+  },
+  "artifacts": {
+    "faces.general-selected": {
+      "path": "faces.general-selected.json",
+      "kind": "faces_document"
+    },
+    "pair_audit": {
+      "path": "pair_audit.json",
+      "kind": "json"
+    },
+    "selection_audit": {
+      "path": "selection_audit.json",
+      "kind": "json"
+    },
+    "general_plane_selection_evaluation": {
+      "path": "general_plane_selection_evaluation.json",
+      "kind": "json"
+    },
+    "general_plane_selection_evaluation_markdown": {
+      "path": "general_plane_selection_evaluation.md",
+      "kind": "markdown"
+    },
+    "candidates": {
+      "path": "candidates.json"
+    },
+    "general_plane_selection_error_analysis": {
+      "path": "general_plane_selection_error_analysis.json",
+      "kind": "json"
+    },
+    "general_plane_selection_error_analysis_markdown": {
+      "path": "general_plane_selection_error_analysis.md",
+      "kind": "markdown"
+    }
+  },
+  "completed_at": "2026-07-23T10:49:25+08:00"
+}

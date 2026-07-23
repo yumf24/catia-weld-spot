@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-23 10:52:00 +08:00 - OP05 归因扩展 gap 的假阳性
+
+**做了什么**
+- 离线错误分析新增 0.2 mm 基线与 1.5 mm 跨件候选的 FP 比较：候选 face 按 ID 标为 `inherited` 或 `new`，并逐 supporting pair 记录 gap layer、公共面积、两侧 coverage、score、对侧 part 和离线 truth 关系；truth 仅在显式离线报告路径读取。
+- CLI 增加 `--baseline-run-dir`，只接受 same-part 仍关闭的 0.2 mm 基线和 1.5 mm 候选；生成的 JSON/Markdown 均声明单数据集边界，生产 selector、pipeline 和默认参数未变。
+- 实际受管候选运行 `20260723-104910-op05-expanded-gap` 得到 TP/FP/FN=`30/6/10`、precision=`83.33%`、recall=`75.00%`，满足门槛；其 6 个 FP 中 2 个继承、4 个新增。将 `OP05_attribute_expanded_gap_false_positives` 标记为通过。
+
+**验证结果**
+- `.venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k fp`：**4 passed**，覆盖继承/新增 FP、单/多 supporting pair、truth/unknown 对侧和 gap layer。
+- `.venv\\Scripts\\python scripts\\run_general_plane_selection_regression.py component-simplify --run-label op05-expanded-gap --max-plane-gap-mm 1.5`：成功生成并登记候选运行。
+- `.venv\\Scripts\\python scripts\\analyze_general_plane_selection_errors.py component-simplify --run-dir data\\component-simplify\\20260723-104910-op05-expanded-gap --baseline-run-dir data\\component-simplify\\20260722-163200-generic-regression`：成功生成可重建的归因 JSON/Markdown。
+
+---
+
 ## 2026-07-23 11:06:00 +08:00 - OP04 隔离 same-part 选面风险
 
 **做了什么**

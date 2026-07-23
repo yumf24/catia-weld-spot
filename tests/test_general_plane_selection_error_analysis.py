@@ -7,6 +7,7 @@ import pytest
 from weld_core.general_plane_selection_error_analysis import (
     ErrorAnalysisInputError,
     build_error_analysis_report,
+    build_expanded_gap_false_positive_attribution,
     build_controlled_parameter_sweep,
     build_optimization_recommendation_backlog,
     classify_false_negatives,
@@ -14,6 +15,7 @@ from weld_core.general_plane_selection_error_analysis import (
     join_error_analysis,
     load_and_join_error_analysis,
     render_error_analysis_markdown,
+    render_expanded_gap_false_positive_attribution_markdown,
     build_same_part_risk_report,
     render_same_part_risk_markdown,
     render_controlled_parameter_sweep_markdown,
@@ -277,6 +279,44 @@ def test_fp_classification_retains_multiple_supports_and_identifies_non_truth_pa
     assert extra["supporting_pairs"][1]["counterpart_is_truth_face"] is False
     other = next(row for row in result if row["face_id"] == "other-selected")
     assert other["false_positive_reason"] == "accepted_pair_not_in_offline_truth"
+
+
+def test_expanded_gap_fp_attribution_marks_inherited_and_new_with_pair_provenance():
+    baseline_evaluation, baseline_pairs, baseline_selection = _artifacts()
+    baseline_pairs["pairs"][0].update({"part_a": "truth-part", "part_b": "extra-part"})
+    baseline_selection["parameters"] = {"max_plane_gap_mm": 0.2, "allow_same_part_pairs": False}
+    candidate_evaluation, candidate_pairs, candidate_selection = _artifacts()
+    candidate_evaluation["false_positive_faces"].append({"face_id": "new-extra"})
+    candidate_evaluation["summary"]["false_positives"] = 2
+    candidate_pairs["pairs"][0].update({
+        "part_a": "truth-part", "part_b": "extra-part", "gap_layer": "strict", "common_area_mm2": 12.0,
+        "coverage_a": .8, "coverage_b": .7, "score": 6.72,
+    })
+    candidate_pairs["pairs"].append({
+        "id": "accepted-new", "face_a_id": "new-extra", "face_b_id": "truth-selected", "accepted": True,
+        "part_a": "new-part", "part_b": "truth-part", "gap_layer": "extended", "common_area_mm2": 4.0,
+        "coverage_a": .2, "coverage_b": .9, "score": .72,
+    })
+    candidate_selection["parameters"] = {"max_plane_gap_mm": 1.5, "allow_same_part_pairs": False}
+    candidate_selection["selected_faces"].append({"face_id": "new-extra", "supporting_pair_ids": ["accepted-new"]})
+    candidate_selection["selected_face_count"] = 3
+    candidate_selection["total_planar_faces"] = 6
+    candidate_selection["rejected_faces"].append({"face_id": "other-rejected-2", "reason": "no_accepted_pair"})
+
+    report = build_expanded_gap_false_positive_attribution(
+        join_error_analysis(baseline_evaluation, baseline_pairs, baseline_selection),
+        join_error_analysis(candidate_evaluation, candidate_pairs, candidate_selection),
+    )
+
+    assert report["comparison"].get("baseline_false_positives") == 1
+    assert report["comparison"].get("candidate_false_positives") == 2
+    assert report["comparison"].get("inherited_false_positives") == 1
+    assert [row["attribution"] for row in report["false_positives"]] == ["inherited", "new"]
+    new_support = report["false_positives"][1]["supporting_pairs"][0]
+    assert new_support["gap_layer"] == "extended"
+    assert new_support["counterpart_part"] == "truth-part"
+    assert new_support["counterpart_truth_relation"] == "offline_truth_face"
+    assert "| extra-selected | inherited |" in render_expanded_gap_false_positive_attribution_markdown(report)
 
 
 def test_report_ranks_fn_reasons_and_makes_gap_the_first_recommendation():
