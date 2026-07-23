@@ -1,149 +1,28 @@
 {
-  "format_version": 2,
-  "title": "受控同件 pair 离线策略 TODO（单数据集研究计划）",
+  "format_version": 3,
+  "title": "component 真实焊点评测与 ANSA V24.1.1 可视化",
   "project": {
     "repository": "ml-pipeline",
-    "development_dataset": "component-simplify",
-    "quality_gate": {
-      "minimum_precision_exclusive": 0.9,
-      "minimum_recall_exclusive": 0.9,
-      "truth_faces": 40
-    },
-    "baseline_run_dir": "data/component-simplify/20260723-105708-recall-optimization",
-    "baseline": {
-      "cross_part_default": {
-        "true_positives": 30,
-        "false_positives": 6,
-        "false_negatives": 10,
-        "precision": 0.8333333333333334,
-        "recall": 0.75
-      },
-      "unconstrained_same_part_offline": {
-        "true_positives": 40,
-        "false_positives": 172,
-        "false_negatives": 0,
-        "precision": 0.18867924528301888,
-        "recall": 1.0
-      },
-      "op08_gap_recovery": {
-        "theoretical_upper_true_positives": 33,
-        "target_true_positives": 37,
-        "target_geometrically_feasible": false
-      }
-    },
-    "generalization_boundary": "No independent validation parts are available. Results are single-dataset regression evidence and must not be presented as proven cross-part generalization."
+    "part_id": "component",
+    "primary_model": "raw_data/component/component.step",
+    "ground_truth_markers": "raw_data/component/SPOT.step",
+    "expected_ground_truth_points": 286,
+    "run_root": "data/component-weld-evaluation",
+    "generalization_boundary": "Results are single-dataset component evidence only and must not be presented as cross-part generalization."
   },
   "global_rules": {
     "python": ".venv\\Scripts\\python",
-    "research_scope": "offline_only_permanently",
-    "runtime_reference_policy": "Production selector, pipeline, candidate generation, and their tests must not read reference STEP, truth mapping, evaluation results, dataset identity, face ID, part ID, SHA, known counts, or labels.",
-    "fixed_production_boundaries": [
-      "allow_same_part_pairs remains false",
-      "Production defaults, production CLI behavior, and candidate generation are not changed by this TODO.",
-      "Accepted pairs require positive exact projected overlap.",
-      "AABB fallback is prohibited.",
-      "Weak supporting pairs must not be aggregated to select a face."
-    ],
-    "offline_data_policy": [
-      "Policy generation and replay may consume only registered primary-model geometry and offline pair audits.",
-      "Reference STEP and truth may be consumed only by explicit offline evaluation and reporting layers.",
-      "Topology rules must be derived from OCCT shape boundaries; body names, assembly hierarchy, part names, face IDs, and labels are not policy features.",
-      "Unknown or insufficient topology is rejected for controlled same-part acceptance."
-    ],
-    "policy_selection_order": [
-      "recall descending",
-      "precision descending",
-      "false positives ascending",
-      "false negatives ascending",
-      "global gate strength descending",
-      "same-part topology restriction strength descending",
-      "canonical parameter dictionary ascending"
-    ],
-    "step_completion_policy": [
-      "Each step starts pass=false and is changed to true only after all strict tests pass.",
-      "A no-feasible-policy conclusion is a valid completion result when its required diagnosis, search, and evidence tests pass.",
-      "Each completed step updates DEVLOG.md and TODO pass state in the same commit.",
-      "After weld_core changes run full pytest; before commit run git diff --check; after commit git status --short must be empty."
-    ]
+    "candidate_input_policy": "Candidate generation reads only the registered primary model and frozen WeldParams; it must not read SPOT.step or any evaluation artifact.",
+    "evaluation_policy": "SPOT.step is evaluation-only and is parsed as 286 marker-ball centers.",
+    "matching": {"primary_tolerance_mm": 10.0, "sensitivity_tolerances_mm": [5.0, 10.0, 20.0], "assignment": "greedy nearest-distance one-to-one"},
+    "ansa": {"required_version": "24.1.1", "marker_semantics": "visual_markers_not_fe_spotwelds", "layers": {"TP_TRUTH": "green", "TP_CANDIDATE": "green", "FP_CANDIDATE": "red", "FN_TRUTH": "yellow", "MATCH_LINK": "neutral"}},
+    "completion_policy": ["Each step begins with pass=false.", "A completed step updates DEVLOG.md and its pass state in the same commit.", "Run full pytest after weld_core changes.", "Run git diff --check before commit and require a clean working tree after commit."]
   },
   "steps": [
-    {
-      "id": "SP01_freeze_controlled_same_part_research_contract",
-      "priority": 1,
-      "depends_on": [],
-      "pass": true,
-      "goal": "Freeze the permanent offline-only controlled same-part research contract, strict overall quality gate, and known baseline without changing production selection.",
-      "changes": [
-        "Record cross-part default TP/FP/FN=30/6/10 and unconstrained same-part offline TP/FP/FN=40/172/0.",
-        "Record OP08's gap-only upper TP=33 below target TP=37 and replace that unreachable route with controlled same-part research.",
-        "Record the additive impossibility: retaining 30/6/10 and adding ten TP with zero FP yields only 40/46 precision, so a successful search must uniformly re-screen cross-part and same-part pairs.",
-        "State that all results remain single-dataset offline evidence and cannot promote same-part production behavior."
-      ],
-      "strict_tests": [
-        {"command": ".venv\\Scripts\\python -m json.tool docs\\TODO.json > $null", "expect_exit_code": 0},
-        {"command": ".venv\\Scripts\\python scripts\\check_plane_selection_baseline.py component-simplify", "expect_exit_code": 0},
-        {"command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_error_analysis.py -k same_part", "expect_exit_code": 0}
-      ],
-      "completion_commit": "chore: freeze controlled same-part research contract"
-    },
-    {
-      "id": "SP02_diagnose_same_part_topology_and_geometry",
-      "priority": 2,
-      "depends_on": ["SP01_freeze_controlled_same_part_research_contract"],
-      "pass": true,
-      "goal": "Offline-only, diagnose exact same-part pair geometry and shape-derived topology before policy search.",
-      "changes": [
-        "Replay same-part pairs satisfying the fixed 0.5-degree normal and 1.5-mm gap bounds, calculate exact projected overlap once, and write a managed JSON/Markdown diagnosis.",
-        "Classify topology deterministically and pair-order-independently as shared_edge, shared_vertex_only, disjoint_boundaries, or topology_unknown using OCCT shape boundaries only.",
-        "Record same-part relation, topology class, exact area, both coverages, effective width, score=common_area_mm2*min(coverage_a,coverage_b), gap, reason, and recovery status for every reviewed pair.",
-        "Use truth only in the report to give TP/FP/FN composition by topology class, same-part FN theoretical recovery ceiling, and whether all exact-valid same-part pairs can reach TP>=37; do not expose truth to policy generation."
-      ],
-      "strict_tests": [
-        {"command": ".venv\\Scripts\\python -m pytest tests\\test_controlled_same_part_policy.py -k topology", "expect_exit_code": 0},
-        {"command": ".venv\\Scripts\\python scripts\\diagnose_general_plane_selection_same_part_topology.py component-simplify --run-dir data\\component-simplify\\20260723-105708-recall-optimization", "expect_exit_code": 0},
-        {"command": ".venv\\Scripts\\python -c \"import json; p='data/component-simplify/20260723-105708-recall-optimization/general_plane_selection_same_part_topology_diagnosis.json'; d=json.load(open(p, encoding='utf8')); assert d['scope'] == 'offline_same_part_topology_diagnosis'; assert d['production_behavior_changed'] is False\"", "expect_exit_code": 0}
-      ],
-      "completion_commit": "feat: diagnose controlled same-part topology"
-    },
-    {
-      "id": "SP03_build_offline_controlled_pair_policy",
-      "priority": 3,
-      "depends_on": ["SP02_diagnose_same_part_topology_and_geometry"],
-      "pass": true,
-      "goal": "Build an offline-only deterministic replay and search for a controlled policy that uniformly re-screens cross-part and same-part pairs.",
-      "changes": [
-        "Generate one permissive exact pair audit from registered primary-model geometry, then replay every candidate policy without repeated identical OCP boolean operations.",
-        "Apply one global geometry gate to all pairs; same-part pairs additionally require a topology rule and can never be accepted through a weaker path than cross-part pairs.",
-        "Search the fixed matrix: max normal angle=0.5 degrees; max gap=1.5 mm; min area=[1,5,10,25,50,100] mm2; min coverage=[0.05,0.10,0.20,0.40,0.60,0.80]; min effective width=[0.1,1,3,5,10] mm; min score=[0,1,5,10,25,50,100] mm2; same-part topology=[no_constraint,exclude_shared_edge,disjoint_boundaries_only].",
-        "Always reject topology_unknown for controlled same-part acceptance. Select faces only from individually accepted supporting pairs; do not aggregate weak pairs.",
-        "For every policy, emit canonical parameters, selected faces, supporting pairs, accepted same-part/cross-part counts, TP/FP/FN, precision, recall, pass state, and rejection attribution."
-      ],
-      "strict_tests": [
-        {"command": ".venv\\Scripts\\python -m pytest tests\\test_controlled_same_part_policy.py -k replay", "expect_exit_code": 0},
-        {"command": ".venv\\Scripts\\python scripts\\search_general_plane_selection_controlled_pair_policy.py component-simplify --run-dir data\\component-simplify\\20260723-105708-recall-optimization", "expect_exit_code": 0},
-        {"command": ".venv\\Scripts\\python -c \"import json; p='data/component-simplify/20260723-105708-recall-optimization/general_plane_selection_controlled_pair_policy_search.json'; d=json.load(open(p, encoding='utf8')); assert d['scope'] == 'offline_controlled_pair_policy_search'; assert d['production_behavior_changed'] is False\"", "expect_exit_code": 0}
-      ],
-      "completion_commit": "feat: search controlled same-part pair policy"
-    },
-    {
-      "id": "SP04_run_controlled_same_part_offline_search_and_conclude",
-      "priority": 4,
-      "depends_on": ["SP03_build_offline_controlled_pair_policy"],
-      "pass": true,
-      "goal": "Publish complete, reproducible offline evidence for the controlled same-part research result without changing production behavior.",
-      "changes": [
-        "Create and register topology diagnosis, policy-search, and conclusion JSON/Markdown artifacts in a new managed run directory.",
-        "Report the unconstrained same-part risk baseline, topology-class outcomes, and either the deterministically selected strict-pass policy with its full ordering evidence or an explicit no-feasible-policy conclusion.",
-        "Reaffirm allow_same_part_pairs=false and unchanged production defaults regardless of search result; a strict-pass result is only offline evidence for a future independent design review.",
-        "Update README and JSON contract with artifact semantics, offline-only scope, no-generalization boundary, and the fact that reference/truth are evaluation-only inputs."
-      ],
-      "strict_tests": [
-        {"command": ".venv\\Scripts\\python -m pytest tests\\test_controlled_same_part_policy.py tests\\test_general_plane_selection_runtime.py --basetemp .pytest_cache\\sp04-targeted", "expect_exit_code": 0},
-        {"command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\sp04-full", "expect_exit_code": 0},
-        {"command": ".venv\\Scripts\\python -c \"import json; p='data/component-simplify/20260723-105708-recall-optimization/general_plane_selection_controlled_same_part_conclusion.json'; d=json.load(open(p, encoding='utf8')); assert d['production_defaults_changed'] is False; assert d['production_guardrail']['allow_same_part_pairs'] is False\"", "expect_exit_code": 0},
-        {"command": "git diff --check", "expect_exit_code": 0}
-      ],
-      "completion_commit": "feat: conclude controlled same-part offline research"
-    }
+    {"id": "CW01_freeze_component_ground_truth_evaluation_contract", "priority": 1, "depends_on": [], "pass": false, "goal": "Freeze component source roles, isolated output layout, matching thresholds, and ANSA marker semantics.", "changes": ["Record component.step as the only candidate-generation input and SPOT.step as evaluation-only.", "Record 286 expected marker centers, 10-mm primary matching, 5/20-mm sensitivity, and the dedicated run root.", "State that ANSA output uses visual markers and is never an FE SPOTWELD claim."], "strict_tests": [{"command": ".venv\\Scripts\\python -m json.tool docs\\TODO.json > $null", "expect_exit_code": 0}, {"command": ".venv\\Scripts\\python scripts\\extract_ground_truth.py raw_data\\component\\SPOT.step data\\component-weld-evaluation\\contract-ground-truth.json", "expect_exit_code": 0}, {"command": ".venv\\Scripts\\python -c \"import json; d=json.load(open('data/component-weld-evaluation/contract-ground-truth.json', encoding='utf8')); assert len(d['points']) == 286\"", "expect_exit_code": 0}], "completion_commit": "chore: freeze component weld evaluation contract"},
+    {"id": "CW02_create_isolated_component_candidate_run", "priority": 2, "depends_on": ["CW01_freeze_component_ground_truth_evaluation_contract"], "pass": false, "goal": "Generate component candidates from the primary STEP in an isolated managed run.", "changes": ["Create only data/component-weld-evaluation/<run-id>/ outputs.", "Derive planar faces from component.step and run frozen default WeldParams.", "Register faces, candidates, hashes, parameters, and run status in manifest.json."], "strict_tests": [{"command": ".venv\\Scripts\\python -m pytest tests\\test_component_weld_evaluation.py -k package", "expect_exit_code": 0}, {"command": ".venv\\Scripts\\python scripts\\run_component_weld_evaluation.py", "expect_exit_code": 0}], "completion_commit": "feat: create isolated component weld candidate run"},
+    {"id": "CW03_evaluate_component_candidates_against_real_spots", "priority": 3, "depends_on": ["CW02_create_isolated_component_candidate_run"], "pass": false, "goal": "Publish traceable real-weld TP/FP/FN metrics and point-level errors.", "changes": ["Write weld_point_evaluation.json/.md with TP/FP/FN, precision, recall, F1, distance statistics, and sensitivity.", "Write weld_point_error_analysis.json/.md with TP coordinates/distances/faces and FN/FP coordinates.", "Require every summary count to equal its point-level classification count."], "strict_tests": [{"command": ".venv\\Scripts\\python -m pytest tests\\test_component_weld_evaluation.py tests\\test_evaluate.py", "expect_exit_code": 0}, {"command": ".venv\\Scripts\\python -c \"import json; p='data/component-weld-evaluation'; print('inspect newest completed run under', p)\"", "expect_exit_code": 0}], "completion_commit": "feat: evaluate component candidates against real welds"},
+    {"id": "CW04_build_ansa_v2411_visualization_package", "priority": 4, "depends_on": ["CW03_evaluate_component_candidates_against_real_spots"], "pass": false, "goal": "Build a reproducible ANSA-v24.1.1 marker visualization package.", "changes": ["Write ansa_import_manifest.json, per-layer CSV files, and ansa/ansa_import.py.", "Create TP_TRUTH, TP_CANDIDATE, FP_CANDIDATE, FN_TRUTH, and MATCH_LINK Sets with source IDs traceable to the error analysis.", "Use points as visual markers only; do not create unvalidated FE spot-weld connectors."], "strict_tests": [{"command": ".venv\\Scripts\\python -m pytest tests\\test_component_weld_evaluation.py", "expect_exit_code": 0}, {"command": ".venv\\Scripts\\python -m py_compile scripts\\run_component_weld_evaluation.py", "expect_exit_code": 0}], "completion_commit": "feat: package component weld evaluation for ANSA"},
+    {"id": "CW05_verify_ansa_open_render_and_publish_conclusion", "priority": 5, "depends_on": ["CW04_build_ansa_v2411_visualization_package"], "pass": false, "goal": "Verify real ANSA import/open/save/reopen behavior and publish the final single-dataset conclusion.", "changes": ["Resolve the installed ANSA v24.1.1 shortcut to its executable and execute the generated import script.", "Record ANSA version, import/reopen status, created entity counts, logs, database path, and screenshots in ansa_render_validation.json/.md.", "Fail if ANSA cannot import, save, reopen, match expected counts, or produce nonempty screenshots; then publish a conclusion JSON/Markdown without generalization claims."], "strict_tests": [{"command": ".venv\\Scripts\\python scripts\\check_ansa_weld_visualization.py --latest-run", "expect_exit_code": 0}, {"command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\cw05-full", "expect_exit_code": 0}, {"command": "git diff --check", "expect_exit_code": 0}], "completion_commit": "feat: verify component weld evaluation in ANSA"}
   ]
 }
