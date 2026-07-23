@@ -227,7 +227,7 @@ To render a particular existing ANSA database instead, pass its file path:
 .venv\Scripts\python scripts\open_component_weld_ansa_scene.py --ansa-part D:\work\part_to_review.ansa
 ```
 
-It starts ANSA, opens the database, and runs the managed `ansa/open_component_weld_cad_review.py` startup script.
+It passes the database to ANSA's native startup loader, then runs a safe temporary display script that only changes view flags.
 That script applies `ansa/apply_component_weld_review_display.py`: Part-colour shaded rendering with wireframe,
 CONS, bounds, grids, midpoint/C-node, and topology hot points disabled. It prevents small 3 mm spheres from being
 misread as cross-shaped CAD topology. The display script can also be run manually in an already-open ANSA session.

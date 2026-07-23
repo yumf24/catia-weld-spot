@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-07-23 16:48:00 +08:00 - Prevent ANSA launcher GUI startup deadlock
+
+**What changed**
+- Reworked the review launcher to pass the target `.ansa` database as ANSA's native positional startup input. The subsequent `-exec` script now only applies display flags; it no longer calls `base.Open()` or camera-fitting APIs while ANSA is still starting.
+- This specifically avoids the observed frozen `Executing Script` GUI state on the large component CAD database. Both managed-scene and `--ansa-part` paths use the safe sequence.
+
+**Verification**
+- Added and updated launcher contract coverage. `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\ansa-launch-deadlock-full`: **125 passed**; `git diff --check`: passed. The prior launcher-owned ANSA processes are left for the user to close because the environment does not authorize terminating GUI processes.
+
 ## 2026-07-23 16:32:00 +08:00 - Allow an explicit ANSA database in review launcher
 
 **What changed**

@@ -32,7 +32,7 @@ from check_ansa_weld_visualization import newest_completed_run, resolve_ansa_sho
 
 
 def _display_script_source() -> str:
-    """Return the ANSA script that applies the review display in any GUI session."""
+    """Return a non-blocking ANSA script that applies review display flags."""
     return '''"""Apply the intended shaded display for component_weld_cad_review.ansa."""
 from ansa import base
 
@@ -49,8 +49,6 @@ def apply_review_display():
         "GRIDs": "off",
         "Hot Points": "off",
     })
-    base.SetViewAngles("F10")
-    base.ZoomAll()
 
 
 def main():
@@ -58,25 +56,22 @@ def main():
 '''
 
 
-def _startup_script_source(database_path: Path, display_script_path: Path) -> str:
-    """Return an ANSA GUI startup script that opens the DB and applies its display."""
+def _startup_script_source(display_script_path: Path) -> str:
+    """Return an ANSA GUI startup script for an already-open database."""
     return textwrap.dedent(
         """\
-        \"\"\"Open the CAD weld review database and apply its presentation settings.\"\"\"
+        \"\"\"Apply CAD weld review presentation settings to the open database.\"\"\"
         from ansa import base
 
-        DATABASE_PATH = {database_path!r}
         DISPLAY_SCRIPT_PATH = {display_script_path!r}
 
         def main():
-            if base.Open(DATABASE_PATH) != 0:
-                raise RuntimeError("could not open review database: " + DATABASE_PATH)
             namespace = {{"__file__": DISPLAY_SCRIPT_PATH}}
             with open(DISPLAY_SCRIPT_PATH, encoding="utf-8") as handle:
                 exec(compile(handle.read(), DISPLAY_SCRIPT_PATH, "exec"), namespace)
             namespace["apply_review_display"]()
         """
-    ).format(database_path=str(database_path), display_script_path=str(display_script_path))
+    ).format(display_script_path=str(display_script_path))
 
 
 def _runner_source(run_dir: Path, cad_path: Path, analysis: dict[str, Any], expected_counts: dict[str, int]) -> str:
@@ -237,7 +232,7 @@ def _run(executable: Path, run_dir: Path, inputs: dict[str, Any], timeout_minute
     paths = scene_paths(run_dir)
     paths["display_script"].write_text(_display_script_source(), encoding="utf-8")
     paths["startup_script"].write_text(
-        _startup_script_source(paths["database"], paths["display_script"]), encoding="utf-8"
+        _startup_script_source(paths["display_script"]), encoding="utf-8"
     )
     runner = ansa_dir / "build_component_weld_cad_review.py"
     expected_face_counts = {name: count * SPHERE_FACE_COUNT for name, count in inputs["marker_counts"].items() if name != LINK_LAYER}
