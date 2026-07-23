@@ -12,6 +12,7 @@ from weld_core.component_weld_evaluation import (
     planar_faces_document,
 )
 from weld_core.step_geometry import StepFace
+from weld_core.component_weld_point_evaluation import evaluate_component_weld_points
 
 
 def test_package_extracts_only_planar_faces(monkeypatch):
@@ -76,3 +77,19 @@ def planar_faces_document_from_fixture():
             FaceRecord(id="B/STEP/face_0001", part="B", body="STEP", area=100.0, normal=(0, 0, 1), plane_origin=(0, 0, 0.05), centroid=(5, 5, 0.05), vertices=[(0, 0, 0.05), (10, 0, 0.05), (10, 10, 0.05), (0, 10, 0.05)]),
         ],
     )
+
+
+def test_point_evaluation_publishes_traceable_counts_and_sensitivity():
+    from weld_core.schema import Candidate, CandidatesDocument, GroundTruthDocument, GroundTruthPoint
+
+    truth = GroundTruthDocument(points=[GroundTruthPoint(id="gt-1", position=(0, 0, 0)), GroundTruthPoint(id="gt-2", position=(100, 0, 0))])
+    candidates = CandidatesDocument(candidates=[Candidate(id="wc-1", position=(3, 0, 0), faces=["face-a"]), Candidate(id="wc-2", position=(200, 0, 0), faces=["face-b"])])
+
+    report, analysis = evaluate_component_weld_points(truth, candidates)
+
+    assert report["summary"]["true_positives"] == len(analysis["true_positives"]) == 1
+    assert report["summary"]["false_positives"] == len(analysis["false_positives"]) == 1
+    assert report["summary"]["false_negatives"] == len(analysis["false_negatives"]) == 1
+    assert report["summary"]["f1"] == 0.5
+    assert set(report["sensitivity_by_tolerance_mm"]) == {"5.0", "10.0", "20.0"}
+    assert analysis["true_positives"][0]["candidate_faces"] == ["face-a"]

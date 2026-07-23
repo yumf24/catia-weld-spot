@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-23 14:41:20 +08:00 - CW03 评测 component 候选与真实焊点
+
+**做了什么**
+- 新增显式离线点评测入口与纯核心报告模块；候选生成路径不导入该模块，只有评测命令读取 `SPOT.step`。
+- 在候选受管运行内生成评测与逐点错误 JSON/Markdown，主阈值固定为 10 mm，另发布 5/10/20 mm 敏感性；TP 保留真值/候选坐标、距离和候选 face ID，FP/FN 保留相应坐标。
+- 真实运行 `20260723-143321-candidate` 的 10 mm 结果为 TP/FP/FN=`69/130/217`，precision=`34.67%`、recall=`24.13%`、F1=`28.45%`；这是单数据集离线证据，不代表泛化结论。
+
+**验证结果**
+- `.venv\\Scripts\\python -m pytest tests\\test_component_weld_evaluation.py tests\\test_evaluate.py`：**11 passed**。
+- `.venv\\Scripts\\python scripts\\evaluate_component_weld_points.py data\\component-weld-evaluation\\20260723-143321-candidate`：成功生成并登记全部评测产物。
+- 输出一致性断言：摘要 TP/FP/FN 分别等于逐点分类数组长度；敏感性包含 5/10/20 mm：通过。
+
+---
+
 ## 2026-07-23 14:35:02 +08:00 - CW02 创建隔离的 component 候选运行
 
 **做了什么**

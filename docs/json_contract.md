@@ -177,6 +177,18 @@ score、精确原因和稳定 recovery 状态。它只用显式离线 evaluation
 ANSA v24.1.1 包只创建可视化标记：`TP_TRUTH`、`TP_CANDIDATE`、`FP_CANDIDATE`、`FN_TRUTH`
 和 `MATCH_LINK`。这些标记不代表、也绝不能创建或宣称为 FE `SPOTWELD` / 焊接连接器。
 
+## component 焊点评测产物
+
+`scripts/evaluate_component_weld_points.py <run-dir>` 是显式离线评测入口；`run-dir` 必须是
+`data/component-weld-evaluation/` 直属的已完成候选运行。它才会读取 `SPOT.step` 并在该运行内写入
+`ground_truth.json`、`weld_point_evaluation.json/.md` 和 `weld_point_error_analysis.json/.md`。
+候选生成路径不导入此评测模块。
+
+主评测 JSON 固定记录 10 mm 的 TP/FP/FN、precision、recall、F1，以及 mean/median/max 匹配距离；
+`sensitivity_by_tolerance_mm` 固定包含 5、10、20 mm。逐点错误 JSON 记录 TP 的真值与候选坐标、
+距离和候选 face ID，FN 的真值坐标，以及 FP 的候选坐标和 face ID。每次生成前都会校验三个摘要
+计数分别等于对应逐点分类数组的长度。
+
 ## ground_truth.json（真实焊点，评测用 → 核心输入）
 
 由 `scripts/extract_ground_truth.py` 离线解析焊点标记球 STEP 文件（如 `raw_data/component/SPOT.step`）

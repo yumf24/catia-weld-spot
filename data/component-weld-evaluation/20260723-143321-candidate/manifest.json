@@ -36,6 +36,36 @@
       "kind": "json",
       "sha256": "2275ab9cc6bd77a358241c37c67e572abae11168c8218090a88b6f64dba7e1b2",
       "count": 199
+    },
+    "ground_truth": {
+      "path": "ground_truth.json",
+      "kind": "json",
+      "sha256": "71b9b7f78fe70bd627dac9820672b9308d426121eca8248afa9776df9d320b27"
+    },
+    "weld_point_evaluation": {
+      "path": "weld_point_evaluation.json",
+      "kind": "json",
+      "sha256": "31e842648e61f4f567d3af105ebb4879c199e1381ae2cbb993de029557890399"
+    },
+    "weld_point_evaluation_markdown": {
+      "path": "weld_point_evaluation.md",
+      "kind": "markdown",
+      "sha256": "695642a5ce8fcc3a0c74ee176dd36fa717f29d654af58b60282bd35b11330652"
+    },
+    "weld_point_error_analysis": {
+      "path": "weld_point_error_analysis.json",
+      "kind": "json",
+      "sha256": "a6db0544b79166f10eb9dd5fd68dbb6e367d8e59ccef6085a1bb54e48c6a3c22"
+    },
+    "weld_point_error_analysis_markdown": {
+      "path": "weld_point_error_analysis.md",
+      "kind": "markdown",
+      "sha256": "c59d7094699d49add17bc161c1ac46daac2ca97859210188cb93b8c299e8da86"
     }
+  },
+  "evaluation": {
+    "ground_truth_markers": "raw_data/component/SPOT.step",
+    "matching": "greedy_nearest_distance_one_to_one",
+    "primary_tolerance_mm": 10.0
   }
 }
