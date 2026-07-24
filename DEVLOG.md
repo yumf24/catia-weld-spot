@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-07-24 17:52:26 +08:00 - RW02 发布因果候选链 atlas
+
+**What changed**
+- 新增 evaluation-only `candidate_chain_atlas` 与构建脚本：逐条 planar-supported 真值直接关联 supporting interface、selector pair、精确区域、布局、物理站点、候选 rank/前缀命中和一对一匹配关系。
+- FN 归类替换为互斥的 selector 拒绝、区域构建失败、布局为空、候选池覆盖缺口、排序前缀之后、匹配碰撞和匹配偏移；不再通过任意邻近候选推断接口，旧点评测的预算/合并/距离归因也改为仅接受同接口审计证据。
+- 大型 `pair_audit.json` 采用流式解码，仅加载 planar-supported 真值直接引用的 pair；更新 JSON 契约、CLI 和 RW02 状态。
+
+**Verification**
+- `.venv\\Scripts\\python -m pytest tests\\test_candidate_chain_atlas.py tests\\test_component_weld_evaluation.py --basetemp .pytest_cache\\rw02-unit`：**11 passed**。
+- 历史 `pw06-planar-optimization` atlas：planar FN 精确拆分为 `selector_rejected:coverage_below_threshold=11`、`layout_empty=8`、`ranked_after_k=21`、`match_offset=4`、`pool_coverage_gap=8`；TP `45` + FN `52` = `97`，无 `interface_not_found`。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\rw02-full`：**163 passed**。
+
 ## 2026-07-24 17:41:09 +08:00 - RW01 冻结可变候选数前沿契约
 
 **What changed**

@@ -145,6 +145,13 @@ def enrich_with_planar_adjudication(
     def distance(position: list[float] | tuple[float, float, float], other: list[float] | tuple[float, float, float]) -> float:
         return sum((a - b) ** 2 for a, b in zip(position, other)) ** 0.5
 
+    def interfaces_for(point: dict[str, Any]) -> set[str]:
+        values = point.get("source_interfaces", point.get("supporting_interfaces", []))
+        return {
+            f"{item['face_a_id']}::{item['face_b_id']}" if isinstance(item, dict) else item
+            for item in values
+        }
+
     for row in analysis["false_negatives"]:
         adjudication_row = rows.get(row["ground_truth_id"])
         if adjudication_row is None or adjudication_row["status"] != "planar_supported":
@@ -158,13 +165,28 @@ def enrich_with_planar_adjudication(
         if candidate_audit is not None and interfaces and not interfaces & audit_interfaces:
             row["attribution"] = "interface_not_found"
             continue
-        if any(distance(position, point.get("position_mm", [])) <= PRIMARY_TOLERANCE_MM for point in excluded_points):
+        if any(
+            interfaces & interfaces_for(point)
+            and distance(position, point.get("position_mm", [])) <= PRIMARY_TOLERANCE_MM
+            for point in excluded_points
+        ):
             row["attribution"] = "budget_excluded"
             continue
-        if any(distance(position, point.get("position_mm", [])) <= PRIMARY_TOLERANCE_MM for point in merged_points):
+        if any(
+            interfaces & interfaces_for(point)
+            and distance(position, point.get("position_mm", [])) <= PRIMARY_TOLERANCE_MM
+            for point in merged_points
+        ):
             row["attribution"] = "merged_or_filtered"
             continue
-        nearest = min((distance(position, candidate.position) for candidate in candidates.candidates), default=float("inf"))
+        nearest = min(
+            (
+                distance(position, candidate.position)
+                for candidate in candidates.candidates
+                if interfaces & set(candidate.supporting_interfaces)
+            ),
+            default=float("inf"),
+        )
         # A supported point with no candidate within a coverage radius is a
         # region/layout issue; inside that radius but outside 10 mm is a layout
         # offset.  Categories are selected only from offline audit evidence.

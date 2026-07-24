@@ -234,6 +234,20 @@ ANSA v24.1.1 包只创建可视化标记：`TP_TRUTH`、`TP_CANDIDATE`、`FP_CAN
 或不同 K 的 precision 伪装为同规模比较。`--historical-only` 不重放旧输入，只冻结 RW01 的 K=600
 观察值和 legacy interface-balanced 的 K=800/1000/1628 planar TP 证据。
 
+### Candidate-chain atlas（evaluation-only）
+
+`scripts/build_candidate_chain_atlas.py --run-dir <run-dir>` 将所有 `planar_supported` 真值逐条关联到
+其直接 `supporting_interfaces`、pair selector 决策、精确区域引用、布局样本、物理站点、候选 rank、
+前缀命中和一对一匹配关系，输出 `candidate_chain_atlas.json/.md`。它只读取已完成运行的 production
+审计及显式 evaluation 产物；任何关联都必须由接口 ID、精确区域引用或物理站点来源直接证明，不能由
+任意空间邻近候选推断接口存在。
+
+每个 planar-supported FN 恰好属于一个原因：`selector_rejected:<reason>`、`region_build_failed`、
+`layout_empty`、`pool_coverage_gap`、`ranked_after_k`、`match_collision` 或 `match_offset`。atlas 必须
+发布守恒式：planar-supported TP 加全部这些 FN 原因计数等于 planar-supported 分母；同时验证全量
+TP/FP/FN 与点级评测 JSON 一致。为了处理大型 `pair_audit.json`，构建器只流式读取被
+planar-supported 接口直接引用的 pair 记录。
+
 ### 平面真值裁定（evaluation-only）
 
 `scripts/adjudicate_component_planar_truth.py --run-dir data/component-weld-evaluation/<run-id>` 显式读取

@@ -152,7 +152,9 @@ def test_point_evaluation_attributes_audited_budget_exclusion():
         "supporting_interfaces": ["a::b"],
     }]}, candidates, {"original_exact_layout_points": [{
         "position_mm": [0, 0, 0], "source_interfaces": ["a::b"],
-    }], "final_candidates": [{"position_mm": [0, 0, 0], "status": "budget_excluded"}]})
+    }], "final_candidates": [{
+        "position_mm": [0, 0, 0], "supporting_interfaces": ["a::b"], "status": "budget_excluded",
+    }]})
     assert analysis["false_negatives"][0]["attribution"] == "budget_excluded"
     assert analysis["false_negative_attribution_counts"]["budget_excluded"] == 1
 

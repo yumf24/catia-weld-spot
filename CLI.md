@@ -55,6 +55,7 @@ test-catia/
 | [提取真实焊点](#提取真实焊点) | `scripts/extract_ground_truth.py` | 否 | 焊点标记 STEP（如 `raw_data/component/SPOT.step`） | 运行目录内 `ground_truth.json` |
 | [评测候选点](#评测候选点) | `python -m weld_core.evaluate` | 否 | `ground_truth.json` + `candidates.json` | `evaluation.json` |
 | [构建焊点 operating frontier](#构建焊点-operating-frontier) | `scripts/build_operating_frontier.py` | 否 | 已完成候选运行 + 显式评测产物 | `operating_frontier.json/.md` |
+| [构建候选链 atlas](#构建候选链-atlas) | `scripts/build_candidate_chain_atlas.py` | 否 | 已完成候选运行 + 显式评测产物 | `candidate_chain_atlas.json/.md` |
 
 ---
 
@@ -443,3 +444,22 @@ precision 或 planar-supported TP。
 ```bash
 python scripts/build_operating_frontier.py --run-dir data/component-weld-evaluation/20260724-162131-pw06-planar-optimization --historical-only
 ```
+
+---
+
+## 构建候选链 atlas
+
+**代码路径**：`scripts/build_candidate_chain_atlas.py`
+
+**用途**：以逐真值、逐候选的审计证据发布每个 planar-supported 真值的完整链路，明确漏检发生在
+selector、精确区域、布局、物理站点池、当前排序前缀还是一对一匹配。输出原因互斥，且会验证
+planar-supported TP 与所有 FN 原因之和等于该子集分母。
+
+```bash
+python scripts/build_candidate_chain_atlas.py --run-dir data/component-weld-evaluation/<run-id>
+```
+
+构建器只在 evaluation-only 路径运行。它通过 `supporting_interfaces`、精确区域引用和物理站点来源
+建立关联，不会从任意邻近候选猜测接口；对于大型 `pair_audit.json`，只流式解析与 planar-supported
+真值直接相关的记录。历史 PW06 运行的 52 个 planar FN 被拆分为低覆盖 selector 拒绝 11、布局为空
+8、当前预算/排序前缀之外 21、匹配偏移 4 和候选池覆盖缺口 8。

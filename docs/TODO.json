@@ -107,7 +107,7 @@
       "id": "RW02_publish_causal_candidate_chain_atlas",
       "priority": 2,
       "depends_on": ["RW01_freeze_variable_count_contract_and_frontier_baseline"],
-      "pass": false,
+      "pass": true,
       "goal": "以逐真值、逐候选链路证据替代含混 FN 归因，明确每个漏检发生在 selector、区域、布局、排序还是匹配阶段。",
       "outputs": ["candidate_chain_atlas.json", "candidate_chain_atlas.md"],
       "changes": [
