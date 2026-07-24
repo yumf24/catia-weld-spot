@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-07-24 14:41:08 +08:00 - PW01 冻结平面候选优化契约
+
+**What changed**
+- 在 `docs/TODO.json` 将 PW01 标记为通过；候选生成仅允许读取 `component.step`，而 `SPOT.step` 和评测产物保持 evaluation-only。
+- 冻结全量 286 点的持续报告、10 mm 贪心一对一匹配基线，以及后续 planar-supported 子集的 80% recall 和 500–1000 候选验收目标。
+- 记录当前 component 优化比较基线：TP/FP/FN=69/130/217，10 mm precision=34.67%，recall=24.13%。
+
+**Verification**
+- `.venv\\Scripts\\python -m json.tool docs\\TODO.json`：通过。
+- `.venv\\Scripts\\python -m pytest tests\\test_component_weld_evaluation.py tests\\test_evaluate.py --basetemp .pytest_cache\\pw01-baseline`：**12 passed**。
+- 生产候选路径中检索 `SPOT.step`、`ground_truth`、`planar_truth_adjudication`：无匹配。
+
 ## 2026-07-24 13:55:54 +08:00 - 补充 CLI 仓库目录索引
 
 **What changed**

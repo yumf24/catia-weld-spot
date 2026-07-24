@@ -40,7 +40,7 @@
       "id": "PW01_freeze_planar_optimization_contract",
       "priority": 1,
       "depends_on": [],
-      "pass": false,
+      "pass": true,
       "goal": "冻结平面候选优化的输入隔离、自动真值裁定、分级输出和验收口径，建立可复现的实现基线。",
       "changes": [
         "在 JSON 契约和评测入口中明确 component.step 是候选生成唯一 CAD 输入，SPOT.step 与裁定结果严格限制为 evaluation_only。",
