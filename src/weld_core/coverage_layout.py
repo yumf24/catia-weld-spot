@@ -15,6 +15,7 @@ from typing import Any, Iterable
 import numpy as np
 from OCP.BRep import BRep_Tool
 from OCP.BRep import BRep_Builder
+from OCP.BRepGProp import BRepGProp
 from OCP.BRepClass import BRepClass_FaceClassifier
 from OCP.BRepTools import BRepTools
 from OCP.GeomAPI import GeomAPI_ProjectPointOnSurf
@@ -23,6 +24,7 @@ from OCP.TopExp import TopExp_Explorer
 from OCP.TopoDS import TopoDS
 from OCP.TopoDS import TopoDS_Shape
 from OCP.gp import gp_Pnt, gp_Pnt2d
+from OCP.GProp import GProp_GProps
 
 from .config import WeldParams
 from .exact_planar_interface_regions import ExactPlanarInterfaceRegion
@@ -40,6 +42,13 @@ class CoverageLayoutAudit:
     generated_count: int
     retained_count: int
     rejected_outside_exact_region: int
+    layout_status: str
+    layout_method: str
+    probe_pitch_mm: float
+    max_certificate_distance_mm: float
+    max_projection_error_mm: float
+    boundary_vertex_count: int
+    max_boundary_distance_mm: float
 
 
 def read_exact_region(record: dict, run_dir: str | Any) -> ExactPlanarInterfaceRegion:
@@ -87,6 +96,17 @@ def _vertices(shape: Any) -> list[tuple[float, float, float]]:
     return result
 
 
+def _face_centres(shape: Any) -> list[tuple[float, float, float]]:
+    """Return CAD surface centroids as robust interior probes for each face."""
+    result = []
+    for face in _faces(shape):
+        properties = GProp_GProps()
+        BRepGProp.SurfaceProperties_s(face, properties)
+        centre = properties.CentreOfMass()
+        result.append((float(centre.X()), float(centre.Y()), float(centre.Z())))
+    return result
+
+
 def point_in_exact_region(shape: Any, point: tuple[float, float, float], tolerance_mm: float = 1e-6) -> bool:
     """Return whether ``point`` lies in an OCCT face (including its boundary).
 
@@ -117,31 +137,43 @@ def _candidate_bbox(region: ExactPlanarInterfaceRegion) -> BBox:
     return BBox(min=tuple(float(value) for value in lo), max=tuple(float(value) for value in hi))
 
 
+def _distance(left: tuple[float, float, float], right: tuple[float, float, float]) -> float:
+    return float(np.linalg.norm(np.asarray(left) - np.asarray(right)))
+
+
+def _projection_error(point: tuple[float, float, float], region: ExactPlanarInterfaceRegion) -> float:
+    normal = np.asarray(region.normal, dtype=float)
+    normal /= np.linalg.norm(normal)
+    return abs(float(np.dot(np.asarray(point) - np.asarray(region.plane_origin), normal)))
+
+
 def layout_exact_region(
     region: ExactPlanarInterfaceRegion, params: WeldParams
 ) -> tuple[list[Candidate], CoverageLayoutAudit]:
-    """Lay a coverage grid and boundary supplements inside one exact region.
+    """Build a deterministic, exact-region-checked farthest-point layout.
 
-    The grid pitch is ``sqrt(2) * coverage_radius``: away from boundaries it
-    gives the requested maximum nearest-point distance.  Region vertices are
-    included as boundary supplements, then all generated locations are tested
-    against the exact OCCT region before becoming candidates.
+    A dense finite set of UV-frame probes is generated from the authoritative
+    BREP, classified in native UV, and greedily covered by its farthest probe.
+    The resulting certificate describes that *complete layout pool*, before
+    any later physical-station merging or ranking can create coverage debt.
     """
 
     coverage_radius = params.coverage_radius_mm
     if coverage_radius <= 0:
         raise ValueError("coverage_radius_mm must be positive")
     pitch = math.sqrt(2.0) * coverage_radius
+    probe_pitch = coverage_radius / 2.0
     vertices_3d = _vertices(region.shape)
     if len(vertices_3d) < 3:
         raise ValueError(f"exact region {region.id} has insufficient vertices")
     vertices_2d = project_to_plane(vertices_3d, region.plane_origin, region.normal)
     lo, hi = vertices_2d.min(axis=0), vertices_2d.max(axis=0)
 
-    # Cell-centred samples avoid placing ordinary grid points on a boundary;
-    # explicit vertices below preserve coverage at narrow tips and corners.
-    xs = np.arange(lo[0] + pitch / 2.0, hi[0], pitch)
-    ys = np.arange(lo[1] + pitch / 2.0, hi[1], pitch)
+    # Fine cell-centred probes provide deterministic coverage witnesses;
+    # explicit BREP vertices ensure thin strips and boundary tips cannot be
+    # missed merely because they fall between cell centres.
+    xs = np.arange(lo[0] + probe_pitch / 2.0, hi[0], probe_pitch)
+    ys = np.arange(lo[1] + probe_pitch / 2.0, hi[1], probe_pitch)
     samples_2d = [(float(x), float(y)) for x in xs for y in ys]
     samples_2d.extend((float(x), float(y)) for x, y in vertices_2d)
     center = ((lo + hi) / 2.0).reshape(1, 2)
@@ -161,6 +193,41 @@ def layout_exact_region(
         else:
             rejected += 1
 
+    # The exact face centre is a BREP-derived interior witness.  It repairs
+    # cases where a thin or heavily trimmed face has no retained rectangular
+    # grid probe, without ever fabricating an AABB point.
+    for point in _face_centres(region.shape):
+        if point_in_exact_region(region.shape, point):
+            accepted.append(point)
+
+    if not accepted:
+        raise ValueError(f"exact region {region.id} has no UV-classified layout probes")
+
+    accepted = sorted(set(accepted))
+    boundary_points = sorted({point for point in vertices_3d if point_in_exact_region(region.shape, point)})
+
+    # Seed deterministically with exact boundary witnesses, then repeatedly select the currently farthest
+    # exact probe until every certificate witness is within the coverage
+    # radius.  Tie-breaking is the stable projected-coordinate ordering above.
+    selected = boundary_points or [accepted[0]]
+    nearest = [min(_distance(point, prior) for prior in selected) for point in accepted]
+    while max(nearest) > coverage_radius + 1e-9:
+        index = max(range(len(accepted)), key=lambda item: (nearest[item], tuple(-v for v in accepted[item])))
+        selected.append(accepted[index])
+        nearest = [min(old, _distance(point, accepted[index])) for point, old in zip(accepted, nearest)]
+
+    max_certificate_distance = max(nearest, default=0.0)
+    max_projection_error = max((_projection_error(point, region) for point in selected), default=0.0)
+    max_boundary_distance = max(
+        (min(_distance(vertex, point) for point in selected) for vertex in boundary_points), default=0.0
+    )
+    # Region frames originate from STEP-derived face normals, whose serialized
+    # precision can leave an exact BREP boundary a few microns off that plane.
+    # Keep this tolerance far below the 10 mm coverage radius and publish the
+    # measured value rather than silently treating it as zero.
+    if max_projection_error > 1e-3:
+        raise ValueError(f"exact region {region.id} layout projection error exceeds tolerance")
+
     bbox = _candidate_bbox(region)
     reason = (
         f"exact 2d coverage, interface={region.id}, radius={coverage_radius:.3f}mm, "
@@ -179,7 +246,7 @@ def layout_exact_region(
             region_bbox=bbox,
             reason=reason,
         )
-        for index, position in enumerate(accepted)
+        for index, position in enumerate(selected)
     ]
     return candidates, CoverageLayoutAudit(
         interface_id=region.id,
@@ -188,4 +255,11 @@ def layout_exact_region(
         generated_count=generated,
         retained_count=len(candidates),
         rejected_outside_exact_region=rejected,
+        layout_status="certified",
+        layout_method="exact_uv_adaptive_farthest_point_v1",
+        probe_pitch_mm=probe_pitch,
+        max_certificate_distance_mm=max_certificate_distance,
+        max_projection_error_mm=max_projection_error,
+        boundary_vertex_count=len(vertices_3d),
+        max_boundary_distance_mm=max_boundary_distance,
     )

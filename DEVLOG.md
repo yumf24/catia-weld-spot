@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-07-24 18:08:58 +08:00 - RW03 修复精确区域布局并发布覆盖证书
+
+**What changed**
+- 精确 BREP 区域布局改为 native UV 分类后的确定性自适应最远点策略；窄条、孔洞、凹形、偏移/旋转面和边界均以精确区域探针与 BREP 面心/边界证据覆盖，不再依赖 cell-centre 网格假设。
+- `coverage_layout_audit.json` 升至版本 3：逐接口发布完整布局池的最大证书距离、投影误差、边界证据及布局方法。读取、投影或分类失败会写入 `layout_failed` 审计并使受管运行失败，有效区域不允许静默零点。
+- 新增布局池验收脚本和覆盖证书单测；契约明确覆盖证书仅对应完整布局池，后续截断/排序只能报告 coverage debt。
+
+**Verification**
+- `.venv\\Scripts\\python -m pytest tests\\test_2d_coverage_layout.py tests\\test_exact_region_layout_certificate.py tests\\test_safe_candidate_merging.py --basetemp .pytest_cache\\rw03-unit`：**7 passed**。
+- 真实 `rw03-exact-layout-final` 受管运行：**176/176** 个精确区域均有 certified、非空的完整布局池；`check_exact_layout_pool.py --latest-run` 通过。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\rw03-full`：**165 passed**。
+
 ## 2026-07-24 17:52:26 +08:00 - RW02 发布因果候选链 atlas
 
 **What changed**

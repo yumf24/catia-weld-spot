@@ -141,7 +141,7 @@
       "id": "RW03_repair_exact_region_layout_and_pool_certificate",
       "priority": 3,
       "depends_on": ["RW02_publish_causal_candidate_chain_atlas"],
-      "pass": false,
+      "pass": true,
       "goal": "使每个有效精确区域通过其原生 BREP 表面可靠生成布局池，并对预算前覆盖能力提供可审计证书。",
       "outputs": ["升级的 coverage_layout_audit.json", "每接口布局覆盖证书", "明确的 layout_failed 证据"],
       "changes": [

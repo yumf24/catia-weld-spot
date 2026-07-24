@@ -25,6 +25,14 @@ from .schema import (
 )
 
 
+class ExactLayoutFailure(ValueError):
+    """A controlled exact-layout failure with a publishable audit row."""
+
+    def __init__(self, message: str, audit: dict):
+        super().__init__(message)
+        self.audit = audit
+
+
 def run(faces_doc: FacesDocument, params: WeldParams | None = None) -> CandidatesDocument:
     params = params or WeldParams()
 
@@ -101,8 +109,28 @@ def _layout_registered_exact_regions(run_dir: Path, params: WeldParams):
         # frontier-shaped reference is evaluation-only and must be rejected
         # before the region reader can open it.
         assert_production_read_path(record["geometry_ref"])
-        region = read_exact_region(record, run_dir)
-        laid_out, result = layout_exact_region(region, params)
+        try:
+            region = read_exact_region(record, run_dir)
+            laid_out, result = layout_exact_region(region, params)
+        except (OSError, ValueError) as exc:
+            layout_audit.append({
+                "interface_id": record.get("id", ""), "layout_status": "layout_failed",
+                "retained_count": 0, "failure_reason": str(exc),
+            })
+            raise ExactLayoutFailure(
+                f"exact layout failed for interface {record.get('id', '<unknown>')}: {exc}",
+                {"format_version": 3, "parameters": {"coverage_radius_mm": params.coverage_radius_mm,
+                 "coincident_merge_tolerance_mm": params.coincident_merge_tolerance_mm},
+                 "interfaces": layout_audit, "original_exact_layout_points": [],
+                 "physical_stations": [], "final_candidates": [], "merges": [], "multilayer_groups": []},
+            ) from exc
+        if result.retained_count == 0:
+            raise ExactLayoutFailure(
+                f"exact layout produced no points for valid region {result.interface_id}",
+                {"format_version": 3, "interfaces": [{"interface_id": result.interface_id,
+                 "layout_status": "layout_failed", "retained_count": 0,
+                 "failure_reason": "valid_exact_region_has_zero_layout_points"}]},
+            )
         for candidate in laid_out:
             candidate.exact_region_refs = [record["geometry_ref"]]
         candidates.extend(laid_out)
@@ -113,6 +141,13 @@ def _layout_registered_exact_regions(run_dir: Path, params: WeldParams):
             "generated_count": result.generated_count,
             "retained_count": result.retained_count,
             "rejected_outside_exact_region": result.rejected_outside_exact_region,
+            "layout_status": result.layout_status,
+            "layout_method": result.layout_method,
+            "probe_pitch_mm": result.probe_pitch_mm,
+            "max_certificate_distance_mm": result.max_certificate_distance_mm,
+            "max_projection_error_mm": result.max_projection_error_mm,
+            "boundary_evidence": {"vertex_count": result.boundary_vertex_count,
+                                  "max_nearest_station_distance_mm": result.max_boundary_distance_mm},
         })
     original_layout_points = [
         {
@@ -142,7 +177,7 @@ def _layout_registered_exact_regions(run_dir: Path, params: WeldParams):
         for candidate in candidates
     ]
     return candidates, {
-        "format_version": 2,
+        "format_version": 3,
         "parameters": {
             "coverage_radius_mm": params.coverage_radius_mm,
             "coincident_merge_tolerance_mm": params.coincident_merge_tolerance_mm,
@@ -191,6 +226,14 @@ def main(argv: list[str]) -> int:
             )
         else:
             doc = run(faces_doc)
+    except ExactLayoutFailure as exc:
+        (faces_path.parent / "coverage_layout_audit.json").write_text(
+            json.dumps(exc.audit, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
+        from .data_layout import register_managed_artifact
+        register_managed_artifact(faces_path.parent / "coverage_layout_audit.json", "coverage_layout_audit")
+        print(f"[FAIL] {exc}", file=sys.stderr)
+        return 1
     except (OSError, ValueError) as exc:
         print(f"[FAIL] {exc}", file=sys.stderr)
         return 1

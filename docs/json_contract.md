@@ -84,10 +84,12 @@ data/<part-id>/<run-id>/manifest.json
 
 当输入为受管 `faces.general-selected.json` 且同目录存在
 `interface_region_audit.json` 时，pipeline 必须读取该审计登记的 BREP 精确公共区域进行二维覆盖布局。
-网格 pitch 为 `sqrt(2) * coverage_radius_mm`（默认 coverage radius=10 mm），并以 OCCT
+布局使用精确 UV 分类后的确定性自适应最远点策略（默认 coverage radius=10 mm），并以 OCCT
 face UV 分类逐点确认区域内关系；孔洞、凹口和区域外点不得以投影 AABB 代替。输出同时登记
-`coverage_layout_audit.json`，保留每个接口的生成数、保留数、区域外拒绝数及同物理接口合并审计。
-`coincident_merge_tolerance_mm` 固定登记在该审计的 `parameters` 中，默认是 0.05 mm；它只用于判定空间共点物理站点，绝不能使用 20 mm 的审查/布局间距删除精确二维覆盖点。审计版本 2 额外保留 `original_exact_layout_points`、`physical_stations` 和 `final_candidates`：每条记录包含坐标、来源接口、保留/聚合/排除状态与原因。
+`coverage_layout_audit.json`，保留每个接口的生成数、保留数、区域外拒绝数、完整布局池的最大证书距离、
+最大投影误差与边界证据及同物理接口合并审计。BREP 读取、投影或分类失败必须登记
+`layout_status="layout_failed"` 和失败原因，并使受管运行失败；有效精确区域不得静默产生零点。
+`coincident_merge_tolerance_mm` 固定登记在该审计的 `parameters` 中，默认是 0.05 mm；它只用于判定空间共点物理站点，绝不能使用 20 mm 的审查/布局间距删除精确二维覆盖点。审计版本 3 额外保留 `original_exact_layout_points`、`physical_stations` 和 `final_candidates`：每条记录包含坐标、来源接口、保留/聚合/排除状态与原因。覆盖证书仅适用于完整布局池；任何后续候选前缀只能报告 coverage debt，不能声称逐接口 10 mm 覆盖仍然成立。
 
 既有受管运行可能包含 `candidate_budget_audit.json`，用于追溯历史 interface-balanced 截断。它不是正式验收输入：不得以 `candidate_count_min`、`candidate_count_max`、`candidate_budget_target` 或 600 点截断判定通过/失败。候选数量只可作为 evaluation-only 前沿横轴和人工复核工作量报告；完整物理站点排序与预算器退役由后续受管版本落实。
 多个空间共点且共享参与零件的接口会聚合为一个物理连接组，输出全部支持接口及实际 `layer_count`；
