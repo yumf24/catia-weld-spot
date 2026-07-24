@@ -88,6 +88,7 @@ def _layout_registered_exact_regions(run_dir: Path, params: WeldParams):
 
     from .candidate_merging import safe_merge_candidates
     from .coverage_layout import layout_exact_region, read_exact_region
+    from .multilayer_candidates import aggregate_multilayer_candidates
 
     audit_path = run_dir / "interface_region_audit.json"
     audit = json.loads(audit_path.read_text(encoding="utf-8"))
@@ -96,6 +97,8 @@ def _layout_registered_exact_regions(run_dir: Path, params: WeldParams):
     for record in audit.get("regions", []):
         region = read_exact_region(record, run_dir)
         laid_out, result = layout_exact_region(region, params)
+        for candidate in laid_out:
+            candidate.exact_region_refs = [record["geometry_ref"]]
         candidates.extend(laid_out)
         layout_audit.append({
             "interface_id": result.interface_id,
@@ -106,7 +109,8 @@ def _layout_registered_exact_regions(run_dir: Path, params: WeldParams):
             "rejected_outside_exact_region": result.rejected_outside_exact_region,
         })
     candidates, merge_audit = safe_merge_candidates(candidates, params)
-    return candidates, {"format_version": 1, "parameters": {"coverage_radius_mm": params.coverage_radius_mm}, "interfaces": layout_audit, "merges": merge_audit}
+    candidates, multilayer_audit = aggregate_multilayer_candidates(candidates, params)
+    return candidates, {"format_version": 1, "parameters": {"coverage_radius_mm": params.coverage_radius_mm}, "interfaces": layout_audit, "merges": merge_audit, "multilayer_groups": multilayer_audit}
 
 
 def main(argv: list[str]) -> int:

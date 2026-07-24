@@ -103,6 +103,8 @@ def get_or_create_body(part):
 def _candidate_info(c: Candidate) -> str:
     return (
         f"faces={','.join(c.faces)}; layer={c.layer_type}; "
+        f"layer_count={c.layer_count}; interfaces={','.join(c.supporting_interfaces)}; "
+        f"confidence={c.confidence_tier}; exact_regions={','.join(c.exact_region_refs)}; "
         f"spacing={c.spacing_mm:.2f}mm; reason={c.reason}"
     )
 

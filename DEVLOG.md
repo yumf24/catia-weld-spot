@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-24 15:35:00 +08:00 - PW05 多层与置信度候选契约
+
+**What changed**
+- `Candidate` 新增向后兼容的 `layer_count`、`supporting_interfaces`、`confidence_tier` 与 `exact_region_refs`；旧 JSON 自动获得 2 层、medium、空引用的安全默认值。
+- 将空间共点且共享参与零件的精确接口聚合为一个物理连接组，保留所有接口和 BREP 引用，正确表达 2/3/4+ 层；邻近但不共享零件的接口不会错误合并。
+- 精确 BREP 逐点确认的候选标为 high，旧契约候选为 medium，明确 low 的候选不丢弃；CATIA info 参数、离线错误归因与 ANSA TP/FP CSV 均传递这些审计字段。
+- 更新 JSON 契约并将 PW05 标记为通过。
+
+**Verification**
+- `.venv\\Scripts\\python -m pytest tests\\test_multilayer_candidates.py tests\\test_candidate_confidence.py tests\\test_component_weld_evaluation.py tests\\test_component_weld_ansa_scene.py tests\\test_ansa_portable_review.py tests\\test_pipeline.py --basetemp .pytest_cache\\pw05-contract`：**20 passed**。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw05-full`：**142 passed**。
+
+---
+
 ## 2026-07-24 15:28:55 +08:00 - PW04 二维覆盖布局与安全合并
 
 **What changed**

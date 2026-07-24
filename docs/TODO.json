@@ -177,7 +177,7 @@
       "id": "PW05_add_multilayer_and_confidence_candidate_contract",
       "priority": 5,
       "depends_on": ["PW04_add_2d_coverage_layout_and_safe_merging"],
-      "pass": false,
+      "pass": true,
       "goal": "扩展候选契约、可视化和写回链路，使两层、多层和置信度分级均可追溯且向后兼容。",
       "changes": [
         "为 Candidate 增加 layer_count、supporting_interfaces、confidence_tier 和精确区域/审计引用；保留 faces 和 layer_type 兼容既有消费者。",

@@ -73,7 +73,11 @@ data/<part-id>/<run-id>/manifest.json
 | `candidates[].id` | str | 如 `wc_001` |
 | `candidates[].position` | [x,y,z] | 建点坐标（中间厚度） |
 | `candidates[].faces` | str[] | 关联面 id |
-| `candidates[].layer_type` | `two_layer`/`three_layer` | 层数分类；V1 恒为 `two_layer`（按两张贴合面配对生成，三层板自动识别/合并未实现，见 DEVLOG） |
+| `candidates[].layer_type` | `two_layer`/`three_layer` | 为兼容既有消费者保留的层型：两层为 `two_layer`，三层及以上为 `three_layer`；精确层数见 `layer_count` |
+| `candidates[].layer_count` | int ≥2 | 物理连接组的实际唯一零件层数；为兼容旧消费者，三层及以上仍以 `layer_type="three_layer"` 表示 |
+| `candidates[].supporting_interfaces` | str[] | 支持此物理位置的 canonical 平面接口 id，保留聚合来源 |
+| `candidates[].confidence_tier` | `high`/`medium`/`low` | 高：精确 BREP 公共区域已逐点确认；中：旧契约/未带精确区域引用；低：上游明确标识为低证据，仍必须输出和可视化 |
+| `candidates[].exact_region_refs` | str[] | 受管精确接口 BREP 的相对引用；旧候选为空数组 |
 | `candidates[].spacing_mm` | float | 点间距；精确接口区域布局时为二维网格 pitch |
 | `candidates[].region_bbox` | {min,max} | 候选区域包围盒 |
 | `candidates[].reason` | str | 生成原因 |
@@ -83,6 +87,8 @@ data/<part-id>/<run-id>/manifest.json
 网格 pitch 为 `sqrt(2) * coverage_radius_mm`（默认 coverage radius=10 mm），并以 OCCT
 face UV 分类逐点确认区域内关系；孔洞、凹口和区域外点不得以投影 AABB 代替。输出同时登记
 `coverage_layout_audit.json`，保留每个接口的生成数、保留数、区域外拒绝数及同物理接口合并审计。
+多个空间共点且共享参与零件的接口会聚合为一个物理连接组，输出全部支持接口及实际 `layer_count`；
+仅空间邻近但没有共享零件的接口绝不合并。
 
 ## faces.general-selected.json（通用选面 → 核心输入）
 

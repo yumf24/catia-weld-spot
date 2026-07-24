@@ -57,6 +57,16 @@ def evaluate_component_weld_points(
     truth_by_id = {point.id: point for point in ground_truth.points}
     candidate_by_id = {candidate.id: candidate for candidate in candidates.candidates}
 
+    def candidate_trace(candidate_id: str) -> dict[str, Any]:
+        candidate = candidate_by_id[candidate_id]
+        return {
+            "candidate_faces": candidate.faces,
+            "candidate_layer_count": candidate.layer_count,
+            "candidate_supporting_interfaces": candidate.supporting_interfaces,
+            "candidate_confidence_tier": candidate.confidence_tier,
+            "candidate_exact_region_refs": candidate.exact_region_refs,
+        }
+
     errors: dict[str, list[dict[str, Any]]] = {
         "true_positives": [
             {
@@ -65,7 +75,7 @@ def evaluate_component_weld_points(
                 "candidate_id": match.candidate_id,
                 "candidate_position_mm": candidate_by_id[match.candidate_id].position,
                 "distance_mm": match.distance_mm,
-                "candidate_faces": candidate_by_id[match.candidate_id].faces,
+                **candidate_trace(match.candidate_id),
             }
             for match in primary.matches
         ],
@@ -81,7 +91,7 @@ def evaluate_component_weld_points(
             {
                 "candidate_id": candidate_id,
                 "candidate_position_mm": candidate_by_id[candidate_id].position,
-                "candidate_faces": candidate_by_id[candidate_id].faces,
+                **candidate_trace(candidate_id),
             }
             for candidate_id in primary.unmatched_candidates
         ],

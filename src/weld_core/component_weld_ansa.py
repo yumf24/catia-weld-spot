@@ -23,16 +23,28 @@ def build_ansa_layers(error_analysis: dict[str, Any]) -> dict[str, list[dict[str
     layers = {name: [] for name in LAYERS}
     for row in error_analysis["true_positives"]:
         layers["TP_TRUTH"].append({"source_id": row["ground_truth_id"], **_point(row["ground_truth_position_mm"])})
-        layers["TP_CANDIDATE"].append({"source_id": row["candidate_id"], "faces": ";".join(row["candidate_faces"]), **_point(row["candidate_position_mm"])})
+        layers["TP_CANDIDATE"].append(_candidate_marker(row))
         layers["MATCH_LINK"].append({"source_id": f"{row['ground_truth_id']}->{row['candidate_id']}", **_link(row["ground_truth_position_mm"], row["candidate_position_mm"])})
     for row in error_analysis["false_positives"]:
-        layers["FP_CANDIDATE"].append({"source_id": row["candidate_id"], "faces": ";".join(row["candidate_faces"]), **_point(row["candidate_position_mm"])})
+        layers["FP_CANDIDATE"].append(_candidate_marker(row))
     for row in error_analysis["false_negatives"]:
         layers["FN_TRUTH"].append({"source_id": row["ground_truth_id"], **_point(row["ground_truth_position_mm"])})
     expected = {"TP_TRUTH": len(error_analysis["true_positives"]), "TP_CANDIDATE": len(error_analysis["true_positives"]), "FP_CANDIDATE": len(error_analysis["false_positives"]), "FN_TRUTH": len(error_analysis["false_negatives"]), "MATCH_LINK": len(error_analysis["true_positives"])}
     if {name: len(rows) for name, rows in layers.items()} != expected:
         raise ValueError("ANSA marker rows do not match point-level error analysis")
     return layers
+
+
+def _candidate_marker(row: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "source_id": row["candidate_id"],
+        "faces": ";".join(row["candidate_faces"]),
+        "layer_count": row.get("candidate_layer_count", 2),
+        "supporting_interfaces": ";".join(row.get("candidate_supporting_interfaces", [])),
+        "confidence_tier": row.get("candidate_confidence_tier", "medium"),
+        "exact_region_refs": ";".join(row.get("candidate_exact_region_refs", [])),
+        **_point(row["candidate_position_mm"]),
+    }
 
 
 def _point(position: list[float]) -> dict[str, float]:

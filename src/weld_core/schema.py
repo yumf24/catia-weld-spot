@@ -69,6 +69,11 @@ class Candidate(BaseModel):
     position: Vec3
     faces: list[str] = Field(default_factory=list)
     layer_type: Literal["two_layer", "three_layer"] = "two_layer"
+    # Defaults preserve every pre-PW05 candidates.json document.
+    layer_count: int = Field(default=2, ge=2)
+    supporting_interfaces: list[str] = Field(default_factory=list)
+    confidence_tier: Literal["high", "medium", "low"] = "medium"
+    exact_region_refs: list[str] = Field(default_factory=list)
     spacing_mm: float = 0.0
     region_bbox: Optional[BBox] = None
     reason: str = ""
