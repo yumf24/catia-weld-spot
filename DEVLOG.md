@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-07-24 14:45:00 +08:00 - PW02 增加离线平面真值裁定
+
+**What changed**
+- 新增仅供离线评测使用的 `planar_truth_adjudication` 模块和 `adjudicate_component_planar_truth.py` 命令；它显式读取 `component.step` 和 `SPOT.step`，向受管候选运行登记逐点 JSON/Markdown 裁定。
+- 仅以不同零件、近平行、间隙合格、OCCT 精确投影公共面和精确点位关系判定 `planar_supported`。AABB 仅排除不可能重叠的 pair；多接口歧义、区域外和 OCCT 异常均显式保留为 `out_of_scope_or_unresolved`。
+- 更新 JSON 契约并将 PW02 标记通过。真实 component 运行对 286 条真值给出 97 条 planar-supported、189 条 out-of-scope-or-unresolved；该结果仅为单件离线分母证据。
+
+**Verification**
+- `.venv\\Scripts\\python -m pytest tests\\test_planar_truth_adjudication.py --basetemp .pytest_cache\\pw02-adjudication`：**6 passed**。
+- `.venv\\Scripts\\python scripts\\adjudicate_component_planar_truth.py --run-dir data\\component-weld-evaluation\\20260723-143321-candidate`：成功登记 286 条裁定 JSON/Markdown。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw02-full`：**131 passed**。
+
 ## 2026-07-24 14:41:08 +08:00 - PW01 冻结平面候选优化契约
 
 **What changed**

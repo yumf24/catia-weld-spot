@@ -73,7 +73,7 @@
       "id": "PW02_add_offline_planar_truth_adjudication",
       "priority": 2,
       "depends_on": ["PW01_freeze_planar_optimization_contract"],
-      "pass": false,
+      "pass": true,
       "goal": "以纯离线 OCCT 几何自动裁定每个真实焊点是否可由平面接口支持，并生成可审计的评测分母。",
       "changes": [
         "新增 evaluation-only 平面真值裁定模块和命令，显式读取 component.step 与 SPOT.step，输出 planar_truth_adjudication.json/.md。",

@@ -189,6 +189,18 @@ ANSA v24.1.1 包只创建可视化标记：`TP_TRUTH`、`TP_CANDIDATE`、`FP_CAN
 距离和候选 face ID，FN 的真值坐标，以及 FP 的候选坐标和 face ID。每次生成前都会校验三个摘要
 计数分别等于对应逐点分类数组的长度。
 
+### 平面真值裁定（evaluation-only）
+
+`scripts/adjudicate_component_planar_truth.py --run-dir data/component-weld-evaluation/<run-id>` 显式读取
+`component.step` 与 `SPOT.step`，并在同一受管运行中生成 `planar_truth_adjudication.json/.md`。该命令不得
+被候选生成、selector、pipeline 或 CATIA 写回调用。
+
+裁定 JSON 对全部 286 个原始真值逐条保留 `status`、`reason`、候选 `supporting_interfaces` 和完整
+`evaluated_interfaces`。每条接口记录双方 CAD 面/零件、法向夹角、平面间隙、精确公共面积、点与精确公共
+区域关系及 `layer_count`。只有不同零件、近平行、间隙合格、正 OCCT 精确公共面积且点位于公共区域的唯一
+接口，才标记为 `planar_supported`；多接口歧义、区域外、布尔异常或证据不足均保留为
+`out_of_scope_or_unresolved`，从不从全量统计中删除。
+
 ## component ANSA 可视化包
 
 `scripts/package_component_weld_ansa.py <run-dir>` 只消费同一运行的
