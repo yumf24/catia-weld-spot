@@ -8,6 +8,34 @@
 标注 **[需 CATIA]** 的命令必须在 Windows、CATIA V5 已打开且目标文档处于激活状态时运行；
 其余命令纯离线（Python + numpy / OCP），不需要 CATIA。
 
+## 仓库目录结构与职责
+
+以下为当前仓库的顶层目录结构。目录中的运行产物、CAD 输入和本地环境受 `.gitignore`
+管理；`data/` 与 `raw_data/` 中的 `manifest.json` 例外，会保留在仓库中用于记录数据来源和运行契约。
+
+```text
+test-catia/
+├── .agents/                 # Agents-first 工作流的本地状态预留目录（当前为空）
+├── .claude/                 # Claude Code 本地配置；不纳入版本控制
+├── .git/                    # Git 版本库元数据
+├── .pytest_cache/           # pytest 缓存；可随时重新生成
+├── .venv/                   # 项目本地 Python 虚拟环境
+├── catia/                   # CATIA V5 / pycatia 集成：提取、STEP 导出和候选点回写
+├── data/                    # 按 data/<part-id>/<run-id>/ 存放受管流水线、评测和诊断产物
+├── docs/                    # 长期项目文档、算法说明、数据契约和待办项
+├── logs/                    # 本地运行日志与性能日志；不纳入版本控制
+├── raw_data/                # 原始 CAD/STEP 输入，按 raw_data/<part-id>/ 管理，并以 manifest 登记
+├── scripts/                 # 可直接执行的 CLI：环境检查、编排、离线分析、评测、ANSA 工具和打包
+├── src/
+│   └── weld_core/           # 平台无关的核心 Python 包：几何、选面、候选生成、评测和数据契约
+├── templates/               # 面向特定数据集/流程的可复用模板目录
+└── tests/                   # pytest 自动化测试与 fixtures 测试数据
+```
+
+根目录中的 `CLI.md` 是本命令索引；`CLAUDE.md` 是唯一的 Agent 工作指南，`AGENTS.md` 仅链接至该指南；
+`DEVLOG.md` 记录近期变更与验证结果。`README.md` 提供项目概览，`RESULT.md` 汇总当前结果；
+`pyproject.toml`、`requirements*.txt` 与 `environment*.yml` 用于定义 Python 包和环境依赖。
+
 | 命令 | 代码路径 | 需 CATIA | 输入 | 输出 |
 |---|---|:---:|---|---|
 | [环境检查（核心）](#环境检查核心) | `scripts/check_env_core.py` | 否 | 无 | 终端提示 |

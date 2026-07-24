@@ -5,6 +5,15 @@
 
 ---
 
+## 2026-07-24 13:55:54 +08:00 - 补充 CLI 仓库目录索引
+
+**What changed**
+- 在 `CLI.md` 的命令总表前新增“仓库目录结构与职责”章节，列出当前顶层目录树及每个目录的用途。
+- 明确 `data/`、`raw_data/` 的受管布局和 `manifest.json` 版本控制例外，并说明根目录文档与环境配置文件的职责。
+
+**Verification**
+- 已依据当前工作区目录和 `.gitignore` 规则核对结构说明；`git diff --check` 通过。
+
 ## 2026-07-23 18:22:00 +08:00 - Restore reliable portable ANSA opening
 
 **What changed**
