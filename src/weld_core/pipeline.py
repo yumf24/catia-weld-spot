@@ -83,6 +83,32 @@ def _infer_general_selection_source(faces_path: Path) -> dict:
     }
 
 
+def _layout_registered_exact_regions(run_dir: Path, params: WeldParams):
+    """Generate candidates from registered exact regions, never their AABBs."""
+
+    from .candidate_merging import safe_merge_candidates
+    from .coverage_layout import layout_exact_region, read_exact_region
+
+    audit_path = run_dir / "interface_region_audit.json"
+    audit = json.loads(audit_path.read_text(encoding="utf-8"))
+    candidates = []
+    layout_audit = []
+    for record in audit.get("regions", []):
+        region = read_exact_region(record, run_dir)
+        laid_out, result = layout_exact_region(region, params)
+        candidates.extend(laid_out)
+        layout_audit.append({
+            "interface_id": result.interface_id,
+            "coverage_radius_mm": result.coverage_radius_mm,
+            "grid_pitch_mm": result.grid_pitch_mm,
+            "generated_count": result.generated_count,
+            "retained_count": result.retained_count,
+            "rejected_outside_exact_region": result.rejected_outside_exact_region,
+        })
+    candidates, merge_audit = safe_merge_candidates(candidates, params)
+    return candidates, {"format_version": 1, "parameters": {"coverage_radius_mm": params.coverage_radius_mm}, "interfaces": layout_audit, "merges": merge_audit}
+
+
 def main(argv: list[str]) -> int:
     if not argv:
         print(__doc__)
@@ -90,7 +116,22 @@ def main(argv: list[str]) -> int:
     faces_path = Path(argv[0])
     out_path = Path(argv[1]) if len(argv) > 1 else faces_path.with_name("candidates.json")
     try:
-        doc = run(load_faces(faces_path))
+        faces_doc = load_faces(faces_path)
+        exact_audit = faces_path.parent / "interface_region_audit.json"
+        if faces_path.name == "faces.general-selected.json" and exact_audit.is_file():
+            candidates, layout_audit = _layout_registered_exact_regions(faces_path.parent, WeldParams())
+            candidates.sort(key=lambda candidate: (tuple(sorted(candidate.faces)), candidate.position))
+            for index, candidate in enumerate(candidates, start=1):
+                candidate.id = f"wc_{index:03d}"
+            doc = CandidatesDocument(
+                meta=CandidatesMeta(source=faces_doc.meta.part, params=WeldParams().as_dict()),
+                candidates=candidates,
+            )
+            (faces_path.parent / "coverage_layout_audit.json").write_text(
+                json.dumps(layout_audit, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+        else:
+            doc = run(faces_doc)
     except (OSError, ValueError) as exc:
         print(f"[FAIL] {exc}", file=sys.stderr)
         return 1
@@ -98,6 +139,8 @@ def main(argv: list[str]) -> int:
     dump_document(doc, out_path)
     from .data_layout import register_managed_artifact
     register_managed_artifact(out_path, "candidates")
+    if faces_path.name == "faces.general-selected.json" and (faces_path.parent / "coverage_layout_audit.json").is_file():
+        register_managed_artifact(faces_path.parent / "coverage_layout_audit.json", "coverage_layout_audit")
     print(f"wrote {len(doc.candidates)} candidates -> {out_path}")
     return 0
 

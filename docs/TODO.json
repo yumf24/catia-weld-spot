@@ -144,7 +144,7 @@
       "id": "PW04_add_2d_coverage_layout_and_safe_merging",
       "priority": 4,
       "depends_on": ["PW03_build_exact_planar_interface_regions"],
-      "pass": false,
+      "pass": true,
       "goal": "以精确区域内的二维覆盖布局替代单中心线布局，并以物理接口关系安全合并候选。",
       "changes": [
         "在精确公共区域内生成二维覆盖网格和边界补点；每个输出点必须被精确区域包含测试验证。",

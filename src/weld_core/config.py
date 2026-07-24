@@ -16,6 +16,7 @@ class WeldParams(BaseModel):
     # Point layout
     min_spacing_mm: float = 20.0        # below this, a region gets a single point
     max_spacing_mm: float = 70.0        # target upper bound between points
+    coverage_radius_mm: float = 10.0    # exact 2-D layout coverage radius
 
     # Basic filtering
     min_point_distance_mm: float = 20.0  # drop points closer than this to another

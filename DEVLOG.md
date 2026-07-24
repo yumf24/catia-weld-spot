@@ -5,6 +5,21 @@
 
 ---
 
+## 2026-07-24 15:28:55 +08:00 - PW04 二维覆盖布局与安全合并
+
+**What changed**
+- 新增基于已登记 OCCT BREP 精确公共区域的二维覆盖布局：网格 pitch 为 `sqrt(2) * 10 mm`，每个候选均通过 face UV 分类复核在精确区域内；孔洞、凹口和 AABB 外推均不会生成候选。
+- 通用选面接口审计新增固定布局坐标框架（`plane_origin`/`normal`）；受管 pipeline 为通用选面输入登记 `coverage_layout_audit.json`，记录逐接口生成/保留/区域外拒绝和合并关系。
+- 替换跨区域的全局距离去重：仅当候选属于同一 canonical 支持面 pair 且空间共点时才合并，邻近的独立接口保留。
+- 将 PW04 标记为通过。真实 `component` 受管运行生成 176 个精确接口的 545 个最终候选（2,147 个布局点经同接口合并，1,277 个精确区域外点被拒绝）。
+
+**Verification**
+- `.venv\\Scripts\\python -m pytest tests\\test_2d_coverage_layout.py tests\\test_safe_candidate_merging.py tests\\test_exact_planar_interface_regions.py tests\\test_pipeline.py tests\\test_filtering.py --basetemp .pytest_cache\\pw04-layout`：**15 passed**。
+- `.venv\\Scripts\\python scripts\\select_general_planes.py component --run-label pw04-coverage-layout`，随后 `python -m weld_core.pipeline ...\\faces.general-selected.json`：生成受管 BREP 2D 覆盖候选与审计。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw04-full`：**137 passed**。
+
+---
+
 ## 2026-07-24 15:15:00 +08:00 - PW03 构建精确平面接口区域
 
 **What changed**

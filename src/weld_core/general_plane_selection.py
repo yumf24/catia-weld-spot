@@ -455,6 +455,8 @@ def run_registered_general_plane_selection(
                     "face_a_id": region.face_a_id,
                     "face_b_id": region.face_b_id,
                     "geometry_ref": region_ref,
+                    "plane_origin": list(region.plane_origin),
+                    "normal": list(region.normal),
                     "common_area_mm2": region.common_area_mm2,
                     "coverage_a": region.coverage_a,
                     "coverage_b": region.coverage_b,

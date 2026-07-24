@@ -5,8 +5,11 @@ import json
 from pathlib import Path
 
 import pytest
+from OCP.BRepBuilderAPI import BRepBuilderAPI_MakeFace, BRepBuilderAPI_MakePolygon
+from OCP.gp import gp_Pnt
 
 from weld_core.pipeline import main, run
+from weld_core.exact_planar_interface_regions import ExactPlanarInterfaceRegion, write_exact_region
 from weld_core.schema import FacesDocument, dump_document, load_faces
 
 FIXTURE = Path(__file__).parent / "fixtures" / "two_layer.json"
@@ -124,3 +127,37 @@ def test_cli_records_generic_selection_source_without_reference_or_template_meta
     assert "surface_reference" not in serialized
     assert "template" not in serialized
     assert "sha256" not in serialized
+
+
+def test_cli_uses_registered_exact_regions_for_generic_selection(tmp_path):
+    run_dir = tmp_path / "run"
+    run_dir.mkdir()
+    faces_path = run_dir / "faces.general-selected.json"
+    dump_document(load_faces(FIXTURE), faces_path)
+    polygon = BRepBuilderAPI_MakePolygon()
+    for x, y in ((0, 0), (40, 0), (40, 40), (0, 40)):
+        polygon.Add(gp_Pnt(x, y, 1.025))
+    polygon.Close()
+    shape = BRepBuilderAPI_MakeFace(polygon.Wire()).Face()
+    region = ExactPlanarInterfaceRegion(
+        id="PartA/Body1/face_top::PartB/Body1/face_bottom",
+        face_a_id="PartA/Body1/face_top",
+        face_b_id="PartB/Body1/face_bottom",
+        plane_origin=(0, 0, 1.025), normal=(0, 0, 1),
+        common_area_mm2=1600, coverage_a=1, coverage_b=1, effective_width_mm=40, shape=shape,
+    )
+    write_exact_region(region, run_dir / "exact_interface_regions" / "0001.brep")
+    (run_dir / "interface_region_audit.json").write_text(json.dumps({"regions": [{
+        "id": region.id, "face_a_id": region.face_a_id, "face_b_id": region.face_b_id,
+        "geometry_ref": "exact_interface_regions/0001.brep", "plane_origin": [0, 0, 1.025],
+        "normal": [0, 0, 1], "common_area_mm2": 1600, "coverage_a": 1, "coverage_b": 1,
+        "effective_width_mm": 40,
+    }]}), encoding="utf-8")
+    (run_dir / "manifest.json").write_text(json.dumps({"part_id": "any-part", "run_id": "run", "artifacts": {}}), encoding="utf-8")
+
+    assert main([str(faces_path)]) == 0
+
+    output = json.loads((run_dir / "candidates.json").read_text(encoding="utf-8"))
+    assert len(output["candidates"]) > 4
+    audit = json.loads((run_dir / "coverage_layout_audit.json").read_text(encoding="utf-8"))
+    assert audit["interfaces"][0]["interface_id"] == region.id
