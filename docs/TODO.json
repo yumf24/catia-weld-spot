@@ -210,7 +210,7 @@
       "id": "PW06A_restore_exact_coverage_semantics_and_attribution",
       "priority": 6,
       "depends_on": ["PW05_add_multilayer_and_confidence_candidate_contract"],
-      "pass": false,
+      "pass": true,
       "goal": "将物理共点聚合与审查间距解耦，恢复精确二维候选的覆盖语义，并发布由审计证据驱动的 FN 归因。",
       "changes": [
         "新增通用 coincident_merge_tolerance_mm=0.05；只有共享零件且空间共点的候选才能聚合为多层物理连接，20 mm 审查间距不得删除二维布局点。",

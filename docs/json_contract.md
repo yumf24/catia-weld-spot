@@ -87,6 +87,7 @@ data/<part-id>/<run-id>/manifest.json
 网格 pitch 为 `sqrt(2) * coverage_radius_mm`（默认 coverage radius=10 mm），并以 OCCT
 face UV 分类逐点确认区域内关系；孔洞、凹口和区域外点不得以投影 AABB 代替。输出同时登记
 `coverage_layout_audit.json`，保留每个接口的生成数、保留数、区域外拒绝数及同物理接口合并审计。
+`coincident_merge_tolerance_mm` 固定登记在该审计的 `parameters` 中，默认是 0.05 mm；它只用于判定空间共点物理站点，绝不能使用 20 mm 的审查/布局间距删除精确二维覆盖点。审计版本 2 额外保留 `original_exact_layout_points`、`physical_stations` 和 `final_candidates`：每条记录包含坐标、来源接口、保留/聚合/排除状态与原因。后续候选预算器如排除站点，必须以 `budget_excluded` 状态保留证据。
 多个空间共点且共享参与零件的接口会聚合为一个物理连接组，输出全部支持接口及实际 `layer_count`；
 仅空间邻近但没有共享零件的接口绝不合并。
 

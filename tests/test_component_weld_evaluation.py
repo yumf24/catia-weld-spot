@@ -109,6 +109,23 @@ def test_point_evaluation_adds_planar_supported_denominator_and_fn_attribution()
     assert analysis["false_negative_attribution_counts"]["region_not_covered"] == 1
 
 
+def test_point_evaluation_attributes_audited_budget_exclusion():
+    from weld_core.component_weld_point_evaluation import enrich_with_planar_adjudication
+    from weld_core.schema import Candidate, CandidatesDocument, GroundTruthDocument, GroundTruthPoint
+
+    truth = GroundTruthDocument(points=[GroundTruthPoint(id="supported", position=(0, 0, 0))])
+    candidates = CandidatesDocument(candidates=[Candidate(id="far", position=(100, 0, 0), faces=["a", "b"])])
+    report, analysis = evaluate_component_weld_points(truth, candidates)
+    enrich_with_planar_adjudication(report, analysis, {"points": [{
+        "ground_truth_id": "supported", "position_mm": [0, 0, 0], "status": "planar_supported",
+        "supporting_interfaces": ["a::b"],
+    }]}, candidates, {"original_exact_layout_points": [{
+        "position_mm": [0, 0, 0], "source_interfaces": ["a::b"],
+    }], "final_candidates": [{"position_mm": [0, 0, 0], "status": "budget_excluded"}]})
+    assert analysis["false_negatives"][0]["attribution"] == "budget_excluded"
+    assert analysis["false_negative_attribution_counts"]["budget_excluded"] == 1
+
+
 def test_ansa_layers_keep_error_analysis_source_ids():
     layers = build_ansa_layers({
         "true_positives": [{"ground_truth_id": "gt-1", "ground_truth_position_mm": [0, 0, 0], "candidate_id": "wc-1", "candidate_position_mm": [1, 0, 0], "candidate_faces": ["f-1"]}],

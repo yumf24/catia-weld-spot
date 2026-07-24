@@ -20,6 +20,10 @@ class WeldParams(BaseModel):
 
     # Basic filtering
     min_point_distance_mm: float = 20.0  # drop points closer than this to another
+    # Physical-station aggregation is deliberately much tighter than the
+    # review/layout spacing above.  It must never erase valid 2-D coverage
+    # points merely because they are near one another.
+    coincident_merge_tolerance_mm: float = 0.05
     min_face_width_mm: float = 5.0       # minimum overlap width to be weldable
 
     def as_dict(self) -> dict:

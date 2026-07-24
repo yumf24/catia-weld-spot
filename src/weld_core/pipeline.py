@@ -108,9 +108,45 @@ def _layout_registered_exact_regions(run_dir: Path, params: WeldParams):
             "retained_count": result.retained_count,
             "rejected_outside_exact_region": result.rejected_outside_exact_region,
         })
+    original_layout_points = [
+        {
+            "candidate_id": candidate.id,
+            "position_mm": list(candidate.position),
+            "source_interfaces": candidate.supporting_interfaces,
+            "status": "retained_for_physical_stationing",
+            "reason": "inside_exact_region",
+        }
+        for candidate in candidates
+    ]
     candidates, merge_audit = safe_merge_candidates(candidates, params)
     candidates, multilayer_audit = aggregate_multilayer_candidates(candidates, params)
-    return candidates, {"format_version": 1, "parameters": {"coverage_radius_mm": params.coverage_radius_mm}, "interfaces": layout_audit, "merges": merge_audit, "multilayer_groups": multilayer_audit}
+    final_candidates = [
+        {
+            "candidate_id": candidate.id,
+            "source_candidate_ids": next(
+                (row["source_candidate_ids"] for row in multilayer_audit if row["representative_candidate_id"] == candidate.id),
+                [candidate.id],
+            ),
+            "position_mm": list(candidate.position),
+            "source_interfaces": candidate.supporting_interfaces,
+            "status": "selected",
+            "reason": "physical_station_retained",
+        }
+        for candidate in candidates
+    ]
+    return candidates, {
+        "format_version": 2,
+        "parameters": {
+            "coverage_radius_mm": params.coverage_radius_mm,
+            "coincident_merge_tolerance_mm": params.coincident_merge_tolerance_mm,
+        },
+        "interfaces": layout_audit,
+        "original_exact_layout_points": original_layout_points,
+        "physical_stations": multilayer_audit,
+        "final_candidates": final_candidates,
+        "merges": merge_audit,
+        "multilayer_groups": multilayer_audit,
+    }
 
 
 def main(argv: list[str]) -> int:
@@ -125,8 +161,13 @@ def main(argv: list[str]) -> int:
         if faces_path.name == "faces.general-selected.json" and exact_audit.is_file():
             candidates, layout_audit = _layout_registered_exact_regions(faces_path.parent, WeldParams())
             candidates.sort(key=lambda candidate: (tuple(sorted(candidate.faces)), candidate.position))
+            candidate_ids = {}
             for index, candidate in enumerate(candidates, start=1):
+                original_id = candidate.id
                 candidate.id = f"wc_{index:03d}"
+                candidate_ids[original_id] = candidate.id
+            for row in layout_audit["final_candidates"]:
+                row["candidate_id"] = candidate_ids[row["candidate_id"]]
             doc = CandidatesDocument(
                 meta=CandidatesMeta(source=faces_doc.meta.part, params=WeldParams().as_dict()),
                 candidates=candidates,

@@ -63,7 +63,8 @@ def _stratify_candidates(candidates: CandidatesDocument) -> dict[str, dict[str, 
 
 
 def enrich_with_planar_adjudication(
-    report: dict[str, Any], analysis: dict[str, Any], adjudication: dict[str, Any], candidates: CandidatesDocument
+    report: dict[str, Any], analysis: dict[str, Any], adjudication: dict[str, Any], candidates: CandidatesDocument,
+    candidate_audit: dict[str, Any] | None = None,
 ) -> None:
     """Add the independent planar-supported denominator and conservative FN causes.
 
@@ -85,20 +86,44 @@ def enrich_with_planar_adjudication(
         "candidate_count": candidate_count,
     }
     report["candidate_stratification"] = _stratify_candidates(candidates)
+    audit_points = (candidate_audit or {}).get("original_exact_layout_points", [])
+    audit_interfaces = {interface for point in audit_points for interface in point.get("source_interfaces", [])}
+    excluded_points = [
+        point for point in (candidate_audit or {}).get("final_candidates", [])
+        if point.get("status") == "budget_excluded"
+    ]
+    merged_points = [
+        point for point in (candidate_audit or {}).get("merges", [])
+        if point.get("status") in {"merged", "filtered"}
+    ]
+
+    def distance(position: list[float] | tuple[float, float, float], other: list[float] | tuple[float, float, float]) -> float:
+        return sum((a - b) ** 2 for a, b in zip(position, other)) ** 0.5
+
     for row in analysis["false_negatives"]:
         adjudication_row = rows.get(row["ground_truth_id"])
         if adjudication_row is None or adjudication_row["status"] != "planar_supported":
             row["attribution"] = "out_of_scope_or_unresolved"
             continue
         position = truth_positions[row["ground_truth_id"]]
-        nearest = min((sum((a - b) ** 2 for a, b in zip(position, candidate.position)) ** 0.5 for candidate in candidates.candidates), default=float("inf"))
+        interfaces = set(adjudication_row.get("supporting_interfaces", []))
+        if candidate_audit is not None and interfaces and not interfaces & audit_interfaces:
+            row["attribution"] = "interface_not_found"
+            continue
+        if any(distance(position, point.get("position_mm", [])) <= PRIMARY_TOLERANCE_MM for point in excluded_points):
+            row["attribution"] = "budget_excluded"
+            continue
+        if any(distance(position, point.get("position_mm", [])) <= PRIMARY_TOLERANCE_MM for point in merged_points):
+            row["attribution"] = "merged_or_filtered"
+            continue
+        nearest = min((distance(position, candidate.position) for candidate in candidates.candidates), default=float("inf"))
         # A supported point with no candidate within a coverage radius is a
         # region/layout issue; inside that radius but outside 10 mm is a layout
-        # offset.  The categories remain explicit rather than guessed from GT.
+        # offset.  Categories are selected only from offline audit evidence.
         row["attribution"] = "layout_offset" if nearest <= 20.0 else "region_not_covered"
     analysis["false_negative_attribution_counts"] = {
         reason: sum(row.get("attribution") == reason for row in analysis["false_negatives"])
-        for reason in ("out_of_scope_or_unresolved", "interface_not_found", "region_not_covered", "layout_offset", "merged_or_filtered")
+        for reason in ("out_of_scope_or_unresolved", "interface_not_found", "region_not_covered", "layout_offset", "merged_or_filtered", "budget_excluded")
     }
 
 

@@ -13,7 +13,7 @@ def _candidate(candidate_id, position, faces, interface):
 def test_colocated_interfaces_sharing_a_part_become_a_three_layer_connection():
     candidates, audit = aggregate_multilayer_candidates([
         _candidate("ab", (0, 0, 0), ["A/top", "B/bottom"], "A::B"),
-        _candidate("bc", (1, 0, 0), ["B/top", "C/bottom"], "B::C"),
+        _candidate("bc", (0.04, 0, 0), ["B/top", "C/bottom"], "B::C"),
     ], WeldParams())
 
     assert len(candidates) == 1
@@ -28,13 +28,13 @@ def test_colocated_interfaces_sharing_a_part_become_a_three_layer_connection():
 def test_four_part_stack_retains_actual_layer_count_and_independent_interfaces_remain():
     stack, _ = aggregate_multilayer_candidates([
         _candidate("ab", (0, 0, 0), ["A/f", "B/f"], "A::B"),
-        _candidate("bc", (1, 0, 0), ["B/f", "C/f"], "B::C"),
-        _candidate("cd", (2, 0, 0), ["C/f", "D/f"], "C::D"),
+        _candidate("bc", (0.04, 0, 0), ["B/f", "C/f"], "B::C"),
+        _candidate("cd", (0.02, 0, 0), ["C/f", "D/f"], "C::D"),
     ], WeldParams())
     assert len(stack) == 1 and stack[0].layer_count == 4 and stack[0].layer_type == "three_layer"
 
     independent, _ = aggregate_multilayer_candidates([
         _candidate("ab", (0, 0, 0), ["A/f", "B/f"], "A::B"),
-        _candidate("cd", (1, 0, 0), ["C/f", "D/f"], "C::D"),
+        _candidate("cd", (0.04, 0, 0), ["C/f", "D/f"], "C::D"),
     ], WeldParams())
     assert len(independent) == 2

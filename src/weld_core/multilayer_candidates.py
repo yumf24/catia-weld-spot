@@ -25,8 +25,13 @@ def aggregate_multilayer_candidates(candidates: list[Candidate], params: WeldPar
         point = np.asarray(candidate.position)
         candidate_parts = _parts(candidate)
         for group in groups:
-            anchor = group[0]
-            if candidate_parts & set().union(*(_parts(item) for item in group)) and np.linalg.norm(point - np.asarray(anchor.position)) < params.min_point_distance_mm:
+            if (
+                candidate_parts & set().union(*(_parts(item) for item in group))
+                and any(
+                    np.linalg.norm(point - np.asarray(member.position)) <= params.coincident_merge_tolerance_mm
+                    for member in group
+                )
+            ):
                 group.append(candidate)
                 break
         else:
@@ -53,9 +58,11 @@ def aggregate_multilayer_candidates(candidates: list[Candidate], params: WeldPar
         audit.append({
             "representative_candidate_id": representative.id,
             "source_candidate_ids": [item.id for item in group],
+            "position_mm": list(representative.position),
             "layer_count": layer_count,
             "supporting_interfaces": interfaces,
             "confidence_tier": tier,
             "status": "aggregated" if len(group) > 1 else "single_interface",
+            "reason": "shared_part_and_coincident" if len(group) > 1 else "single_exact_interface_point",
         })
     return aggregated, audit

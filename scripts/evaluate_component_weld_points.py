@@ -53,8 +53,10 @@ def main(argv: list[str]) -> int:
         report, analysis = evaluate_component_weld_points(truth, load_candidates(candidates_path))
         adjudication_path = run_dir / "planar_truth_adjudication.json"
         if adjudication_path.is_file():
+            candidate_audit_path = run_dir / "coverage_layout_audit.json"
             enrich_with_planar_adjudication(
-                report, analysis, json.loads(adjudication_path.read_text(encoding="utf-8")), load_candidates(candidates_path)
+                report, analysis, json.loads(adjudication_path.read_text(encoding="utf-8")), load_candidates(candidates_path),
+                json.loads(candidate_audit_path.read_text(encoding="utf-8")) if candidate_audit_path.is_file() else None,
             )
         outputs = {
             "weld_point_evaluation.json": report,

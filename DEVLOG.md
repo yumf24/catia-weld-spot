@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-07-24 16:20:00 +08:00 - PW06A 恢复精确覆盖语义与离线归因
+
+**What changed**
+- 新增通用 `coincident_merge_tolerance_mm=0.05`；同接口去重与共享零件的多层聚合均只使用该物理共点容差，不再错误使用 20 mm 的审查间距。
+- `coverage_layout_audit.json` 升至版本 2，登记原始精确布局点、物理站点和最终候选，保留来源接口、坐标、状态及原因。
+- 离线 FN 归因可基于布局/预算审计发布 `interface_not_found`、`merged_or_filtered` 与 `budget_excluded`，并保持真值和裁定严格限于评测路径。
+
+**Verification**
+- `.venv\\Scripts\\python -m pytest tests\\test_safe_candidate_merging.py tests\\test_multilayer_candidates.py tests\\test_component_weld_evaluation.py --basetemp .pytest_cache\\pw06a-unit`：**11 passed**。
+- `.venv\\Scripts\\python -m pytest tests\\test_pipeline.py --basetemp .pytest_cache\\pw06a-pipeline`：**6 passed**。
+
+---
+
 ## 2026-07-24 15:50:00 +08:00 - PW06 评测发布链路（验收未通过）
 
 **What changed**
