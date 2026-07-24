@@ -207,9 +207,68 @@
       "blocked_by": ["PW04 未通过。"]
     },
     {
-      "id": "PW06_publish_component_error_attribution_and_regression",
+      "id": "PW06A_restore_exact_coverage_semantics_and_attribution",
       "priority": 6,
       "depends_on": ["PW05_add_multilayer_and_confidence_candidate_contract"],
+      "pass": false,
+      "goal": "将物理共点聚合与审查间距解耦，恢复精确二维候选的覆盖语义，并发布由审计证据驱动的 FN 归因。",
+      "changes": [
+        "新增通用 coincident_merge_tolerance_mm=0.05；只有共享零件且空间共点的候选才能聚合为多层物理连接，20 mm 审查间距不得删除二维布局点。",
+        "记录原始精确布局点、共点物理站点和最终预算候选的来源接口、保留/聚合/排除原因。",
+        "FN 归因包含 out_of_scope_or_unresolved、interface_not_found、region_not_covered、layout_offset、merged_or_filtered 和 budget_excluded；归因仅在离线评测使用裁定与审计。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_safe_candidate_merging.py tests\\test_multilayer_candidates.py tests\\test_component_weld_evaluation.py --basetemp .pytest_cache\\pw06a-unit",
+          "expect_exit_code": 0,
+          "assertions": ["14.14 mm 的同接口布局点不被合并；0.05 mm 内共享零件的接口聚合并保留全部支持接口；离线 FN 归因覆盖 budget_excluded。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw06a-full",
+          "expect_exit_code": 0,
+          "assertions": ["完整回归测试通过。"]
+        }
+      ],
+      "completion_commit": "fix: restore exact coverage semantics",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["PW05 未通过。"]
+    },
+    {
+      "id": "PW06B_add_interface_balanced_geometry_budget",
+      "priority": 7,
+      "depends_on": ["PW06A_restore_exact_coverage_semantics_and_attribution"],
+      "pass": false,
+      "goal": "以仅依赖生产几何的接口均衡最远点预算器输出 600 个可审计候选，保留接口广度而不读取真值。",
+      "changes": [
+        "新增 candidate_budget_target=600；先为每个有效物理接口保留代表站点，再按当前接口分配最少优先、接口内最远点补样。",
+        "候选预算仅读取精确区域候选、接口拓扑和几何坐标；输入顺序变化不影响结果，候选池足够时严格输出 600 点。",
+        "发布 candidate_budget_audit.json，逐站点记录接口、坐标、选择或 budget_excluded 状态及原因；600 是受限审查预算，不承诺逐接口完整 10 mm 覆盖。"
+      ],
+      "strict_tests": [
+        {
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_candidate_budget.py tests\\test_pipeline.py --basetemp .pytest_cache\\pw06b-budget",
+          "expect_exit_code": 0,
+          "assertions": ["预算严格输出目标数、每个接口获得种子、接口不被面积独占且输入乱序结果稳定。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python scripts\\run_component_weld_evaluation.py --label pw06b-geometry-budget",
+          "expect_exit_code": 0,
+          "assertions": ["受管生产运行只读 primary_model，登记候选预算审计并输出 600 个候选。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw06b-full",
+          "expect_exit_code": 0,
+          "assertions": ["完整回归测试通过。"]
+        }
+      ],
+      "completion_commit": "feat: add interface balanced candidate budget",
+      "clean_tree_check": ["git diff --check", "git status --short"],
+      "blocked_by": ["PW06A 未通过。"]
+    },
+    {
+      "id": "PW06_publish_component_error_attribution_and_regression",
+      "priority": 8,
+      "depends_on": ["PW06B_add_interface_balanced_geometry_budget"],
       "pass": false,
       "goal": "发布 component 的双分母评测和逐点错误归因，并以冻结门槛决定本轮优化是否通过。",
       "changes": [
@@ -242,11 +301,11 @@
       ],
       "completion_commit": "feat: publish planar weld error attribution",
       "clean_tree_check": ["git diff --check", "git status --short"],
-      "blocked_by": ["PW05 未通过。", "若 candidate_count 或 planar_supported recall 未满足冻结门槛，本步骤必须保持 pass=false。"]
+      "blocked_by": ["PW06B 未通过。", "若 candidate_count 或 planar_supported recall 未满足冻结门槛，本步骤必须保持 pass=false。"]
     },
     {
       "id": "PW07_finalize_docs_and_handoff",
-      "priority": 7,
+      "priority": 9,
       "depends_on": ["PW06_publish_component_error_attribution_and_regression"],
       "pass": false,
       "goal": "完成契约、CLI、开发记录和交接文档，并明确单数据集结果与泛化边界。",
