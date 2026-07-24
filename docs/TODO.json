@@ -111,7 +111,7 @@
       "id": "PW03_build_exact_planar_interface_regions",
       "priority": 3,
       "depends_on": ["PW02_add_offline_planar_truth_adjudication"],
-      "pass": false,
+      "pass": true,
       "goal": "建立由精确修剪 CAD 公共区域驱动的通用平面接口和区域审计，消除 AABB 被误用为接受条件的路径。",
       "changes": [
         "保留 AABB 仅作候选对预筛；以 OCCT 投影、布尔公共形状和实际有效宽度决定平面接口是否成立。",

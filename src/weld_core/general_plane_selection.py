@@ -427,9 +427,41 @@ def run_registered_general_plane_selection(
         selected_faces = [face for face in all_faces if face.id in selected_id_set]
         audit_by_id = {audit.id: audit for audit in result.pair_audits}
 
+        from .exact_planar_interface_regions import build_exact_planar_interface_region, write_exact_region
+
         faces_path = run_dir / "faces.general-selected.json"
         pair_audit_path = run_dir / "pair_audit.json"
         selection_audit_path = run_dir / "selection_audit.json"
+        interface_audit_path = run_dir / "interface_region_audit.json"
+
+        face_by_id = {face.id: face for face in all_faces}
+        interface_regions: list[dict[str, Any]] = []
+        region_ref_by_pair: dict[str, str] = {}
+        for index, audit in enumerate(sorted((item for item in result.pair_audits if item.accepted), key=lambda item: item.id), start=1):
+            face_a = face_by_id[audit.face_a_id]
+            face_b = face_by_id[audit.face_b_id]
+            measurement = exact_projected_pair_overlap(
+                face_a, face_b,
+                normal_angle_deg_value=audit.normal_angle_deg,
+                plane_gap_mm_value=audit.plane_gap_mm,
+            )
+            region = build_exact_planar_interface_region(face_a, face_b, measurement)
+            region_ref = f"exact_interface_regions/{index:04d}.brep"
+            write_exact_region(region, run_dir / region_ref)
+            region_ref_by_pair[audit.id] = region_ref
+            interface_regions.append(
+                {
+                    "id": region.id,
+                    "face_a_id": region.face_a_id,
+                    "face_b_id": region.face_b_id,
+                    "geometry_ref": region_ref,
+                    "common_area_mm2": region.common_area_mm2,
+                    "coverage_a": region.coverage_a,
+                    "coverage_b": region.coverage_b,
+                    "effective_width_mm": region.effective_width_mm,
+                    "reason": None,
+                }
+            )
 
         dump_document(selected_faces_document(part_id, selected_faces), faces_path)
         _write_json(
@@ -439,7 +471,20 @@ def run_registered_general_plane_selection(
                 "part_id": part_id,
                 "run_id": manifest["run_id"],
                 "parameters": _params_dict(params),
-                "pairs": [asdict(audit) for audit in result.pair_audits],
+                "pairs": [
+                    {**asdict(audit), "exact_region_ref": region_ref_by_pair.get(audit.id)}
+                    for audit in result.pair_audits
+                ],
+            },
+        )
+        _write_json(
+            interface_audit_path,
+            {
+                "format_version": 1,
+                "part_id": part_id,
+                "run_id": manifest["run_id"],
+                "source": {"role": "primary_model"},
+                "regions": interface_regions,
             },
         )
         _write_json(
@@ -483,6 +528,7 @@ def run_registered_general_plane_selection(
         register_artifact(run_dir, "faces.general-selected", faces_path, kind="faces_document")
         register_artifact(run_dir, "pair_audit", pair_audit_path, kind="json")
         register_artifact(run_dir, "selection_audit", selection_audit_path, kind="json")
+        register_artifact(run_dir, "interface_region_audit", interface_audit_path, kind="json", count=len(interface_regions))
         update_run_manifest(
             run_dir,
             status="completed",

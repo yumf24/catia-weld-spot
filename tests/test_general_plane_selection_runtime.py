@@ -102,7 +102,7 @@ def test_registered_runtime_writes_stable_primary_only_managed_artifacts(tmp_pat
     manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["status"] == "completed"
     assert [record["role"] for record in manifest["raw_inputs"]] == ["primary_model"]
-    assert set(manifest["artifacts"]) == {"faces.general-selected", "pair_audit", "selection_audit"}
+    assert set(manifest["artifacts"]) == {"faces.general-selected", "pair_audit", "selection_audit", "interface_region_audit"}
 
     selected = load_faces(run_dir / "faces.general-selected.json")
     assert [face.id for face in selected.faces] == ["PartA/step_face_0000", "PartB/step_face_0000"]
@@ -112,6 +112,10 @@ def test_registered_runtime_writes_stable_primary_only_managed_artifacts(tmp_pat
     accepted_pairs = [pair for pair in pair_audit["pairs"] if pair["accepted"]]
     assert [pair["id"] for pair in accepted_pairs] == ["PartA/step_face_0000::PartB/step_face_0000"]
     assert accepted_pairs[0]["gap_layer"] == "strict"
+    assert accepted_pairs[0]["exact_region_ref"] == "exact_interface_regions/0001.brep"
+    region_audit = json.loads((run_dir / "interface_region_audit.json").read_text(encoding="utf-8"))
+    assert region_audit["regions"][0]["geometry_ref"] == "exact_interface_regions/0001.brep"
+    assert (run_dir / region_audit["regions"][0]["geometry_ref"]).is_file()
 
     selection_audit = json.loads((run_dir / "selection_audit.json").read_text(encoding="utf-8"))
     assert selection_audit["total_planar_faces"] == 3

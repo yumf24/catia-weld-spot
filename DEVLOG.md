@@ -5,6 +5,20 @@
 
 ---
 
+## 2026-07-24 15:15:00 +08:00 - PW03 构建精确平面接口区域
+
+**What changed**
+- 新增 `exact_planar_interface_regions`：对每个已接受的通用平面 pair，将对侧 CAD 面投影到支持平面后以 OCCT 布尔公共形状生成精确区域，并以可移植 `.brep` 保存；AABB 仅保留为预筛审计数据。
+- 通用选面受管运行新增 `interface_region_audit.json` 和 `exact_interface_regions/*.brep`。`pair_audit.json` 中每个接受 pair 记录 `exact_region_ref`，逐区审计保留公共面积、双方覆盖率和有效宽度。
+- 更新 JSON 契约并将 PW03 标记为通过；候选/评测路径仍未读取真值输入。
+
+**Verification**
+- `.venv\\Scripts\\python -m pytest tests\\test_exact_planar_interface_regions.py tests\\test_general_plane_selection_runtime.py tests\\test_general_plane_selection_geometry.py --basetemp .pytest_cache\\pw03-regions`：**19 passed**。
+- `.venv\\Scripts\\python scripts\\select_general_planes.py component --run-label pw03-interface-audit`：成功登记 component 的精确接口区域审计和 BREP 几何。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw03-full`：**133 passed**。
+
+---
+
 ## 2026-07-24 14:45:00 +08:00 - PW02 增加离线平面真值裁定
 
 **What changed**
