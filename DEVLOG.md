@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-07-24 16:21:00 +08:00 - PW06B 接口均衡几何候选预算
+
+**What changed**
+- 新增纯生产几何的 600 点预算器：先为每个有效接口保留代表物理站点，再按接口当前代表数最少优先、接口内最远点补样；输出不读取真值、裁定或评测产物。
+- 受管运行新增 `candidate_budget_audit.json`，逐站点发布来源候选、坐标、支持接口、`selected`/`budget_excluded` 与决定原因；离线 FN 评测读取该审计以归因预算排除。
+
+**Verification**
+- `.venv\\Scripts\\python -m pytest tests\\test_candidate_budget.py tests\\test_pipeline.py --basetemp .pytest_cache\\pw06b-budget`：**8 passed**。
+- 真实 `pw06b-geometry-budget` 受管运行仅登记 `primary_model`，从 1,628 个物理站点、165 个接口中选择 **600** 个候选并登记 1,028 个 `budget_excluded` 站点。
+
+---
+
 ## 2026-07-24 16:20:00 +08:00 - PW06A 恢复精确覆盖语义与离线归因
 
 **What changed**

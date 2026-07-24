@@ -54,9 +54,13 @@ def main(argv: list[str]) -> int:
         adjudication_path = run_dir / "planar_truth_adjudication.json"
         if adjudication_path.is_file():
             candidate_audit_path = run_dir / "coverage_layout_audit.json"
+            candidate_audit = json.loads(candidate_audit_path.read_text(encoding="utf-8")) if candidate_audit_path.is_file() else {}
+            budget_audit_path = run_dir / "candidate_budget_audit.json"
+            if budget_audit_path.is_file():
+                candidate_audit["final_candidates"] = json.loads(budget_audit_path.read_text(encoding="utf-8")).get("stations", [])
             enrich_with_planar_adjudication(
                 report, analysis, json.loads(adjudication_path.read_text(encoding="utf-8")), load_candidates(candidates_path),
-                json.loads(candidate_audit_path.read_text(encoding="utf-8")) if candidate_audit_path.is_file() else None,
+                candidate_audit or None,
             )
         outputs = {
             "weld_point_evaluation.json": report,

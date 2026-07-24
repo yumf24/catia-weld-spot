@@ -24,6 +24,7 @@ class WeldParams(BaseModel):
     # review/layout spacing above.  It must never erase valid 2-D coverage
     # points merely because they are near one another.
     coincident_merge_tolerance_mm: float = 0.05
+    candidate_budget_target: int = 600
     min_face_width_mm: float = 5.0       # minimum overlap width to be weldable
 
     def as_dict(self) -> dict:

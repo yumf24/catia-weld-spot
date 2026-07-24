@@ -237,7 +237,7 @@
       "id": "PW06B_add_interface_balanced_geometry_budget",
       "priority": 7,
       "depends_on": ["PW06A_restore_exact_coverage_semantics_and_attribution"],
-      "pass": false,
+      "pass": true,
       "goal": "以仅依赖生产几何的接口均衡最远点预算器输出 600 个可审计候选，保留接口广度而不读取真值。",
       "changes": [
         "新增 candidate_budget_target=600；先为每个有效物理接口保留代表站点，再按当前接口分配最少优先、接口内最远点补样。",

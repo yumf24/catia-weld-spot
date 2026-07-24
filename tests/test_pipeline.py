@@ -161,3 +161,6 @@ def test_cli_uses_registered_exact_regions_for_generic_selection(tmp_path):
     assert len(output["candidates"]) > 4
     audit = json.loads((run_dir / "coverage_layout_audit.json").read_text(encoding="utf-8"))
     assert audit["interfaces"][0]["interface_id"] == region.id
+    budget = json.loads((run_dir / "candidate_budget_audit.json").read_text(encoding="utf-8"))
+    assert budget["selected_count"] == len(output["candidates"])
+    assert {row["status"] for row in budget["stations"]} == {"selected"}

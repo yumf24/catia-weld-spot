@@ -87,6 +87,7 @@ def _layout_registered_exact_regions(run_dir: Path, params: WeldParams):
     """Generate candidates from registered exact regions, never their AABBs."""
 
     from .candidate_merging import safe_merge_candidates
+    from .candidate_budget import select_interface_balanced_candidates
     from .coverage_layout import layout_exact_region, read_exact_region
     from .multilayer_candidates import aggregate_multilayer_candidates
 
@@ -120,6 +121,7 @@ def _layout_registered_exact_regions(run_dir: Path, params: WeldParams):
     ]
     candidates, merge_audit = safe_merge_candidates(candidates, params)
     candidates, multilayer_audit = aggregate_multilayer_candidates(candidates, params)
+    candidates, budget_audit = select_interface_balanced_candidates(candidates, params)
     final_candidates = [
         {
             "candidate_id": candidate.id,
@@ -146,7 +148,7 @@ def _layout_registered_exact_regions(run_dir: Path, params: WeldParams):
         "final_candidates": final_candidates,
         "merges": merge_audit,
         "multilayer_groups": multilayer_audit,
-    }
+    }, budget_audit
 
 
 def main(argv: list[str]) -> int:
@@ -159,7 +161,7 @@ def main(argv: list[str]) -> int:
         faces_doc = load_faces(faces_path)
         exact_audit = faces_path.parent / "interface_region_audit.json"
         if faces_path.name == "faces.general-selected.json" and exact_audit.is_file():
-            candidates, layout_audit = _layout_registered_exact_regions(faces_path.parent, WeldParams())
+            candidates, layout_audit, budget_audit = _layout_registered_exact_regions(faces_path.parent, WeldParams())
             candidates.sort(key=lambda candidate: (tuple(sorted(candidate.faces)), candidate.position))
             candidate_ids = {}
             for index, candidate in enumerate(candidates, start=1):
@@ -168,12 +170,18 @@ def main(argv: list[str]) -> int:
                 candidate_ids[original_id] = candidate.id
             for row in layout_audit["final_candidates"]:
                 row["candidate_id"] = candidate_ids[row["candidate_id"]]
+            for row in budget_audit["stations"]:
+                if row["source_candidate_id"] in candidate_ids:
+                    row["candidate_id"] = candidate_ids[row["source_candidate_id"]]
             doc = CandidatesDocument(
                 meta=CandidatesMeta(source=faces_doc.meta.part, params=WeldParams().as_dict()),
                 candidates=candidates,
             )
             (faces_path.parent / "coverage_layout_audit.json").write_text(
                 json.dumps(layout_audit, indent=2, ensure_ascii=False), encoding="utf-8"
+            )
+            (faces_path.parent / "candidate_budget_audit.json").write_text(
+                json.dumps(budget_audit, indent=2, ensure_ascii=False), encoding="utf-8"
             )
         else:
             doc = run(faces_doc)
@@ -186,6 +194,8 @@ def main(argv: list[str]) -> int:
     register_managed_artifact(out_path, "candidates")
     if faces_path.name == "faces.general-selected.json" and (faces_path.parent / "coverage_layout_audit.json").is_file():
         register_managed_artifact(faces_path.parent / "coverage_layout_audit.json", "coverage_layout_audit")
+    if faces_path.name == "faces.general-selected.json" and (faces_path.parent / "candidate_budget_audit.json").is_file():
+        register_managed_artifact(faces_path.parent / "candidate_budget_audit.json", "candidate_budget_audit")
     print(f"wrote {len(doc.candidates)} candidates -> {out_path}")
     return 0
 
