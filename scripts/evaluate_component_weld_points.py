@@ -13,6 +13,7 @@ sys.path.insert(0, str(REPO_ROOT / "src"))
 from extract_ground_truth import extract_ground_truth  # noqa: E402
 from weld_core.component_weld_point_evaluation import (  # noqa: E402
     error_analysis_markdown,
+    enrich_with_planar_adjudication,
     evaluate_component_weld_points,
     evaluation_markdown,
 )
@@ -27,11 +28,21 @@ def _run_dir(value: str) -> Path:
     return path
 
 
+def _latest_run() -> Path:
+    parent = REPO_ROOT / "data" / "component-weld-evaluation"
+    runs = sorted(path for path in parent.iterdir() if path.is_dir() and (path / "manifest.json").is_file())
+    if not runs:
+        raise argparse.ArgumentTypeError("no component-weld-evaluation run exists")
+    return runs[-1]
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("run_dir", type=_run_dir, help="completed candidate run under data/component-weld-evaluation")
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("run_dir", nargs="?", type=_run_dir, help="completed candidate run under data/component-weld-evaluation")
+    group.add_argument("--latest-run", action="store_true")
     args = parser.parse_args(argv)
-    run_dir = args.run_dir.resolve()
+    run_dir = (_latest_run() if args.latest_run else args.run_dir).resolve()
     if run_dir.parent.name != "component-weld-evaluation":
         parser.error("run directory must be directly under data/component-weld-evaluation")
     try:
@@ -40,6 +51,11 @@ def main(argv: list[str]) -> int:
         truth = extract_ground_truth(str(REPO_ROOT / "raw_data" / "component" / "SPOT.step"))
         dump_document(truth, truth_path)
         report, analysis = evaluate_component_weld_points(truth, load_candidates(candidates_path))
+        adjudication_path = run_dir / "planar_truth_adjudication.json"
+        if adjudication_path.is_file():
+            enrich_with_planar_adjudication(
+                report, analysis, json.loads(adjudication_path.read_text(encoding="utf-8")), load_candidates(candidates_path)
+            )
         outputs = {
             "weld_point_evaluation.json": report,
             "weld_point_error_analysis.json": analysis,

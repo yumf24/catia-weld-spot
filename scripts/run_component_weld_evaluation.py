@@ -18,7 +18,7 @@ from weld_core.component_weld_evaluation import create_component_candidate_run  
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run-label", default="candidate", help="managed run label")
+    parser.add_argument("--label", "--run-label", dest="run_label", default="candidate", help="managed run label")
     args = parser.parse_args(argv)
     try:
         run_dir = create_component_candidate_run(args.run_label)

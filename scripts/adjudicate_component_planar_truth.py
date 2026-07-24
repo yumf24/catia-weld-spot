@@ -17,6 +17,14 @@ from weld_core.planar_truth_adjudication import adjudicate_planar_truth, adjudic
 from weld_core.step_geometry import parse_step_faces  # noqa: E402
 
 
+def _latest_run() -> Path:
+    parent = REPO_ROOT / "data" / "component-weld-evaluation"
+    runs = sorted(path for path in parent.iterdir() if path.is_dir() and (path / "manifest.json").is_file())
+    if not runs:
+        raise argparse.ArgumentTypeError("no completed component-weld-evaluation run exists")
+    return runs[-1]
+
+
 def _run_dir(value: str) -> Path:
     path = Path(value).resolve()
     if path.parent.name != "component-weld-evaluation" or not (path / "manifest.json").is_file() or not (path / "candidates.json").is_file():
@@ -26,10 +34,13 @@ def _run_dir(value: str) -> Path:
 
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--run-dir", required=True, type=_run_dir)
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--run-dir", type=_run_dir)
+    group.add_argument("--latest-run", action="store_true")
     args = parser.parse_args(argv)
     try:
-        run_dir = args.run_dir
+        run_dir = _latest_run() if args.latest_run else args.run_dir
+        _run_dir(str(run_dir))
         truth = extract_ground_truth(str(REPO_ROOT / "raw_data" / "component" / "SPOT.step"))
         faces = general_faces_from_step_groups(parse_step_faces(str(REPO_ROOT / "raw_data" / "component" / "component.step")))
         report = adjudicate_planar_truth(truth.points, faces)
@@ -45,7 +56,7 @@ def main(argv: list[str]) -> int:
     except (OSError, RuntimeError, ValueError) as exc:
         print(f"[FAIL] {exc}", file=sys.stderr)
         return 1
-    print(f"[OK] planar truth adjudication -> {args.run_dir}")
+    print(f"[OK] planar truth adjudication -> {run_dir}")
     return 0
 
 

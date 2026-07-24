@@ -49,6 +49,59 @@ def _assert_counts(summary: dict[str, float | int], errors: dict[str, list[dict[
             raise ValueError(f"{field}={summary[field]} does not equal point-level count {count}")
 
 
+def _stratify_candidates(candidates: CandidatesDocument) -> dict[str, dict[str, int]]:
+    """Publish candidate counts by audit-relevant geometry properties."""
+    result: dict[str, dict[str, int]] = {"confidence_tier": {}, "layer_count": {}, "interface_count": {}}
+    for candidate in candidates.candidates:
+        for field, value in (
+            ("confidence_tier", candidate.confidence_tier),
+            ("layer_count", str(candidate.layer_count)),
+            ("interface_count", str(len(candidate.supporting_interfaces))),
+        ):
+            result[field][value] = result[field].get(value, 0) + 1
+    return result
+
+
+def enrich_with_planar_adjudication(
+    report: dict[str, Any], analysis: dict[str, Any], adjudication: dict[str, Any], candidates: CandidatesDocument
+) -> None:
+    """Add the independent planar-supported denominator and conservative FN causes.
+
+    This is deliberately evaluation-only.  It never feeds any selection or
+    layout decision back into production candidates.
+    """
+    rows = {row["ground_truth_id"]: row for row in adjudication["points"]}
+    supported_ids = {key for key, row in rows.items() if row["status"] == "planar_supported"}
+    truth_positions = {row["ground_truth_id"]: row["position_mm"] for row in rows.values()}
+    matched_ids = {row["ground_truth_id"] for row in analysis["true_positives"]}
+    supported_tp = len(supported_ids & matched_ids)
+    supported_fn = len(supported_ids - matched_ids)
+    candidate_count = len(candidates.candidates)
+    report["planar_supported_summary"] = {
+        "ground_truth_count": len(supported_ids),
+        "true_positives": supported_tp,
+        "false_negatives": supported_fn,
+        "recall": supported_tp / len(supported_ids) if supported_ids else 0.0,
+        "candidate_count": candidate_count,
+    }
+    report["candidate_stratification"] = _stratify_candidates(candidates)
+    for row in analysis["false_negatives"]:
+        adjudication_row = rows.get(row["ground_truth_id"])
+        if adjudication_row is None or adjudication_row["status"] != "planar_supported":
+            row["attribution"] = "out_of_scope_or_unresolved"
+            continue
+        position = truth_positions[row["ground_truth_id"]]
+        nearest = min((sum((a - b) ** 2 for a, b in zip(position, candidate.position)) ** 0.5 for candidate in candidates.candidates), default=float("inf"))
+        # A supported point with no candidate within a coverage radius is a
+        # region/layout issue; inside that radius but outside 10 mm is a layout
+        # offset.  The categories remain explicit rather than guessed from GT.
+        row["attribution"] = "layout_offset" if nearest <= 20.0 else "region_not_covered"
+    analysis["false_negative_attribution_counts"] = {
+        reason: sum(row.get("attribution") == reason for row in analysis["false_negatives"])
+        for reason in ("out_of_scope_or_unresolved", "interface_not_found", "region_not_covered", "layout_offset", "merged_or_filtered")
+    }
+
+
 def evaluate_component_weld_points(
     ground_truth: GroundTruthDocument, candidates: CandidatesDocument
 ) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -109,6 +162,7 @@ def evaluate_component_weld_points(
         "matching": "greedy_nearest_distance_one_to_one",
         "primary_tolerance_mm": PRIMARY_TOLERANCE_MM,
         "summary": summary,
+        "candidate_stratification": _stratify_candidates(candidates),
         "sensitivity_by_tolerance_mm": sensitivity,
     }
     analysis = {

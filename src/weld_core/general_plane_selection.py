@@ -391,6 +391,7 @@ def run_registered_general_plane_selection(
     params: GeneralSelectionParams | None = None,
     raw_root: Path | None = None,
     data_root: Path | None = None,
+    run_parent: Path | None = None,
     now: datetime | None = None,
 ) -> Path:
     """Run generic selection from a registered primary STEP and write artifacts.
@@ -414,6 +415,7 @@ def run_registered_general_plane_selection(
             parameters={"general_selection": _params_dict(params)},
             raw_root=raw_root,
             data_root=data_root,
+            run_parent=run_parent,
             input_roles=["primary_model"],
             now=now,
         )

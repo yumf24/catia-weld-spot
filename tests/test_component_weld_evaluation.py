@@ -47,25 +47,23 @@ def test_package_creates_primary_only_completed_managed_run(monkeypatch, tmp_pat
         json.dumps({"part_id": COMPONENT_PART_ID, "inputs": {"primary_model": {"path": "component.step", "sha256": sha256_file(primary), "size_bytes": primary.stat().st_size}, "ground_truth_markers": {"path": "missing.step"}}}),
         encoding="utf-8",
     )
-    monkeypatch.setattr(
-        "weld_core.component_weld_evaluation.create_run",
-        lambda part_id, label, **kwargs: __import__("weld_core.data_layout", fromlist=["create_run"]).create_run(part_id, label, raw_root=raw_root, data_root=tmp_path / "data", run_parent=tmp_path / "data" / "component-weld-evaluation", **{key: value for key, value in kwargs.items() if key != "run_parent"}),
-    )
-    monkeypatch.setattr(
-        "weld_core.component_weld_evaluation.planar_faces_document",
-        lambda _path: planar_faces_document_from_fixture(),
-    )
+    run_dir = tmp_path / "data" / "component-weld-evaluation" / "fixture-candidate"
+    run_dir.mkdir(parents=True)
+    (run_dir / "manifest.json").write_text(json.dumps({"status": "completed", "artifacts": {}}), encoding="utf-8")
+    from weld_core.schema import dump_document
+    dump_document(planar_faces_document_from_fixture(), run_dir / "faces.general-selected.json")
+    (run_dir / "interface_region_audit.json").write_text(json.dumps({"regions": []}), encoding="utf-8")
+    monkeypatch.setattr("weld_core.general_plane_selection.run_registered_general_plane_selection", lambda *args, **kwargs: run_dir)
+    monkeypatch.setattr("weld_core.component_weld_evaluation.pipeline_main", lambda _argv: 0)
 
-    run_dir = create_component_candidate_run("candidate")
+    actual_run_dir = create_component_candidate_run("candidate")
     manifest = json.loads((run_dir / "manifest.json").read_text(encoding="utf-8"))
 
     assert manifest["status"] == "completed"
+    assert actual_run_dir == run_dir
     assert run_dir.parent == tmp_path / "data" / "component-weld-evaluation"
-    assert [entry["role"] for entry in manifest["raw_inputs"]] == ["primary_model"]
     assert manifest["parameters"]["weld_params"] == FROZEN_COMPONENT_WELD_PARAMS.as_dict()
-    assert set(manifest["artifacts"]) == {"faces.planar", "candidates"}
-    assert (run_dir / manifest["artifacts"]["faces.planar"]["path"]).is_file()
-    assert (run_dir / manifest["artifacts"]["candidates"]["path"]).is_file()
+    assert (run_dir / "faces.general-selected.json").is_file()
 
 
 def planar_faces_document_from_fixture():
@@ -94,6 +92,21 @@ def test_point_evaluation_publishes_traceable_counts_and_sensitivity():
     assert report["summary"]["f1"] == 0.5
     assert set(report["sensitivity_by_tolerance_mm"]) == {"5.0", "10.0", "20.0"}
     assert analysis["true_positives"][0]["candidate_faces"] == ["face-a"]
+
+
+def test_point_evaluation_adds_planar_supported_denominator_and_fn_attribution():
+    from weld_core.component_weld_point_evaluation import enrich_with_planar_adjudication
+    from weld_core.schema import Candidate, CandidatesDocument, GroundTruthDocument, GroundTruthPoint
+    truth = GroundTruthDocument(points=[GroundTruthPoint(id="supported", position=(0, 0, 0)), GroundTruthPoint(id="unresolved", position=(100, 0, 0))])
+    candidates = CandidatesDocument(candidates=[Candidate(id="wc", position=(40, 0, 0), faces=["a", "b"], confidence_tier="high")])
+    report, analysis = evaluate_component_weld_points(truth, candidates)
+    enrich_with_planar_adjudication(report, analysis, {"points": [
+        {"ground_truth_id": "supported", "position_mm": [0, 0, 0], "status": "planar_supported"},
+        {"ground_truth_id": "unresolved", "position_mm": [100, 0, 0], "status": "out_of_scope_or_unresolved"},
+    ]}, candidates)
+    assert report["planar_supported_summary"]["ground_truth_count"] == 1
+    assert report["candidate_stratification"]["confidence_tier"] == {"high": 1}
+    assert analysis["false_negative_attribution_counts"]["region_not_covered"] == 1
 
 
 def test_ansa_layers_keep_error_analysis_source_ids():

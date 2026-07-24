@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-07-24 15:50:00 +08:00 - PW06 评测发布链路（验收未通过）
+
+**What changed**
+- component 受管运行改为复用通用精确平面接口选择、BREP 区域和二维布局；新增 `--label`、`--latest-run` 入口及 PW06 验收命令。
+- 离线评测现在发布全量和 `planar_supported` 双分母、候选置信度/层数/接口数分层，以及逐 FN 的保守归因。
+
+**Verification**
+- 完整测试：`.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw06-full`：**143 passed**。
+- 真实 `pw06-planar-optimization` 运行：全量 TP/FP/FN=`80/180/206`；planar-supported=`38/97`（recall `39.18%`）；候选数 `260`。未满足 `recall >= 80%` 及 `500-1000` 候选门槛，PW06 保持 `pass=false`，未宣称通过。
+
+---
+
 ## 2026-07-24 15:35:00 +08:00 - PW05 多层与置信度候选契约
 
 **What changed**

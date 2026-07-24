@@ -18,7 +18,7 @@ from .data_layout import (
     sha256_file,
     update_run_manifest,
 )
-from .pipeline import run
+from .pipeline import main as pipeline_main, run
 from .schema import FaceRecord, FacesDocument, FacesMeta, dump_document
 from .step_geometry import StepFace, parse_step_faces
 
@@ -57,40 +57,22 @@ def _as_face_record(part_name: str, index: int, face: StepFace) -> FaceRecord:
 
 
 def create_component_candidate_run(label: str = "candidate") -> Path:
-    """Create a completed isolated run using only ``component.step``."""
-    run_dir, _manifest = create_run(
+    """Create a completed exact-region candidate run using only ``component.step``."""
+    # The generic selector owns the managed run and reads only primary_model.
+    # Its exact BREP regions are then consumed by the production layout path.
+    from .general_plane_selection import run_registered_general_plane_selection
+
+    run_dir = run_registered_general_plane_selection(
         COMPONENT_PART_ID,
-        label,
-        input_roles=("primary_model",),
+        run_label=label,
         run_parent=COMPONENT_EVALUATION_RUN_ROOT,
-        parameters={"weld_params": FROZEN_COMPONENT_WELD_PARAMS.as_dict()},
     )
     try:
-        primary_step = Path(_manifest["raw_inputs"][0]["path"])
-        faces = planar_faces_document(primary_step)
-        faces_path = run_dir / "faces.planar.json"
-        dump_document(faces, faces_path)
-        register_artifact(
-            run_dir,
-            "faces.planar",
-            faces_path,
-            kind="json",
-            sha256=sha256_file(faces_path),
-            count=len(faces.faces),
-        )
-
-        candidates = run(faces, FROZEN_COMPONENT_WELD_PARAMS)
+        faces_path = run_dir / "faces.general-selected.json"
         candidates_path = run_dir / "candidates.json"
-        dump_document(candidates, candidates_path)
-        register_artifact(
-            run_dir,
-            "candidates",
-            candidates_path,
-            kind="json",
-            sha256=sha256_file(candidates_path),
-            count=len(candidates.candidates),
-        )
-        update_run_manifest(run_dir, status="completed")
+        if pipeline_main([str(faces_path), str(candidates_path)]) != 0:
+            raise RuntimeError("exact planar candidate layout failed")
+        update_run_manifest(run_dir, status="completed", parameters={"weld_params": FROZEN_COMPONENT_WELD_PARAMS.as_dict()})
     except Exception:
         update_run_manifest(run_dir, status="failed")
         raise
