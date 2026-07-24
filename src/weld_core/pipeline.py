@@ -14,6 +14,7 @@ from .config import WeldParams
 from .filtering import filter_candidates
 from .pairing import find_mating_pairs
 from .points import layout_points
+from .production_truth_isolation import assert_production_read_path
 from .region import build_region
 from .schema import (
     CandidatesDocument,
@@ -91,11 +92,15 @@ def _layout_registered_exact_regions(run_dir: Path, params: WeldParams):
     from .coverage_layout import layout_exact_region, read_exact_region
     from .multilayer_candidates import aggregate_multilayer_candidates
 
-    audit_path = run_dir / "interface_region_audit.json"
+    audit_path = assert_production_read_path(run_dir / "interface_region_audit.json")
     audit = json.loads(audit_path.read_text(encoding="utf-8"))
     candidates = []
     layout_audit = []
     for record in audit.get("regions", []):
+        # Exact BREP geometry is production evidence, whereas any truth or
+        # frontier-shaped reference is evaluation-only and must be rejected
+        # before the region reader can open it.
+        assert_production_read_path(record["geometry_ref"])
         region = read_exact_region(record, run_dir)
         laid_out, result = layout_exact_region(region, params)
         for candidate in laid_out:
@@ -158,6 +163,7 @@ def main(argv: list[str]) -> int:
     faces_path = Path(argv[0])
     out_path = Path(argv[1]) if len(argv) > 1 else faces_path.with_name("candidates.json")
     try:
+        faces_path = assert_production_read_path(faces_path)
         faces_doc = load_faces(faces_path)
         exact_audit = faces_path.parent / "interface_region_audit.json"
         if faces_path.name == "faces.general-selected.json" and exact_audit.is_file():

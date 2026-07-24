@@ -54,6 +54,7 @@ test-catia/
 | [一键端到端](#一键端到端) | `scripts/run_full_pipeline.py` | 是 | 激活的 CATIA 文档 + 原始清单 | 一个受管运行目录（可选回写） |
 | [提取真实焊点](#提取真实焊点) | `scripts/extract_ground_truth.py` | 否 | 焊点标记 STEP（如 `raw_data/component/SPOT.step`） | 运行目录内 `ground_truth.json` |
 | [评测候选点](#评测候选点) | `python -m weld_core.evaluate` | 否 | `ground_truth.json` + `candidates.json` | `evaluation.json` |
+| [构建焊点 operating frontier](#构建焊点-operating-frontier) | `scripts/build_operating_frontier.py` | 否 | 已完成候选运行 + 显式评测产物 | `operating_frontier.json/.md` |
 
 ---
 
@@ -413,3 +414,32 @@ python -m weld_core.evaluate data/component/<run-id>/ground_truth.json data/comp
 阈值（法向夹角 ≤5°、面间距 ≤0.1mm、点间距 20~70mm 等，见 `src/weld_core/config.py`）
 产出的候选点位置和真实焊点位置系统性对不上，与"V1 不漏检为先"的目标有明显差距，是否
 调参/改进算法待产品侧决策（见 PLAN.md P5、DEVLOG 2026-07-17）。
+
+---
+
+## 构建焊点 operating frontier
+
+**代码路径**：`scripts/build_operating_frontier.py`
+
+**用途**：在显式离线评测阶段发布固定候选顺序的每个非空前缀 `K`。报告同时保留全量
+286 真值的 TP/FP/FN、precision/recall 与距离统计，以及 planar-supported 子集的 TP/FN、
+recall 与距离统计；`K*` 仅表示首个达到 80% planar-supported recall 的评测前缀，绝不能写回
+生产预算、阈值或 CATIA 回写。
+
+**前提**：候选运行已经完成，并已由显式评测命令生成 `ground_truth.json` 和
+`planar_truth_adjudication.json`。该命令读取它们是合理的，因为它本身是 evaluation-only；生产
+selector、布局、pipeline 和 CATIA 写回不得调用它或读取其输出。
+
+```bash
+python scripts/build_operating_frontier.py --run-dir data/component-weld-evaluation/<run-id>
+```
+
+输出为运行目录中的 `operating_frontier.json` 和 `operating_frontier.md`。JSON 记录全部前缀、
+Pareto 支配见证和候选 ID 池；只有两个排序的 ID 池完全一致时，才允许在相同 `K` 比较它们的
+precision 或 planar-supported TP。
+
+对于 RW01 冻结的既有观察值，使用不会重放旧输入的历史入口：
+
+```bash
+python scripts/build_operating_frontier.py --run-dir data/component-weld-evaluation/20260724-162131-pw06-planar-optimization --historical-only
+```

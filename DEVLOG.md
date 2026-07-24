@@ -5,6 +5,19 @@
 
 ---
 
+## 2026-07-24 17:41:09 +08:00 - RW01 冻结可变候选数前沿契约
+
+**What changed**
+- 新增仅限 evaluation-only 的 `operating_frontier`：对固定候选顺序的全部非空前缀发布全量/planar-supported 指标、匹配距离、Pareto 支配见证与 K*；同池比较会拒绝不同物理站点集合。
+- 新增 `build_operating_frontier.py --historical-only`，冻结 component 的 K=600（101/499/185、45/97）及 legacy interface-balanced K=800/1000/1628（planar TP=53/57/68）观察值，不重放旧输入。
+- 生产输入新增真值隔离防护；selector、精确区域 pipeline 与 CATIA 回写会拒绝 SPOT、truth/adjudication、frontier 和错误分析文件。端到端受管运行现在只校验/散列 `primary_model`，不会读取 raw manifest 中的焊点标记。
+- 更新 JSON 契约和 CLI：600 点历史预算不再是验收门槛，候选数量只用于离线前沿横轴与人工复核量报告；RW01 标记通过。
+
+**Verification**
+- `.venv\\Scripts\\python -m pytest tests\\test_operating_frontier.py tests\\test_production_truth_isolation.py tests\\test_component_weld_evaluation.py --basetemp .pytest_cache\\rw01-contract`：**19 passed**。
+- `.venv\\Scripts\\python scripts\\build_operating_frontier.py --run-dir data\\component-weld-evaluation\\20260724-162131-pw06-planar-optimization --historical-only`：成功发布冻结前沿，数值与 TODO 一致。
+- `.venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\rw01-full`：**160 passed**。
+
 ## 2026-07-24 16:30:00 +08:00 - PW06 评测发布分层补全（验收未通过）
 
 **What changed**

@@ -157,6 +157,9 @@ def main(argv: list[str]) -> int:
                 "write": args.write,
                 "save_native": args.save_native,
             },
+            # This is a production path.  Even if a raw manifest registers
+            # evaluation markers, do not open or hash them for this run.
+            input_roles=["primary_model"],
         )
     except DataLayoutError as exc:
         parser.error(str(exc))

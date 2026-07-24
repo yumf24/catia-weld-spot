@@ -87,9 +87,9 @@ data/<part-id>/<run-id>/manifest.json
 网格 pitch 为 `sqrt(2) * coverage_radius_mm`（默认 coverage radius=10 mm），并以 OCCT
 face UV 分类逐点确认区域内关系；孔洞、凹口和区域外点不得以投影 AABB 代替。输出同时登记
 `coverage_layout_audit.json`，保留每个接口的生成数、保留数、区域外拒绝数及同物理接口合并审计。
-`coincident_merge_tolerance_mm` 固定登记在该审计的 `parameters` 中，默认是 0.05 mm；它只用于判定空间共点物理站点，绝不能使用 20 mm 的审查/布局间距删除精确二维覆盖点。审计版本 2 额外保留 `original_exact_layout_points`、`physical_stations` 和 `final_candidates`：每条记录包含坐标、来源接口、保留/聚合/排除状态与原因。后续候选预算器如排除站点，必须以 `budget_excluded` 状态保留证据。
+`coincident_merge_tolerance_mm` 固定登记在该审计的 `parameters` 中，默认是 0.05 mm；它只用于判定空间共点物理站点，绝不能使用 20 mm 的审查/布局间距删除精确二维覆盖点。审计版本 2 额外保留 `original_exact_layout_points`、`physical_stations` 和 `final_candidates`：每条记录包含坐标、来源接口、保留/聚合/排除状态与原因。
 
-受管精确布局还会发布 `candidate_budget_audit.json`。预算器只使用候选坐标、精确接口拓扑与通用 `candidate_budget_target`（默认 600）：容量允许时每个有效接口先获得一个代表站点，余量按当前接口最少代表优先并在接口内采用最远点补样。`stations[]` 对候选池的每个物理站点记录来源候选 ID、坐标、支持接口、`selected` 或 `budget_excluded` 状态及原因；候选池不少于目标时 `selected_count` 必须严格等于目标，输入顺序不会改变结果。
+既有受管运行可能包含 `candidate_budget_audit.json`，用于追溯历史 interface-balanced 截断。它不是正式验收输入：不得以 `candidate_count_min`、`candidate_count_max`、`candidate_budget_target` 或 600 点截断判定通过/失败。候选数量只可作为 evaluation-only 前沿横轴和人工复核工作量报告；完整物理站点排序与预算器退役由后续受管版本落实。
 多个空间共点且共享参与零件的接口会聚合为一个物理连接组，输出全部支持接口及实际 `layer_count`；
 仅空间邻近但没有共享零件的接口绝不合并。
 
@@ -196,6 +196,11 @@ score、精确原因和稳定 recovery 状态。它只用显式离线 evaluation
 及其派生的 `ground_truth.json`、评测报告和 ANSA 包均只能在评测阶段读取，不能成为候选生成、
 参数选择或生产 pipeline 的输入。
 
+生产读入口在打开输入前必须拒绝文件名包含 `SPOT`、`ground_truth`、`adjudication`、`frontier`、
+`candidate_chain_atlas` 或 `error_analysis` 的路径。该保护适用于 selector、精确区域布局、pipeline
+和 CATIA 候选回写；它只检查正在打开的文件名，因此同一个受管运行目录可以同时保存 production
+产物和后续的 evaluation-only 报告，而后者不会被生产路径读取。
+
 专用受管输出根目录固定为 `data/component-weld-evaluation/<run-id>/`；不得把该流程的产物写入
 其他零件的运行目录。真实标记必须解析为 **286** 个球心。点集采用逐距离排序的一对一贪心匹配，
 主指标容忍度为 **10 mm**，并同时发布 **5 mm** 与 **20 mm** 的敏感性结果。
@@ -214,6 +219,20 @@ ANSA v24.1.1 包只创建可视化标记：`TP_TRUTH`、`TP_CANDIDATE`、`FP_CAN
 `sensitivity_by_tolerance_mm` 固定包含 5、10、20 mm。逐点错误 JSON 记录 TP 的真值与候选坐标、
 距离和候选 face ID，FN 的真值坐标，以及 FP 的候选坐标和 face ID。每次生成前都会校验三个摘要
 计数分别等于对应逐点分类数组的长度。
+
+### Operating frontier（evaluation-only）
+
+`scripts/build_operating_frontier.py --run-dir <run-dir>` 只在候选运行已经完成、并已显式产生
+`ground_truth.json` 和 `planar_truth_adjudication.json` 后运行。它对固定候选顺序的每一个非空前缀
+`K` 发布 `operating_frontier.json/.md`：全量 286 真值的 TP/FP/FN、precision/recall 和匹配距离统计，
+以及 planar-supported 子集的 TP/FN、recall 和匹配距离统计。JSON 同时记录 Pareto 支配见证，目标为
+最大化 full precision 与 planar-supported recall。
+
+`K*` 是 evaluation-only 的首个 planar-supported TP 达到 `ceil(0.80 * planar_supported_count)` 的前缀。
+它不是生产候选预算、阈值或 CATIA 写回参数。比较两种排序时，必须先验证两份 frontier 的
+`ordering.candidate_ids` 具有相同长度和完全相同的集合，且只能在相同 `K` 上比较；不得把不同候选池
+或不同 K 的 precision 伪装为同规模比较。`--historical-only` 不重放旧输入，只冻结 RW01 的 K=600
+观察值和 legacy interface-balanced 的 K=800/1000/1628 planar TP 证据。
 
 ### 平面真值裁定（evaluation-only）
 

@@ -1,6 +1,6 @@
 {
-  "format_version": 4,
-  "title": "平面焊点候选优化与评测",
+  "format_version": 5,
+  "title": "平面焊点候选排序、Recall–Precision 前沿与受控学习恢复",
   "project": {
     "repository": "ml-pipeline",
     "part_id": "component",
@@ -8,326 +8,384 @@
     "ground_truth_markers": "raw_data/component/SPOT.step",
     "expected_ground_truth_points": 286,
     "run_root": "data/component-weld-evaluation",
-    "scope": "仅自动生成平面焊接关系的候选；曲面、折弯和无法由 CAD 几何自动裁定的真实焊点不从全量统计中删除。",
-    "generalization_boundary": "component 的结果仅为单数据集证据。在独立、未参与阈值设定的零件验证前，不得宣称算法已泛化。"
+    "scope": "生产路径仅生成可由不同零件平面接口支持的焊点候选。曲面、折弯和无法自动裁定的真值不得从全量 286 点观察指标中删除。",
+    "generalization_boundary": "component 是单件回归与目标验收数据。没有独立、未参与训练或阈值选择的装配体证据前，不得宣称跨零件泛化。"
+  },
+  "historical_observations": {
+    "source_run": "data/component-weld-evaluation/20260724-162131-pw06-planar-optimization",
+    "primary_tolerance_mm": 10.0,
+    "candidate_count_600": {
+      "full": {"true_positives": 101, "false_positives": 499, "false_negatives": 185, "precision": 0.16833333333333333, "recall": 0.3531468531468531},
+      "planar_supported": {"ground_truth_count": 97, "true_positives": 45, "false_negatives": 52, "recall": 0.4639175257731959}
+    },
+    "legacy_interface_balanced_counterfactual": {
+      "800": {"full_true_positives": 111, "planar_supported_true_positives": 53, "planar_supported_recall": 0.5463917525773195},
+      "1000": {"full_true_positives": 122, "planar_supported_true_positives": 57, "planar_supported_recall": 0.5876288659793815},
+      "1628": {"full_true_positives": 136, "planar_supported_true_positives": 68, "planar_supported_recall": 0.7010309278350515}
+    },
+    "diagnostic_conclusion": "仅放宽候选数量或沿用 interface-balanced 预算器不足以达到 planar-supported recall 80%；必须先修复候选链路，并提升排序质量。"
   },
   "global_rules": {
     "python": ".venv\\Scripts\\python",
-    "candidate_input_policy": "候选生成只可读取原始 manifest 登记的 primary_model 及通用参数；不得打开、读取、哈希、枚举或依赖 SPOT.step、真值裁定产物、评测产物或真值标签。",
-    "evaluation_policy": "SPOT.step、planar_truth_adjudication 和所有 TP/FP/FN 派生数据均为显式离线评测输入，不能被生产 selector、pipeline、CATIA 写回或候选布局导入。",
-    "planar_scope_policy": "平面支持真值必须由 OCCT 修剪平面面、不同零件接口、正的精确投影公共面积和点位区域关系自动裁定；无法自动证明的点必须标记 out_of_scope_or_unresolved，且继续计入全量观察指标。",
-    "candidate_output_policy": "输出两层和多层平面候选，并以 high、medium、low 置信度分级；低置信度候选不得被静默丢弃。",
-    "acceptance_policy": {
-      "matching": "greedy_nearest_distance_one_to_one",
-      "primary_tolerance_mm": 10.0,
-      "planar_supported_recall_min": 0.8,
-      "candidate_count_min": 500,
-      "candidate_count_max": 1000,
-      "full_ground_truth_reporting": "286 个真值的 TP/FP/FN、precision、recall、F1 必须持续发布；正式平面算法门槛仅应用于自动裁定的 planar_supported 子集。",
-      "precision_policy": "不设精确率硬门槛，但必须按置信度、接口几何和层数分层报告；相较基线的下降必须由新增召回来源和可追溯审计解释。"
+    "candidate_input_policy": "生产 selector、精确区域、布局、站点特征、排序器、pipeline、CATIA 写回和 ANSA 候选导入只能读取原始 manifest 登记的 primary_model、通用配置，以及经 SHA-256 登记的通用推理模型。不得打开、读取、哈希、枚举或依赖 SPOT.step、ground_truth、planar_truth_adjudication、operating_frontier、candidate_chain_atlas 或任何 TP/FP/FN 派生数据。",
+    "evaluation_policy": "SPOT.step、平面真值裁定、训练标签、前沿分析、TP/FP/FN 和 K* 均为显式 evaluation-only 输入。它们不得反馈到生产候选分数、排序、输出顺序、阈值或 CATIA 写回。",
+    "planar_scope_policy": "planar_supported 必须由不同零件、近平行、间隙合格、正的精确 OCCT 投影公共面积及点位精确区域关系自动裁定。无法自动证明的真值保留为 out_of_scope_or_unresolved，并继续计入全量指标。",
+    "ranking_output_policy": "生产输出候选池中全部物理站点，按稳定 rank 升序排列；不设候选数上下限，也不得以 budget 截断。每个候选必须具有 rank、rank_score、confidence_tier、layer_count、supporting_interfaces 和精确区域引用。",
+    "operating_point_policy": {
+      "definition": "K* 仅在离线评测中定义为新排序首个令 planar-supported TP >= 78 且 recall >= 0.80 的候选前缀长度。",
+      "same_pool_comparator": "在相同修复后物理站点池、相同 K 上，以 legacy_interface_balanced 排序作比较基线；不得将不同候选池或不同 K 的 precision 伪装成同规模比较。",
+      "acceptance": "存在 K*；新排序在 K* 的 full precision 不低于 legacy_interface_balanced@K*，且新排序的 planar-supported TP 不低于 legacy_interface_balanced@K*。",
+      "reporting": "必须发布所有有效前缀的 full TP/FP/FN/precision/recall、planar-supported TP/FN/recall、K*、Pareto 关系和候选人工复核量。"
     },
-    "generic_algorithm_policy": "生产结果不得按 part_id、文件名、输入 SHA-256、固定 face ID、真值坐标、真值标签或已知数量改变；所有阈值必须来自通用配置并写入受管 manifest。",
+    "generic_algorithm_policy": "生产行为不得按 part_id、文件名、输入 SHA-256、固定 face ID、零件名、绝对坐标、真值坐标、真值标签或已知数量分支。所有生产参数、特征定义、排序权重和模型版本必须从通用配置读取并写入受管 manifest。",
+    "no_component_truth_tuning_policy": "component 的 SPOT、裁定和前沿只用于最终离线评测。RW06 未通过后，不得以 component 标签搜索、选择或反复调节排序权重；只能进入独立语料监督路线。",
     "completion_policy": [
-      "每个步骤开始时 pass 必须为 false，只有其 strict_tests 全部通过后才能设为 true。",
-      "修改 weld_core 后必须运行完整 pytest；生产模块不得 import pycatia 或 pywin32。",
-      "每个完成步骤都必须在同一提交中更新 DEVLOG.md、本文档的 pass 状态、实现和测试。",
+      "每步开始时 pass 必须为 false；仅在该步全部 strict_tests 通过后才能设为 true。",
+      "修改 weld_core 后必须运行完整 pytest；生产模块严禁 import pycatia 或 pywin32。",
+      "每个完成步骤必须在同一提交中更新 DEVLOG.md、本文档 pass 状态、实现和测试。",
       "提交前必须通过 git diff --check；提交后 git status --short 必须为空。",
-      "如果当前工作区存在不属于本步骤的改动，必须由用户处理或明确隔离；不得暂存、提交、还原或覆盖该改动。"
+      "若工作区存在非本步骤改动，必须由用户处理或明确隔离；不得暂存、提交、还原或覆盖该改动。"
     ]
   },
+  "completion_routes": [
+    {
+      "id": "geometry_only",
+      "terminal_step": "RW06_compare_frontiers_and_run_geometry_only_gate",
+      "condition": "RW06 的 K*、同池 Pareto 和真值隔离验收全部通过。",
+      "then": "RW07 与 RW08 不激活；RW09 可以完成。"
+    },
+    {
+      "id": "supervised_recovery",
+      "activation_condition": "RW06 完成但未找到合格 K*。",
+      "terminal_step": "RW08_train_assembly_disjoint_station_ranker",
+      "condition": "RW07 训练语料合同已通过，RW08 的独立验证与 component 最终 K* 均通过。",
+      "then": "RW09 可以完成。"
+    }
+  ],
   "steps": [
     {
-      "id": "PW01_freeze_planar_optimization_contract",
+      "id": "RW01_freeze_variable_count_contract_and_frontier_baseline",
       "priority": 1,
       "depends_on": [],
       "pass": true,
-      "goal": "冻结平面候选优化的输入隔离、自动真值裁定、分级输出和验收口径，建立可复现的实现基线。",
+      "goal": "以完整排序候选与 evaluation-only 前缀 K* 替换固定候选预算，并冻结可复现的历史与同池比较基线。",
+      "outputs": ["operating_frontier.json", "operating_frontier.md", "更新后的 JSON 契约与验收检查入口"],
       "changes": [
-        "在 JSON 契约和评测入口中明确 component.step 是候选生成唯一 CAD 输入，SPOT.step 与裁定结果严格限制为 evaluation_only。",
-        "冻结全量 286 点持续报告，以及 planar_supported 子集在 10 mm 下 recall >= 80%、候选数 500-1000 的首轮验收门槛。",
-        "冻结仅平面范围、两层与多层接口、high/medium/low 分级输出、无 component 特例和无真值泄漏的生产约束。",
-        "记录当前 component 基线 TP/FP/FN=69/130/217、10 mm recall=24.13%、precision=34.67%，仅作优化比较基准。"
+        "将 candidate_count_min、candidate_count_max、candidate_budget_target 及任何生产 600 点截断从正式验收中移除；候选数量仅作为前沿横轴和人工复核量报告。",
+        "新增 evaluation-only operating frontier：对排序的每个有效前缀 K 发布全量 286 点和 planar-supported 子集的指标、候选数、匹配距离及 Pareto 关系。",
+        "固定历史观察值：K=600 时全量 TP/FP/FN=101/499/185、planar-supported=45/97；旧 interface-balanced 排序在 K=800/1000/1628 时 planar TP=53/57/68。",
+        "冻结同池比较规则：RW05 生成的物理站点池必须分别经过 legacy_interface_balanced 与新排序；两个曲线只在相同 K 和相同池上比较。",
+        "新增生产真值隔离测试，生产运行中任何 SPOT、ground_truth、adjudication、frontier 或错误分析文件访问均立即失败。"
       ],
       "strict_tests": [
         {
           "command": ".venv\\Scripts\\python -m json.tool docs\\TODO.json > NUL",
           "expect_exit_code": 0,
-          "assertions": ["TODO.json 是有效 JSON，PW01-PW07 全部存在且初始 pass=false。"]
+          "assertions": ["TODO.json 为有效 JSON，format_version=5，所有 RW01-RW09 均存在且初始 pass=false。"]
         },
         {
-          "command": ".venv\\Scripts\\python -m pytest tests\\test_component_weld_evaluation.py tests\\test_evaluate.py --basetemp .pytest_cache\\pw01-baseline",
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_operating_frontier.py tests\\test_production_truth_isolation.py tests\\test_component_weld_evaluation.py --basetemp .pytest_cache\\rw01-contract",
           "expect_exit_code": 0,
-          "assertions": ["当前候选和离线评测基线可重放。"]
+          "assertions": ["前缀指标、K* 定义、同池比较和生产真值隔离均有单元覆盖。"]
         },
         {
-          "command": "rg -n \"SPOT[.]step|ground_truth|planar_truth_adjudication\" src\\weld_core\\pipeline.py src\\weld_core\\pairing.py src\\weld_core\\region.py src\\weld_core\\points.py catia",
-          "expect_exit_code": 1,
-          "assertions": ["当前生产候选路径不引用真值输入或裁定产物。"]
+          "command": ".venv\\Scripts\\python scripts\\build_operating_frontier.py --run-dir data\\component-weld-evaluation\\20260724-162131-pw06-planar-optimization --historical-only",
+          "expect_exit_code": 0,
+          "assertions": ["历史运行生成前沿；K=600 和 800/1000/1628 的冻结观察值与本 TODO 一致。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\rw01-full",
+          "expect_exit_code": 0,
+          "assertions": ["完整回归测试通过。"]
         }
       ],
-      "completion_commit": "chore: freeze planar weld optimization contract",
+      "completion_commit": "chore: freeze variable-count weld ranking contract",
       "clean_tree_check": ["git diff --check", "git status --short"],
-      "blocked_by": ["用户未处理的外部工作区改动。"]
+      "blocked_by": []
     },
     {
-      "id": "PW02_add_offline_planar_truth_adjudication",
+      "id": "RW02_publish_causal_candidate_chain_atlas",
       "priority": 2,
-      "depends_on": ["PW01_freeze_planar_optimization_contract"],
-      "pass": true,
-      "goal": "以纯离线 OCCT 几何自动裁定每个真实焊点是否可由平面接口支持，并生成可审计的评测分母。",
+      "depends_on": ["RW01_freeze_variable_count_contract_and_frontier_baseline"],
+      "pass": false,
+      "goal": "以逐真值、逐候选链路证据替代含混 FN 归因，明确每个漏检发生在 selector、区域、布局、排序还是匹配阶段。",
+      "outputs": ["candidate_chain_atlas.json", "candidate_chain_atlas.md"],
       "changes": [
-        "新增 evaluation-only 平面真值裁定模块和命令，显式读取 component.step 与 SPOT.step，输出 planar_truth_adjudication.json/.md。",
-        "对每个真值寻找不同零件、近平行、满足通用间隙限制且具有正精确投影公共面积的修剪平面接口；确认点与接口区域关系后标记 planar_supported。",
-        "对每条记录保留状态、支持面、接口组、layer_count、平面距离、法向夹角、公共面积、点位关系和 out_of_scope_or_unresolved 原因。",
-        "裁定歧义、布尔失败和证据不足必须明确保留为 unresolved，不得猜测或从全量真值删除。"
+        "新增 evaluation-only candidate_chain_atlas；每个 planar-supported 真值必须登记支持接口、selector 决策、精确区域状态、布局样本、物理站点、排序 rank、候选前缀命中情况与匹配关系。",
+        "FN 原因必须互斥且按生产审计证据归类为 selector_rejected:<reason>、region_build_failed、layout_empty、pool_coverage_gap、ranked_after_k、match_collision 或 match_offset。",
+        "删除以任意邻近候选推断接口存在的做法；接口证据必须由 supporting_interfaces、精确区域引用和物理站点来源直接关联。",
+        "发布汇总守恒：planar-supported TP 加全部 planar FN 原因计数必须等于 97；全量 TP/FP/FN 与评测 JSON 必须一致。"
       ],
       "strict_tests": [
         {
-          "command": ".venv\\Scripts\\python -m pytest tests\\test_planar_truth_adjudication.py --basetemp .pytest_cache\\pw02-adjudication",
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_candidate_chain_atlas.py tests\\test_component_weld_point_evaluation.py --basetemp .pytest_cache\\rw02-unit",
           "expect_exit_code": 0,
-          "assertions": ["覆盖平面支持、曲面或无支持接口、公共区域外、多个可行接口歧义和 OCCT 异常。"]
+          "assertions": ["合成夹具覆盖七类因果状态、接口顺序变化、预算排除和一对一碰撞。"]
         },
         {
-          "command": ".venv\\Scripts\\python scripts\\adjudicate_component_planar_truth.py --run-dir data\\component-weld-evaluation\\<candidate-run-id>",
+          "command": ".venv\\Scripts\\python scripts\\build_candidate_chain_atlas.py --run-dir data\\component-weld-evaluation\\20260724-162131-pw06-planar-optimization",
           "expect_exit_code": 0,
-          "assertions": ["生成并登记逐点裁定 JSON/Markdown；286 条原始真值均有状态和原因。"]
+          "assertions": ["历史 52 个 planar FN 被精确拆为 selector 低覆盖拒绝 11、layout_empty 8、budget/rank 排除 21、match_offset 4、pool_coverage_gap 8；不存在模糊 interface_not_found。"]
         },
         {
-          "command": "rg -n \"planar_truth_adjudication|SPOT[.]step|ground_truth\" src\\weld_core\\pipeline.py src\\weld_core\\pairing.py src\\weld_core\\region.py src\\weld_core\\points.py catia",
-          "expect_exit_code": 1,
-          "assertions": ["候选生产路径未导入真值裁定或真值文件。"]
-        },
-        {
-          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw02-full",
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\rw02-full",
           "expect_exit_code": 0,
           "assertions": ["完整回归测试通过。"]
         }
       ],
-      "completion_commit": "feat: add offline planar truth adjudication",
+      "completion_commit": "feat: publish causal weld candidate chain atlas",
       "clean_tree_check": ["git diff --check", "git status --short"],
-      "blocked_by": ["PW01 未通过。"]
+      "blocked_by": ["RW01 未通过。"]
     },
     {
-      "id": "PW03_build_exact_planar_interface_regions",
+      "id": "RW03_repair_exact_region_layout_and_pool_certificate",
       "priority": 3,
-      "depends_on": ["PW02_add_offline_planar_truth_adjudication"],
-      "pass": true,
-      "goal": "建立由精确修剪 CAD 公共区域驱动的通用平面接口和区域审计，消除 AABB 被误用为接受条件的路径。",
+      "depends_on": ["RW02_publish_causal_candidate_chain_atlas"],
+      "pass": false,
+      "goal": "使每个有效精确区域通过其原生 BREP 表面可靠生成布局池，并对预算前覆盖能力提供可审计证书。",
+      "outputs": ["升级的 coverage_layout_audit.json", "每接口布局覆盖证书", "明确的 layout_failed 证据"],
       "changes": [
-        "保留 AABB 仅作候选对预筛；以 OCCT 投影、布尔公共形状和实际有效宽度决定平面接口是否成立。",
-        "定义并输出 interface/pair 审计：面 ID、零件、角度、间隙、精确公共面积、双方覆盖率、有效宽度、区域几何引用、分数和拒绝原因。",
-        "使下游候选区域引用精确公共区域而非投影 AABB；布尔失败必须成为可追溯拒绝或低置信度原因。",
-        "接口逻辑保持通用，不得按 component 面身份、真值或人工标签分支。"
+        "从精确 BREP 面提取权威表面和参数域；二维采样点必须投影回该表面，再以 native UV trim classifier 验证，不能依赖 STEP 拟合平面原点与 1e-6 mm 距离巧合。",
+        "以确定性自适应最远点策略替代仅靠 cell-centre 网格的覆盖假设；记录采样候选、被拒绝原因、最大证书距离、最大投影误差与边界证据。",
+        "有效正面积区域必须生成至少一个精确区域内站点；如果 BREP 读取、投影或分类失败，必须以 layout_failed 显式登记并使受管运行失败，禁止静默 retained_count=0。",
+        "明确 coverage certificate 仅适用于完整布局池；后续排序前缀只能发布 coverage debt，绝不得声称仍保持逐接口 10 mm 全覆盖。"
       ],
       "strict_tests": [
         {
-          "command": ".venv\\Scripts\\python -m pytest tests\\test_exact_planar_interface_regions.py --basetemp .pytest_cache\\pw03-regions",
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_2d_coverage_layout.py tests\\test_exact_region_layout_certificate.py tests\\test_safe_candidate_merging.py --basetemp .pytest_cache\\rw03-unit",
           "expect_exit_code": 0,
-          "assertions": ["覆盖完整/部分重叠、孔洞、凹口、边接触、点接触、窄条、无重叠、间隙超限和 OCCT 布尔异常。"]
+          "assertions": ["覆盖偏移平面、旋转面、孔洞、凹形、窄条、边界和投影误差；所有输出点均在精确区域内。"]
         },
         {
-          "command": ".venv\\Scripts\\python scripts\\select_general_planes.py component --run-label pw03-interface-audit",
+          "command": ".venv\\Scripts\\python scripts\\run_component_weld_evaluation.py --label rw03-exact-layout; .venv\\Scripts\\python scripts\\check_exact_layout_pool.py --latest-run",
           "expect_exit_code": 0,
-          "assertions": ["受管运行登记 primary_model、精确 pair_audit 和区域审计；运行时未读取 SPOT.step。"]
+          "assertions": ["component 的所有有效精确区域均有布局点；当前五个包含 8 个 planar 真值的零点区域不再为 layout_empty。"]
         },
         {
-          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw03-full",
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\rw03-full",
           "expect_exit_code": 0,
           "assertions": ["完整回归测试通过。"]
         }
       ],
-      "completion_commit": "feat: build exact planar interface regions",
+      "completion_commit": "fix: certify exact planar region layouts",
       "clean_tree_check": ["git diff --check", "git status --short"],
-      "blocked_by": ["PW02 未通过。"]
+      "blocked_by": ["RW02 未通过。"]
     },
     {
-      "id": "PW04_add_2d_coverage_layout_and_safe_merging",
+      "id": "RW04_separate_interface_eligibility_from_face_coverage",
       "priority": 4,
-      "depends_on": ["PW03_build_exact_planar_interface_regions"],
-      "pass": true,
-      "goal": "以精确区域内的二维覆盖布局替代单中心线布局，并以物理接口关系安全合并候选。",
+      "depends_on": ["RW03_repair_exact_region_layout_and_pool_certificate"],
+      "pass": false,
+      "goal": "将单面覆盖率从平面接口的一票否决条件改为可追溯的质量特征，同时保留物理不可信接口的拒绝护栏。",
+      "outputs": ["升级的 pair_audit.json", "升级的 interface_region_audit.json", "接口 evidence profile 与候选 confidence_tier"],
       "changes": [
-        "在精确公共区域内生成二维覆盖网格和边界补点；每个输出点必须被精确区域包含测试验证。",
-        "将布局密度设计为 10 mm 匹配容忍度下的覆盖半径约束，并把布局参数写入候选元数据和 manifest。",
-        "替换跨区域先到先得的全局最小距离过滤：仅合并空间相邻且表示同一物理位置的接口候选，保留所有支持接口和合并关系。",
-        "为布局/合并输出审计，记录原始点、保留点、被合并点、覆盖半径和原因。"
+        "保留当前已接受接口为 legacy 或 strict profile，确保新策略不会删除既有精确区域。",
+        "新增 extended_low_coverage profile：不同零件、法向角 <=0.5 度、平面间隙 <=0.2 mm、精确公共面积 >=100 mm2、有效宽度 >=8 mm 时，即使 min_face_coverage <0.05 也建立区域。",
+        "same_part、法向超限、间隙超限、零面积、公共面积不足和有效宽度不足仍为硬拒绝；低覆盖不是硬拒绝时必须降低 evidence profile 并传递 medium confidence。",
+        "所有 profile、面积、间隙、宽度与覆盖率写入审计和 manifest；禁止使用 component 身份、face ID、零件名、坐标或真值进行恢复。"
       ],
       "strict_tests": [
         {
-          "command": ".venv\\Scripts\\python -m pytest tests\\test_2d_coverage_layout.py tests\\test_safe_candidate_merging.py --basetemp .pytest_cache\\pw04-layout",
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_general_plane_selection_geometry.py tests\\test_general_plane_selection_regression.py tests\\test_interface_eligibility_profiles.py --basetemp .pytest_cache\\rw04-unit",
           "expect_exit_code": 0,
-          "assertions": ["覆盖矩形、窄条、不规则区域、孔洞、边界补点、覆盖半径、相邻独立接口及同一物理点多接口合并。"]
+          "assertions": ["覆盖 low-coverage 大面积接口、面积不足、窄条、超间隙、非平行、同件和旧 accepted 接口不回退。"]
         },
         {
-          "command": ".venv\\Scripts\\python -m pytest tests\\test_pipeline.py tests\\test_filtering.py --basetemp .pytest_cache\\pw04-pipeline",
+          "command": ".venv\\Scripts\\python scripts\\run_component_weld_evaluation.py --label rw04-interface-profiles; .venv\\Scripts\\python scripts\\check_interface_eligibility_profiles.py --latest-run",
           "expect_exit_code": 0,
-          "assertions": ["旧通用输入兼容，且候选均在其精确支持区域内。"]
+          "assertions": ["历史 7 个因 coverage_below_threshold 丢失的真实接口进入候选池；运行时未读取 SPOT。"]
         },
         {
-          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw04-full",
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\rw04-full",
           "expect_exit_code": 0,
           "assertions": ["完整回归测试通过。"]
         }
       ],
-      "completion_commit": "feat: add 2d weld coverage layout",
+      "completion_commit": "feat: profile low-coverage planar interfaces",
       "clean_tree_check": ["git diff --check", "git status --short"],
-      "blocked_by": ["PW03 未通过。"]
+      "blocked_by": ["RW03 未通过。"]
     },
     {
-      "id": "PW05_add_multilayer_and_confidence_candidate_contract",
+      "id": "RW05_rank_all_physical_stations_without_budget_truncation",
       "priority": 5,
-      "depends_on": ["PW04_add_2d_coverage_layout_and_safe_merging"],
-      "pass": true,
-      "goal": "扩展候选契约、可视化和写回链路，使两层、多层和置信度分级均可追溯且向后兼容。",
+      "depends_on": ["RW04_separate_interface_eligibility_from_face_coverage"],
+      "pass": false,
+      "goal": "以仅依赖 primary CAD 的稳定几何排序输出完整物理站点池，替代 interface-balanced 生产截断。",
+      "outputs": ["candidate_ranking_audit.json", "按 rank 排列的 candidates.json", "每接口 coverage debt 审计"],
       "changes": [
-        "为 Candidate 增加 layer_count、supporting_interfaces、confidence_tier 和精确区域/审计引用；保留 faces 和 layer_type 兼容既有消费者。",
-        "把相邻平面接口聚合为物理连接组，正确表达两层、三层及更高层数，不因多层关系重复输出同一物理位置。",
-        "定义 high/medium/low 的通用几何判定依据，并确保低置信度候选仍在候选文件、CATIA 写回和 ANSA 审查中可见。",
-        "更新 JSON 契约、CATIA 写回传递字段、ANSA 分层/颜色和相关测试。"
+        "移除生产路径的 candidate_budget_target 与 select_interface_balanced_candidates 截断；物理共点聚合仍保留，且每个物理站点只能输出一次。",
+        "为每站点计算接口 profile、plane_gap_mm、common_area_mm2、effective_width_mm、min_face_coverage、距精确区域边界 clearance_mm、layer_count 和 supporting_interface_count；不得使用 part ID、绝对坐标或标签。",
+        "冻结无训练数据的 base 分数：0.35*gap + 0.25*log_area + 0.15*width + 0.15*sqrt(min_coverage) + 0.10*profile；gap=max(0,1-gap/1.5)，log_area=min(1,log1p(area)/log1p(2000))，width=min(1,width/30)，profile 为 strict=1、legacy=0.8、extended_low_coverage=0.7。",
+        "冻结全局贪心排序增益：0.65*base + 0.20*spatial_novelty + 0.15*interface_diversity；novelty 为到已排序站点最小距离除以 20 的上限 1，diversity 为支持接口已有站点数的递减函数；无已排序站点时 novelty=1；并列以稳定 candidate ID 打破。",
+        "Candidate 契约新增向后兼容的 rank、rank_score、ranking_features 与 ranking_reason；审计逐站发布分量、最终 rank、支持接口及 coverage debt。"
       ],
       "strict_tests": [
         {
-          "command": ".venv\\Scripts\\python -m pytest tests\\test_multilayer_candidates.py tests\\test_candidate_confidence.py --basetemp .pytest_cache\\pw05-contract",
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_candidate_ranking.py tests\\test_candidate_ranking_audit.py tests\\test_safe_candidate_merging.py tests\\test_multilayer_candidates.py --basetemp .pytest_cache\\rw05-unit",
           "expect_exit_code": 0,
-          "assertions": ["覆盖两层、三层、四层以上、接口聚合、分级稳定性及旧 Candidate JSON 的读取兼容。"]
+          "assertions": ["输入乱序结果稳定；所有物理站点恰好出现一次；多接口共点不重复；旧 Candidate JSON 可读取。"]
         },
         {
-          "command": ".venv\\Scripts\\python -m pytest tests\\test_component_weld_evaluation.py tests\\test_component_weld_ansa_scene.py tests\\test_ansa_portable_review.py --basetemp .pytest_cache\\pw05-visualization",
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_production_truth_isolation.py tests\\test_pipeline.py --basetemp .pytest_cache\\rw05-isolation",
           "expect_exit_code": 0,
-          "assertions": ["CATIA/ANSA 传递和可视化仍可追溯候选面、层数和置信等级。"]
+          "assertions": ["特征、排序与 pipeline 不读取评测数据；候选保持精确区域内并按 rank 递增输出。"]
         },
         {
-          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw05-full",
+          "command": ".venv\\Scripts\\python scripts\\run_component_weld_evaluation.py --label rw05-ranked-full-pool; .venv\\Scripts\\python scripts\\check_candidate_ranking_audit.py --latest-run",
+          "expect_exit_code": 0,
+          "assertions": ["候选数等于完整物理站点池，无生产预算截断；排序审计与 candidates.json 一一对应。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\rw05-full",
           "expect_exit_code": 0,
           "assertions": ["完整回归测试通过。"]
         }
       ],
-      "completion_commit": "feat: add multilayer confidence candidates",
+      "completion_commit": "feat: rank all geometric weld stations",
       "clean_tree_check": ["git diff --check", "git status --short"],
-      "blocked_by": ["PW04 未通过。"]
+      "blocked_by": ["RW04 未通过。"]
     },
     {
-      "id": "PW06A_restore_exact_coverage_semantics_and_attribution",
+      "id": "RW06_compare_frontiers_and_run_geometry_only_gate",
       "priority": 6,
-      "depends_on": ["PW05_add_multilayer_and_confidence_candidate_contract"],
-      "pass": true,
-      "goal": "将物理共点聚合与审查间距解耦，恢复精确二维候选的覆盖语义，并发布由审计证据驱动的 FN 归因。",
+      "depends_on": ["RW05_rank_all_physical_stations_without_budget_truncation"],
+      "pass": false,
+      "goal": "在同一修复后物理站点池上验证新排序的完整 Recall–Precision 前沿，并决定无训练数据路线是否达标。",
+      "outputs": ["operating_frontier.json", "operating_frontier.md", "candidate_chain_atlas.json", "geometry_only_gate.json"],
       "changes": [
-        "新增通用 coincident_merge_tolerance_mm=0.05；只有共享零件且空间共点的候选才能聚合为多层物理连接，20 mm 审查间距不得删除二维布局点。",
-        "记录原始精确布局点、共点物理站点和最终预算候选的来源接口、保留/聚合/排除原因。",
-        "FN 归因包含 out_of_scope_or_unresolved、interface_not_found、region_not_covered、layout_offset、merged_or_filtered 和 budget_excluded；归因仅在离线评测使用裁定与审计。"
+        "对同一完整物理站点池生成两种确定性顺序：legacy_interface_balanced 和 RW05 geometry_ranked；不得让任一排序新增、删除或改变物理站点。",
+        "逐前缀计算全量和 planar-supported 指标，定位新排序首个 planar TP>=78 的 K*；必须输出 K* 前后相邻前缀、对应 TP/FP/FN、precision、recall、距离统计与 Pareto 支配关系。",
+        "在 K* 比较 new 与 legacy：new full precision 必须不低，new planar TP 必须不低；若不存在 K*、同池比较失败或真值隔离失败，本步骤保持 pass=false。",
+        "失败时只发布证据和激活 supervised_recovery 路线；禁止以 component 真值网格搜索、挑选或反复调节 RW05 权重。"
       ],
       "strict_tests": [
         {
-          "command": ".venv\\Scripts\\python -m pytest tests\\test_safe_candidate_merging.py tests\\test_multilayer_candidates.py tests\\test_component_weld_evaluation.py --basetemp .pytest_cache\\pw06a-unit",
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_operating_frontier.py tests\\test_candidate_chain_atlas.py tests\\test_component_weld_evaluation.py --basetemp .pytest_cache\\rw06-unit",
           "expect_exit_code": 0,
-          "assertions": ["14.14 mm 的同接口布局点不被合并；0.05 mm 内共享零件的接口聚合并保留全部支持接口；离线 FN 归因覆盖 budget_excluded。"]
+          "assertions": ["覆盖 K* 存在/不存在、同池比较、前缀守恒、排序 tie、Pareto 支配和 component 标签不回流。"]
         },
         {
-          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw06a-full",
+          "command": ".venv\\Scripts\\python scripts\\run_component_weld_evaluation.py --label rw06-geometry-frontier; .venv\\Scripts\\python scripts\\adjudicate_component_planar_truth.py --latest-run; .venv\\Scripts\\python scripts\\evaluate_component_weld_points.py --latest-run; .venv\\Scripts\\python scripts\\build_operating_frontier.py --latest-run; .venv\\Scripts\\python scripts\\build_candidate_chain_atlas.py --latest-run",
+          "expect_exit_code": 0,
+          "assertions": ["真实运行发布完整新旧前沿、K* 或明确未达标原因、全量与 planar-supported 计数和逐点链路证据。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python scripts\\check_geometry_only_ranking_gate.py --latest-run",
+          "expect_exit_code": 0,
+          "assertions": ["仅当存在 K*、planar-supported recall>=0.80、new full precision>=legacy@K*、new planar TP>=legacy@K* 时返回 0；否则返回非零且保留失败产物。"]
+        },
+        {
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\rw06-full",
           "expect_exit_code": 0,
           "assertions": ["完整回归测试通过。"]
         }
       ],
-      "completion_commit": "fix: restore exact coverage semantics",
+      "completion_commit": "feat: evaluate ranked weld operating frontier",
       "clean_tree_check": ["git diff --check", "git status --short"],
-      "blocked_by": ["PW05 未通过。"]
+      "blocked_by": ["RW05 未通过。", "若 geometry-only gate 未达标，本步骤必须保持 pass=false 并激活 RW07-RW08。"]
     },
     {
-      "id": "PW06B_add_interface_balanced_geometry_budget",
+      "id": "RW07_define_independent_training_corpus_contract",
       "priority": 7,
-      "depends_on": ["PW06A_restore_exact_coverage_semantics_and_attribution"],
-      "pass": true,
-      "goal": "以仅依赖生产几何的接口均衡最远点预算器输出 600 个可审计候选，保留接口广度而不读取真值。",
+      "depends_on": ["RW06_compare_frontiers_and_run_geometry_only_gate"],
+      "activation_condition": "仅当 RW06 已完成但未通过 geometry-only gate 时激活。",
+      "pass": false,
+      "goal": "为不使用 component 标签的监督排序恢复路线建立可验证数据合同、装配体隔离和标签边界。",
+      "outputs": ["训练语料 manifest schema", "dataset_split.json", "station_features.json", "evaluation-only station_labels.json", "训练语料验证报告"],
       "changes": [
-        "新增 candidate_budget_target=600；先为每个有效物理接口保留代表站点，再按当前接口分配最少优先、接口内最远点补样。",
-        "候选预算仅读取精确区域候选、接口拓扑和几何坐标；输入顺序变化不影响结果，候选池足够时严格输出 600 点。",
-        "发布 candidate_budget_audit.json，逐站点记录接口、坐标、选择或 budget_excluded 状态及原因；600 是受限审查预算，不承诺逐接口完整 10 mm 覆盖。"
+        "训练语料必须包含至少 10 个独立装配体，每个具有 primary STEP、同坐标系 SPOT STEP、来源说明和 SHA-256；split 至少为 7 个 train、1 个 validation、2 个 final held-out。",
+        "component 永远不得进入 train、validation、held-out 泛化报告、特征归一化、阈值选择或超参选择；它只保留为最终单件回归。",
+        "station_features 必须完全由 primary CAD 生成；station_labels 只能在 evaluation 路径用 planar-supported 裁定和支持接口一致的 10 mm 匹配构建。多接口歧义和未裁定点不得作为正负训练样本。",
+        "训练 manifest、split、特征版本、标签版本及输入哈希必须受管；任何缺失输入、重叠装配体或 component 泄漏都必须拒绝。"
       ],
       "strict_tests": [
         {
-          "command": ".venv\\Scripts\\python -m pytest tests\\test_candidate_budget.py tests\\test_pipeline.py --basetemp .pytest_cache\\pw06b-budget",
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_training_corpus_contract.py tests\\test_station_feature_contract.py tests\\test_training_truth_isolation.py --basetemp .pytest_cache\\rw07-unit",
           "expect_exit_code": 0,
-          "assertions": ["预算严格输出目标数、每个接口获得种子、接口不被面积独占且输入乱序结果稳定。"]
+          "assertions": ["覆盖数据缺失、哈希错误、split 重叠、component 泄漏、SPOT 进入特征提取、歧义标签排除和最小语料规模。"]
         },
         {
-          "command": ".venv\\Scripts\\python scripts\\run_component_weld_evaluation.py --label pw06b-geometry-budget",
+          "command": ".venv\\Scripts\\python scripts\\validate_weld_training_corpus.py --manifest raw_data\\weld-ranking\\manifest.json",
           "expect_exit_code": 0,
-          "assertions": ["受管生产运行只读 primary_model，登记候选预算审计并输出 600 个候选。"]
+          "assertions": ["仅在语料实际齐备、装配体隔离且 component 不在任何训练角色时通过。"]
         },
         {
-          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw06b-full",
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\rw07-full",
           "expect_exit_code": 0,
           "assertions": ["完整回归测试通过。"]
         }
       ],
-      "completion_commit": "feat: add interface balanced candidate budget",
+      "completion_commit": "feat: define assembly-disjoint weld ranking corpus",
       "clean_tree_check": ["git diff --check", "git status --short"],
-      "blocked_by": ["PW06A 未通过。"]
+      "blocked_by": ["RW06 必须已明确 geometry-only gate 未通过。", "当前未提供至少 10 个独立 CAD+SPOT 装配体，禁止伪造、复制或以 component 替代训练语料。"]
     },
     {
-      "id": "PW06_publish_component_error_attribution_and_regression",
+      "id": "RW08_train_assembly_disjoint_station_ranker",
       "priority": 8,
-      "depends_on": ["PW06B_add_interface_balanced_geometry_budget"],
+      "depends_on": ["RW07_define_independent_training_corpus_contract"],
+      "activation_condition": "RW07 已通过且 RW06 未通过 geometry-only gate。",
       "pass": false,
-      "goal": "发布 component 的双分母评测和逐点错误归因，并以冻结门槛决定本轮优化是否通过。",
+      "goal": "用按装配体隔离的监督数据训练通用站点排序器，并在不读取真值的推理路径上恢复同池 Recall–Precision 前沿。",
+      "outputs": ["受管模型工件", "model_manifest.json", "独立验证前沿", "held-out 评测报告", "component 最终前沿"],
       "changes": [
-        "在受管 component 运行中发布全量 286 真值与 planar_supported 子集的 TP/FP/FN、precision、recall、F1、距离统计和置信等级分层指标。",
-        "将每个 FN 归因为 out_of_scope_or_unresolved、interface_not_found、region_not_covered、layout_offset 或 merged_or_filtered；将每个 FP 按置信等级、接口、间隙、公共面积和层数分层。",
-        "登记候选数、参数、裁定摘要、接口/布局/合并审计和所有评测产物；任何未达标结果都必须保留，且本步骤 pass 保持 false。",
-        "保持 ANSA 的 TP/FP/FN 视觉标记语义，并增加候选置信度与错误归因的可追溯字段。"
+        "固定模型为 HistGradientBoostingClassifier，使用 RW05 的无身份、无绝对坐标站点特征，固定随机种子、特征顺序、训练参数、依赖版本和模型 SHA-256。",
+        "模型训练、特征归一化、模型选择和 score threshold 校准只能使用 train/validation 装配体；final held-out 与 component 在模型冻结后才可评测。",
+        "生产推理只读取 primary CAD 特征和登记模型，输出完整 rank 列表；阈值只能来源于独立 validation，绝不能由 component 的 K* 或 SPOT 导出。",
+        "模型前沿必须相对同池 legacy 排序在 held-out 装配体上不同时降低 planar recall 和同规模 full precision；component 最终仍必须满足 RW06 的 K* 验收。"
       ],
       "strict_tests": [
         {
-          "command": ".venv\\Scripts\\python scripts\\run_component_weld_evaluation.py --label pw06-planar-optimization",
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_station_ranker_training.py tests\\test_station_ranker_inference.py tests\\test_model_manifest.py tests\\test_training_truth_isolation.py --basetemp .pytest_cache\\rw08-unit",
           "expect_exit_code": 0,
-          "assertions": ["仅用 primary_model 创建新的候选受管运行，登记精确接口、二维布局和分级候选。"]
+          "assertions": ["覆盖固定随机种子、可复现模型哈希、特征顺序、component 隔离、无绝对坐标/身份特征和生产推理真值隔离。"]
         },
         {
-          "command": ".venv\\Scripts\\python scripts\\adjudicate_component_planar_truth.py --latest-run; .venv\\Scripts\\python scripts\\evaluate_component_weld_points.py --latest-run",
+          "command": ".venv\\Scripts\\python scripts\\train_station_ranker.py --manifest raw_data\\weld-ranking\\manifest.json; .venv\\Scripts\\python scripts\\evaluate_station_ranker_frontier.py --manifest raw_data\\weld-ranking\\manifest.json --role held_out",
           "expect_exit_code": 0,
-          "assertions": ["发布全量与 planar_supported 双指标、完整逐点归因和分级 FP 报告。"]
+          "assertions": ["训练产物受管，held-out 前沿相对同池 legacy 不同时降低 recall 与同规模 precision。"]
         },
         {
-          "command": ".venv\\Scripts\\python scripts\\check_component_planar_weld_acceptance.py --latest-run",
+          "command": ".venv\\Scripts\\python scripts\\run_component_weld_evaluation.py --label rw08-supervised-frontier; .venv\\Scripts\\python scripts\\adjudicate_component_planar_truth.py --latest-run; .venv\\Scripts\\python scripts\\evaluate_component_weld_points.py --latest-run; .venv\\Scripts\\python scripts\\build_operating_frontier.py --latest-run; .venv\\Scripts\\python scripts\\check_geometry_only_ranking_gate.py --latest-run",
           "expect_exit_code": 0,
-          "assertions": ["planar_supported 子集在 10 mm 下 recall >= 0.80；候选数位于 500-1000；全量 286 点仍被报告。"]
+          "assertions": ["冻结模型在 component 上存在合格 K*，且 component 仅作为最终评测输入。"]
         },
         {
-          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw06-full",
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\rw08-full",
           "expect_exit_code": 0,
           "assertions": ["完整回归测试通过。"]
         }
       ],
-      "completion_commit": "feat: publish planar weld error attribution",
+      "completion_commit": "feat: train assembly-disjoint weld station ranker",
       "clean_tree_check": ["git diff --check", "git status --short"],
-      "blocked_by": ["PW06B 未通过。", "若 candidate_count 或 planar_supported recall 未满足冻结门槛，本步骤必须保持 pass=false。"]
+      "blocked_by": ["RW07 未通过。", "RW06 已通过 geometry-only gate 时本步骤不得激活。"]
     },
     {
-      "id": "PW07_finalize_docs_and_handoff",
+      "id": "RW09_finalize_traceable_handoff",
       "priority": 9,
-      "depends_on": ["PW06_publish_component_error_attribution_and_regression"],
+      "depends_on": ["RW01_freeze_variable_count_contract_and_frontier_baseline", "RW02_publish_causal_candidate_chain_atlas", "RW03_repair_exact_region_layout_and_pool_certificate", "RW04_separate_interface_eligibility_from_face_coverage", "RW05_rank_all_physical_stations_without_budget_truncation"],
+      "completion_condition": "RW06 通过 geometry-only gate，或 RW06 未通过后 RW07 与 RW08 均通过。",
       "pass": false,
-      "goal": "完成契约、CLI、开发记录和交接文档，并明确单数据集结果与泛化边界。",
+      "goal": "完成可追溯交接，明确候选规模来自排序 operating point 而非固定预算，并如实记录是否达到目标及泛化边界。",
+      "outputs": ["更新的 docs/json_contract.md", "更新的 CLI.md", "更新的 DEVLOG.md", "最终 TODO 状态与交接报告"],
       "changes": [
-        "更新 docs/json_contract.md、CLI.md、DEVLOG.md 与本 TODO，说明自动平面真值裁定、精确接口区域、二维布局、安全合并、多层候选、置信等级和双分母评测。",
-        "记录 component 的实际全量/平面支持集指标、候选数量、失败模式和未解决风险；不得选择性隐藏未达标结果。",
-        "明确独立零件必须在未参与阈值设定的条件下验证；在获得该证据前，README、CLI、报告和结论不得使用已泛化表述。",
+        "更新契约、CLI 和开发记录，说明完整排序候选、rank 字段、candidate_ranking_audit、operating_frontier、K*、同池 Pareto 比较、因果链路 atlas 和可选监督模型。",
+        "记录 component 的实际 K*、候选规模、全量和 planar-supported 指标、legacy 对比、失败模式及未解决风险；不得隐藏未达标结果或将 K* 写回生产配置。",
+        "若走 supervised 路线，明确训练/validation/held-out 与 component 的装配体隔离；若无独立语料或几何路线未通过，不得声称 recall 80 已达成。",
         "确认生产路径不依赖真值、所有受管产物可追溯、完整测试通过并完成干净提交。"
       ],
       "strict_tests": [
         {
           "command": ".venv\\Scripts\\python -m json.tool docs\\TODO.json > NUL",
           "expect_exit_code": 0,
-          "assertions": ["TODO.json 有效，PW01-PW07 均为 pass=true。"]
+          "assertions": ["TODO.json 有效；完成状态符合 completion_routes，不要求未激活的监督路线伪通过。"]
         },
         {
-          "command": "rg -n \"SPOT[.]step|ground_truth|planar_truth_adjudication\" src\\weld_core\\pipeline.py src\\weld_core\\pairing.py src\\weld_core\\region.py src\\weld_core\\points.py catia",
-          "expect_exit_code": 1,
-          "assertions": ["生产候选、布局、过滤和 CATIA 写回路径不读取真值或裁定数据。"]
+          "command": ".venv\\Scripts\\python -m pytest tests\\test_production_truth_isolation.py tests\\test_operating_frontier.py --basetemp .pytest_cache\\rw09-contract",
+          "expect_exit_code": 0,
+          "assertions": ["真值隔离、K* evaluation-only 和同池比较契约保持有效。"]
         },
         {
-          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\pw07-full",
+          "command": ".venv\\Scripts\\python -m pytest --basetemp .pytest_cache\\rw09-full",
           "expect_exit_code": 0,
           "assertions": ["完整测试集通过。"]
         },
@@ -342,9 +400,9 @@
           "assertions": ["提交后工作树为空。"]
         }
       ],
-      "completion_commit": "docs: finalize planar weld optimization handoff",
+      "completion_commit": "docs: finalize ranked weld optimization handoff",
       "clean_tree_check": ["git diff --check", "git status --short"],
-      "blocked_by": ["PW06 未通过。", "缺少独立、未参与调参零件时不得声称泛化达标。"]
+      "blocked_by": ["RW01-RW05 任一步未通过。", "RW06 未通过且 RW07-RW08 未完成时不得完成交接。"]
     }
   ]
 }

@@ -48,6 +48,7 @@ from pycatia import catia
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 from weld_core.schema import Candidate, load_candidates  # noqa: E402
+from weld_core.production_truth_isolation import assert_production_read_path  # noqa: E402
 
 COMPONENT_NAME = "Weld_Candidates"
 BODY_NAME = "Weld_Candidates"
@@ -177,7 +178,7 @@ def main() -> int:
     parser.add_argument("candidates_json", type=Path, help="path to candidates.json")
     args = parser.parse_args()
 
-    doc = load_candidates(args.candidates_json)
+    doc = load_candidates(assert_production_read_path(args.candidates_json))
 
     app = catia()
     ad = app.active_document

@@ -402,6 +402,7 @@ def run_registered_general_plane_selection(
     """
 
     from .data_layout import RAW_DATA_ROOT, DATA_ROOT, create_run, load_raw_manifest, update_run_manifest
+    from .production_truth_isolation import assert_production_read_path
     from .step_geometry import parse_step_faces
 
     params = params or GeneralSelectionParams()
@@ -421,7 +422,7 @@ def run_registered_general_plane_selection(
         )
         raw_manifest = load_raw_manifest(part_id, raw_root)
         primary_info = raw_manifest["inputs"]["primary_model"]
-        primary_step = (raw_root / part_id / primary_info["path"]).resolve()
+        primary_step = assert_production_read_path((raw_root / part_id / primary_info["path"]).resolve())
 
         all_faces = general_faces_from_step_groups(parse_step_faces(str(primary_step)))
         result = select_general_planar_faces(all_faces, params)
