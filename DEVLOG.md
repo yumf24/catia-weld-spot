@@ -5,6 +5,18 @@
 
 ---
 
+## 2026-07-24 16:30:00 +08:00 - PW06 评测发布分层补全（验收未通过）
+
+**What changed**
+- 离线 component 点评测新增 FP 接口几何分层：每个 FP 现在发布置信等级、层数、支持接口、`plane_gap_mm` 和精确 `common_area_mm2`；接口间隙从同一受管运行的 `pair_audit.json` 合并，公共面积来自精确区域审计，生产候选路径不读取这些评测数据。
+- 修复真实裁定输出的 `supporting_interfaces` 为结构化证据时的归因崩溃，统一转换为稳定接口 ID；新增覆盖该结构化输入和 FP 几何分层的回归测试。
+
+**Verification**
+- `.venv\\Scripts\\python -m pytest tests\\test_component_weld_evaluation.py tests\\test_component_weld_ansa_scene.py tests\\test_ansa_portable_review.py --basetemp .pytest_cache\\pw06-publication`：**14 passed**。
+- 真实 `pw06-planar-optimization` 运行：600 候选、全量 `TP/FP/FN=101/499/185`，planar-supported `45/97`（recall `46.39%`），发布 655 条 FP 接口几何分层记录。候选数和全量报告达标，但 recall 未达 80%，PW06 保持 `pass=false`。
+
+---
+
 ## 2026-07-24 16:21:00 +08:00 - PW06B 接口均衡几何候选预算
 
 **What changed**

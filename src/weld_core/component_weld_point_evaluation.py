@@ -62,9 +62,53 @@ def _stratify_candidates(candidates: CandidatesDocument) -> dict[str, dict[str, 
     return result
 
 
+def _add_false_positive_interface_stratification(
+    report: dict[str, Any], analysis: dict[str, Any], interface_audit: dict[str, Any] | None,
+) -> None:
+    """Attach evaluation-only interface evidence to every false positive.
+
+    Candidate documents deliberately carry only stable interface IDs.  The
+    geometry measurements belong to the managed interface audit, so joining
+    them here keeps gap/common-area reporting out of the production path.
+    """
+    regions = (interface_audit or {}).get("regions", [])
+    metrics = {row.get("id"): row for row in regions if row.get("id")}
+    rows: list[dict[str, Any]] = []
+    for false_positive in analysis["false_positives"]:
+        interfaces = false_positive.get("candidate_supporting_interfaces", [])
+        evidence = [
+            {
+                "interface_id": interface_id,
+                "plane_gap_mm": metrics.get(interface_id, {}).get("plane_gap_mm"),
+                "common_area_mm2": metrics.get(interface_id, {}).get("common_area_mm2"),
+            }
+            for interface_id in interfaces
+        ]
+        false_positive["interface_geometry"] = evidence
+        for item in evidence or [{"interface_id": None, "plane_gap_mm": None, "common_area_mm2": None}]:
+            rows.append({
+                "candidate_id": false_positive["candidate_id"],
+                "confidence_tier": false_positive["candidate_confidence_tier"],
+                "layer_count": false_positive["candidate_layer_count"],
+                **item,
+            })
+    report["false_positive_stratification"] = {
+        "scope": "offline_evaluation_only",
+        "rows": rows,
+        "count_by_confidence_tier": {
+            tier: sum(row["confidence_tier"] == tier for row in rows)
+            for tier in sorted({row["confidence_tier"] for row in rows})
+        },
+        "count_by_layer_count": {
+            str(count): sum(row["layer_count"] == count for row in rows)
+            for count in sorted({row["layer_count"] for row in rows})
+        },
+    }
+
+
 def enrich_with_planar_adjudication(
     report: dict[str, Any], analysis: dict[str, Any], adjudication: dict[str, Any], candidates: CandidatesDocument,
-    candidate_audit: dict[str, Any] | None = None,
+    candidate_audit: dict[str, Any] | None = None, interface_audit: dict[str, Any] | None = None,
 ) -> None:
     """Add the independent planar-supported denominator and conservative FN causes.
 
@@ -86,6 +130,7 @@ def enrich_with_planar_adjudication(
         "candidate_count": candidate_count,
     }
     report["candidate_stratification"] = _stratify_candidates(candidates)
+    _add_false_positive_interface_stratification(report, analysis, interface_audit)
     audit_points = (candidate_audit or {}).get("original_exact_layout_points", [])
     audit_interfaces = {interface for point in audit_points for interface in point.get("source_interfaces", [])}
     excluded_points = [
@@ -106,7 +151,10 @@ def enrich_with_planar_adjudication(
             row["attribution"] = "out_of_scope_or_unresolved"
             continue
         position = truth_positions[row["ground_truth_id"]]
-        interfaces = set(adjudication_row.get("supporting_interfaces", []))
+        interfaces = {
+            f"{item['face_a_id']}::{item['face_b_id']}" if isinstance(item, dict) else item
+            for item in adjudication_row.get("supporting_interfaces", [])
+        }
         if candidate_audit is not None and interfaces and not interfaces & audit_interfaces:
             row["attribution"] = "interface_not_found"
             continue

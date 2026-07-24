@@ -58,9 +58,20 @@ def main(argv: list[str]) -> int:
             budget_audit_path = run_dir / "candidate_budget_audit.json"
             if budget_audit_path.is_file():
                 candidate_audit["final_candidates"] = json.loads(budget_audit_path.read_text(encoding="utf-8")).get("stations", [])
+            interface_audit_path = run_dir / "interface_region_audit.json"
+            interface_audit = json.loads(interface_audit_path.read_text(encoding="utf-8")) if interface_audit_path.is_file() else None
+            pair_audit_path = run_dir / "pair_audit.json"
+            if interface_audit is not None and pair_audit_path.is_file():
+                pair_gaps = {
+                    row["id"]: row.get("plane_gap_mm")
+                    for row in json.loads(pair_audit_path.read_text(encoding="utf-8")).get("pairs", [])
+                    if row.get("id")
+                }
+                for region in interface_audit.get("regions", []):
+                    region["plane_gap_mm"] = pair_gaps.get(region.get("id"))
             enrich_with_planar_adjudication(
                 report, analysis, json.loads(adjudication_path.read_text(encoding="utf-8")), load_candidates(candidates_path),
-                candidate_audit or None,
+                candidate_audit or None, interface_audit,
             )
         outputs = {
             "weld_point_evaluation.json": report,

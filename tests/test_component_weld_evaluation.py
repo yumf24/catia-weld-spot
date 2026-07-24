@@ -103,10 +103,41 @@ def test_point_evaluation_adds_planar_supported_denominator_and_fn_attribution()
     enrich_with_planar_adjudication(report, analysis, {"points": [
         {"ground_truth_id": "supported", "position_mm": [0, 0, 0], "status": "planar_supported"},
         {"ground_truth_id": "unresolved", "position_mm": [100, 0, 0], "status": "out_of_scope_or_unresolved"},
-    ]}, candidates)
+    ]}, candidates, interface_audit={"regions": [{
+        "id": "a::b", "plane_gap_mm": 0.5, "common_area_mm2": 125.0,
+    }]})
     assert report["planar_supported_summary"]["ground_truth_count"] == 1
     assert report["candidate_stratification"]["confidence_tier"] == {"high": 1}
     assert analysis["false_negative_attribution_counts"]["region_not_covered"] == 1
+    assert report["false_positive_stratification"]["rows"] == [{
+        "candidate_id": "wc", "confidence_tier": "high", "layer_count": 2,
+        "interface_id": None, "plane_gap_mm": None, "common_area_mm2": None,
+    }]
+
+
+def test_point_evaluation_stratifies_false_positives_by_interface_geometry():
+    from weld_core.component_weld_point_evaluation import enrich_with_planar_adjudication
+    from weld_core.schema import Candidate, CandidatesDocument, GroundTruthDocument, GroundTruthPoint
+
+    truth = GroundTruthDocument(points=[GroundTruthPoint(id="supported", position=(0, 0, 0))])
+    candidates = CandidatesDocument(candidates=[Candidate(
+        id="extra", position=(100, 0, 0), faces=["a", "b"], layer_count=3,
+        confidence_tier="low", supporting_interfaces=["a::b"],
+    )])
+    report, analysis = evaluate_component_weld_points(truth, candidates)
+    enrich_with_planar_adjudication(report, analysis, {"points": [{
+        "ground_truth_id": "supported", "position_mm": [0, 0, 0], "status": "planar_supported",
+    }]}, candidates, interface_audit={"regions": [{
+        "id": "a::b", "plane_gap_mm": 0.4, "common_area_mm2": 42.0,
+    }]})
+
+    assert analysis["false_positives"][0]["interface_geometry"] == [{
+        "interface_id": "a::b", "plane_gap_mm": 0.4, "common_area_mm2": 42.0,
+    }]
+    assert report["false_positive_stratification"]["rows"] == [{
+        "candidate_id": "extra", "confidence_tier": "low", "layer_count": 3,
+        "interface_id": "a::b", "plane_gap_mm": 0.4, "common_area_mm2": 42.0,
+    }]
 
 
 def test_point_evaluation_attributes_audited_budget_exclusion():
@@ -124,6 +155,21 @@ def test_point_evaluation_attributes_audited_budget_exclusion():
     }], "final_candidates": [{"position_mm": [0, 0, 0], "status": "budget_excluded"}]})
     assert analysis["false_negatives"][0]["attribution"] == "budget_excluded"
     assert analysis["false_negative_attribution_counts"]["budget_excluded"] == 1
+
+
+def test_point_evaluation_accepts_structured_adjudication_interface_evidence():
+    from weld_core.component_weld_point_evaluation import enrich_with_planar_adjudication
+    from weld_core.schema import Candidate, CandidatesDocument, GroundTruthDocument, GroundTruthPoint
+
+    truth = GroundTruthDocument(points=[GroundTruthPoint(id="supported", position=(0, 0, 0))])
+    candidates = CandidatesDocument(candidates=[Candidate(id="far", position=(100, 0, 0), faces=["a", "b"])])
+    report, analysis = evaluate_component_weld_points(truth, candidates)
+    enrich_with_planar_adjudication(report, analysis, {"points": [{
+        "ground_truth_id": "supported", "position_mm": [0, 0, 0], "status": "planar_supported",
+        "supporting_interfaces": [{"face_a_id": "a", "face_b_id": "b"}],
+    }]}, candidates, {"original_exact_layout_points": []})
+
+    assert analysis["false_negatives"][0]["attribution"] == "interface_not_found"
 
 
 def test_ansa_layers_keep_error_analysis_source_ids():
